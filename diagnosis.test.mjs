@@ -1,0 +1,50 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import vm from 'node:vm';
+import {readFileSync} from 'node:fs';
+const html=readFileSync(new URL('index.html',import.meta.url),'utf8');
+const section=(a,b)=>html.slice(html.indexOf(a),html.indexOf(b,html.indexOf(a)));
+function harness(rpc){
+ const values=new Map();
+ const ctx=vm.createContext({TextEncoder, navigator:{onLine:true}, SUPABASE_URL:'https://test.supabase.co', APP_ENV:'staging', currentUser:{id:'admin',role:'admin'},
+  localStorage:{getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v)},
+  document:{getElementById:()=>null,querySelectorAll:()=>[]},closeEdgePopover(){},showToast(){},
+  sb:{rpc:rpc||(()=>{})},diagramOptState:{}});
+ vm.runInContext(section('const SYMPTOM_LABEL =','/* ============================= STATE')+'\n'+section('/* ============================= PUBLISHED DIAGNOSIS','/* ============================= END PUBLISHED DIAGNOSIS')+'\nglobalThis.api={TREES,validateDiagnosisTree,applyPublishedRows,diagnosisStore,getDiagramDraft,saveDiagram};',ctx);
+ return ctx;
+}
+test('all 42 builtin trees satisfy publication validation, including legitimate retry loops',()=>{
+ const c=harness(); assert.equal(Object.keys(c.api.TREES).length,42);
+ for(const tree of Object.values(c.api.TREES)) c.api.validateDiagnosisTree(tree);
+});
+test('invalid connections, trapped loops and unsupported markup fields are rejected',()=>{
+ const c=harness();
+ const tree={start:'n1',nodes:{n1:{text:'안내',options:[{label:'반복',next:'n1'}]}}};
+ assert.throws(()=>c.api.validateDiagnosisTree(tree),/종료/);
+ tree.nodes.n1.options[0].next='missing';assert.throws(()=>c.api.validateDiagnosisTree(tree),/없는 단계/);
+ tree.nodes.n1.options=[{label:'끝',end:'solved'}];tree.nodes.n1.html='<script>';
+ assert.throws(()=>c.api.validateDiagnosisTree(tree));
+});
+test('published rows are applied atomically on validation failure',()=>{
+ const c=harness(), before=JSON.stringify(c.api.TREES);
+ assert.throws(()=>c.api.applyPublishedRows([{symptom_id:'CAM-1',revision:1,tree:{}}],'server'));
+ assert.equal(JSON.stringify(c.api.TREES),before);
+});
+test('save uses revision comparison and only publishes after server acknowledgement',async()=>{
+ let payload;
+ const c=harness(async(name,args)=>{payload=args;return {data:{symptom_id:args.p_symptom_id,tree:args.p_tree,revision:2}};});
+ const sid=Object.keys(c.api.TREES)[0], original=JSON.stringify(c.api.TREES[sid]);
+ c.api.applyPublishedRows([{symptom_id:sid,revision:1,tree:c.api.TREES[sid]}],'server');
+ const draft=c.api.getDiagramDraft(sid);draft.tree.nodes[draft.tree.start].text+=' 수정';draft.dirty=true;
+ assert.equal(JSON.stringify(c.api.TREES[sid]),original);
+ await c.api.saveDiagram(sid);assert.equal(payload.p_expected_revision,1);assert.equal(c.api.diagnosisStore.rows[sid].revision,2);assert.equal(draft.dirty,false);
+});
+test('conflicting save preserves published content and local draft',async()=>{
+ const c=harness(async()=>({error:{code:'40001',message:'conflict'}}));
+ const sid=Object.keys(c.api.TREES)[0];c.api.applyPublishedRows([{symptom_id:sid,revision:1,tree:c.api.TREES[sid]}],'server');
+ const original=JSON.stringify(c.api.TREES[sid]);const draft=c.api.getDiagramDraft(sid);draft.tree.nodes[draft.tree.start].text+=' 수정';draft.dirty=true;
+ await c.api.saveDiagram(sid);assert.equal(JSON.stringify(c.api.TREES[sid]),original);assert.equal(draft.dirty,true);
+});
+test('staff cannot invoke editor save',async()=>{
+ let called=false;const c=harness(async()=>{called=true});c.currentUser.role='staff';await c.api.saveDiagram('CAM-1');assert.equal(called,false);
+});

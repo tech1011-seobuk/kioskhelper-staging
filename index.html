@@ -1824,6 +1824,8 @@
   }
   #petBubble.show{ opacity:1; transform:translateX(-50%) translateY(0) scale(1); }
 
+
+.diagram-header{flex-wrap:wrap;gap:8px} #diagramSaveStatus{margin:12px 0;color:var(--accent)} #diagramSaveStatus.save-error{color:#e0a256} .dnode-text{white-space:pre-wrap} button:disabled{opacity:.5;cursor:default}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -1908,7 +1910,7 @@
   </svg>
 </div>
 
-<div id="stagingBanner">🧪 테스트 서버입니다 — 로그인·이용 기록은 운영 사이트와 공유됩니다</div>
+<div id="stagingBanner">🧪 테스트 서버입니다 — 로그인·이용 기록·진단 안내가 운영 사이트와 분리됩니다</div>
 <div class="app">
   <main class="main">
     <div class="topbar">
@@ -1932,6 +1934,7 @@
       </div>
     </div>
     <div class="progress-trail" id="progressTrail"></div>
+    <div id="publishedContentNotice" role="status" hidden style="padding:10px;color:#e0a256;text-align:center"></div>
     <div class="chat-area" id="chatArea"></div>
   </main>
 </div>
@@ -1939,8 +1942,9 @@
 <script>
 /* ============================= AUTH (Supabase) ============================= */
 
-const SUPABASE_URL = 'https://lsetixbyarexggxsihen.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_hbv-ismSGLV_QDHffrT-qA_PK3X81XO';
+const APP_ENV = 'staging';
+const SUPABASE_URL = 'https://mjzhljlhjsbnnxyekmwy.supabase.co';
+const SUPABASE_ANON_KEY = 'sb_publishable_7f69TqsA11Ol_iLitneqEw_ker_V9px';
 let sb = null;
 let sdkLoadFailed = false;
 try {
@@ -1964,9 +1968,11 @@ async function loadProfile(user){
   } catch(err){
     currentUser = { id: user.id, email: user.email, displayName: user.email, role: 'staff', branchName: null };
   }
+  await loadPublishedDiagnosis();
 }
 
 function updateUserInfoBar(){
+  updateDiagnosisNotice();
   const info = document.getElementById('userInfo');
   const logoutBtn = document.getElementById('logoutBtn');
   const adminBtn = document.getElementById('adminDashBtn');
@@ -2052,7 +2058,7 @@ function clearRememberedEmail(){
   try { localStorage.removeItem(REMEMBERED_EMAIL_KEY); } catch(err){}
 }
 
-const OFFLINE_QUEUE_KEY = 'kioskHelperOfflineEvents';
+const OFFLINE_QUEUE_KEY = 'kioskHelperOfflineEvents:staging:' + SUPABASE_URL;
 let offlineQueueTask = Promise.resolve();
 
 // Web Locks serializes updates across tabs; the promise also covers older browsers.
@@ -2593,7 +2599,10 @@ function addRipple(el, evt){
 
 /* ============================= FLOW LOGIC ============================= */
 
-function startSymptom(symptomId){
+async function startSymptom(symptomId){
+  const owner=currentUser?.id, previousState=appState;
+  await loadPublishedDiagnosis();
+  if (!currentUser || currentUser.id !== owner || appState !== previousState) return;
   const tree = TREES[symptomId];
   if(!tree){ return; }
   petSay('symptom');
@@ -2656,7 +2665,7 @@ function buildBubbleInner(stepCounter, step, node){
   return '<div class="step-tag">STEP '+stepCounter+' · '+step.symptomId+'</div>' +
     escapeHtml(node.text) +
     photosHtml +
-    (!photoList.length && node.attachment ? '<div class="attachment-tag">'+node.attachment+'</div>' : '');
+    (!photoList.length && node.attachment ? '<div class="attachment-tag">'+escapeHtml(node.attachment)+'</div>' : '');
 }
 
 /* ---- 음성 읽어주기 (자동 모드) ---- */
@@ -4037,103 +4046,238 @@ function goToAdminDashboard(){
   render();
 }
 
-function goToDiagramEditor(){
-  appState = 'diagramEditor';
-  render();
-}
+/* ============================= PUBLISHED DIAGNOSIS ============================= */
+const BUILTIN_TREES = JSON.parse(JSON.stringify(TREES));
+const DIAGNOSIS_CACHE_KEY = 'kioskHelperPublished:' + SUPABASE_URL;
+const diagnosisStore = { rows: {}, source: 'builtin', online: false, pending: null };
+const diagramDrafts = {};
+let diagramSelectedSid = null;
+let diagramSaving = false;
 
-/* ---- 진단 다이어그램(Mermaid) 생성 ---- */
-function wrapDiagramText(text, width){
-  width = width || 24;
-  const words = text.split(' ');
-  const lines = [];
-  let cur = '';
-  words.forEach(w=>{
-    if ((cur + ' ' + w).trim().length > width) {
-      lines.push(cur);
-      cur = w;
-    } else {
-      cur = (cur + ' ' + w).trim();
+function cloneDiagnosis(value){ return JSON.parse(JSON.stringify(value)); }
+
+function validateDiagnosisTree(tree){
+  const object = value => value && typeof value === 'object' && !Array.isArray(value);
+  const allowed = (value, keys) => Object.keys(value).every(key => keys.includes(key));
+  const text = (value, max, empty = false) => typeof value === 'string' && value.length <= max && (empty || value.trim().length > 0);
+  if (!object(tree) || !allowed(tree, ['start','nodes']) || !object(tree.nodes)
+      || !text(tree.start, 40) || !Object.hasOwn(tree.nodes, tree.start)) throw new Error('시작 단계를 확인해주세요.');
+  const ids = Object.keys(tree.nodes);
+  if (!ids.length || ids.length > 150 || new TextEncoder().encode(JSON.stringify(tree)).length > 250000) throw new Error('안내 크기가 너무 큽니다.');
+  for (const id of ids) {
+    const node = tree.nodes[id];
+    if (!/^[A-Za-z][A-Za-z0-9_]{0,39}$/.test(id) || !object(node) || !allowed(node, ['text','options','attachment'])
+        || !text(node.text, 20000) || !Array.isArray(node.options) || !node.options.length || node.options.length > 12) {
+      throw new Error('STEP ['+id+']의 문구와 선택지를 확인해주세요.');
     }
-  });
-  if (cur) lines.push(cur);
-  return lines.join('<br/>');
+    if (Object.hasOwn(node, 'attachment') && !text(node.attachment, 20000, true)) throw new Error('부가 안내 형식을 확인해주세요.');
+    for (const option of node.options) {
+      if (!object(option) || !allowed(option, ['label','next','jump','end','note','attachment']) || !text(option.label, 500)) throw new Error('선택지 문구를 입력해주세요.');
+      const routes = ['next','jump','end'].filter(key => Object.hasOwn(option, key));
+      if (routes.length !== 1) throw new Error('선택지마다 이동 단계나 종료 결과를 하나 선택해주세요.');
+      if (routes[0] === 'next' && (!text(option.next, 40) || !Object.hasOwn(tree.nodes, option.next))) throw new Error('없는 단계로 연결되어 있습니다.');
+      if (routes[0] === 'jump' && (!text(option.jump, 40) || !Object.hasOwn(BUILTIN_TREES, option.jump))) throw new Error('없는 증상으로 연결되어 있습니다.');
+      if (routes[0] === 'end' && !['solved','escalate','as','info'].includes(option.end)) throw new Error('종료 결과를 확인해주세요.');
+      for (const key of ['note','attachment']) if (Object.hasOwn(option, key) && !text(option[key], 20000, true)) throw new Error('부가 안내 형식을 확인해주세요.');
+    }
+  }
+  const finished = new Set(ids.filter(id => tree.nodes[id].options.some(o => o.end || o.jump)));
+  let changed = true;
+  while (changed) {
+    changed = false;
+    for (const id of ids) if (!finished.has(id) && tree.nodes[id].options.some(o => finished.has(o.next))) {
+      finished.add(id); changed = true;
+    }
+  }
+  if (finished.size !== ids.length) throw new Error('종료로 이어지지 않는 단계가 있습니다.');
+  return tree;
 }
 
-function escDiagramText(text){
-  return String(text).replace(/"/g, "'").replace(/\n/g, ' ');
+function applyPublishedRows(rows, source){
+  const next = {};
+  for (const row of rows) {
+    if (!Object.hasOwn(BUILTIN_TREES, row.symptom_id) || !Number.isInteger(row.revision) || row.revision < 1) throw new Error('저장된 안내 형식을 확인해주세요.');
+    validateDiagnosisTree(row.tree);
+    next[row.symptom_id] = cloneDiagnosis(row);
+  }
+  // All rows are validated before replacing any in-memory tree.
+  for (const sid of Object.keys(BUILTIN_TREES)) TREES[sid] = cloneDiagnosis(next[sid]?.tree || BUILTIN_TREES[sid]);
+  diagnosisStore.rows = next;
+  diagnosisStore.source = rows.length ? source : 'builtin';
 }
 
-function buildMermaidForSymptom(sid, tree){
-  const lines = ['flowchart TD'];
-  const start = tree.start;
-  lines.push('  START(("시작")) --> ' + start);
-  const usedEnd = {};
+function updateDiagnosisNotice(){
+  const notice = document.getElementById('publishedContentNotice');
+  if (!notice) return;
+  notice.hidden = !currentUser || diagnosisStore.online;
+  notice.textContent = diagnosisStore.source === 'cache'
+    ? '최신 안내에 연결할 수 없어, 이 기기에 마지막으로 저장된 안내를 표시합니다.'
+    : '최신 안내에 연결할 수 없어 기본 안내를 표시합니다. 연결 후 다시 확인해주세요.';
+}
 
-  Object.keys(tree.nodes).forEach(nid=>{
-    const node = tree.nodes[nid];
-    const t = escDiagramText(wrapDiagramText(node.text));
-    lines.push('  ' + nid + '["' + t + '"]');
-  });
-
-  Object.keys(tree.nodes).forEach(nid=>{
-    const node = tree.nodes[nid];
-    (node.options||[]).forEach((opt, i)=>{
-      const label = escDiagramText(opt.label||'');
-      if (opt.next) {
-        lines.push('  ' + nid + ' -->|' + label + '| ' + opt.next);
-      } else if (opt.jump) {
-        const jnode = 'JUMP_' + nid + '_' + i;
-        lines.push('  ' + jnode + '(["→ [' + opt.jump + '] 증상으로 이동"])');
-        lines.push('  ' + nid + ' -->|' + label + '| ' + jnode);
-        lines.push('  class ' + jnode + ' jumpNode');
-      } else if (opt.end) {
-        let enode, elabel;
-        if (opt.end === 'solved') { enode='END_SOLVED'; elabel='해결'; }
-        else if (opt.end === 'escalate') { enode='END_ESCALATE'; elabel='담당자 연결'; }
-        else if (opt.end === 'as') { enode='END_AS'; elabel='A/S 필요'; }
-        else { enode='END_'+opt.end.toUpperCase(); elabel=opt.end; }
-        if (!usedEnd[enode]) { lines.push('  ' + enode + '(["' + elabel + '"])'); usedEnd[enode]=true; }
-        lines.push('  ' + nid + ' -->|' + label + '| ' + enode);
-        const note = opt.note || opt.attachment;
-        if (note) {
-          const nnode = 'NOTE_' + nid + '_' + i;
-          lines.push('  ' + nnode + '["📝 ' + escDiagramText(wrapDiagramText(note,30)) + '"]');
-          lines.push('  ' + enode + ' -.- ' + nnode);
-          lines.push('  class ' + nnode + ' noteNode');
-        }
+async function loadPublishedDiagnosis(){
+  if (!sb || !currentUser) return false;
+  if (diagnosisStore.pending) return diagnosisStore.pending;
+  const userId = currentUser.id;
+  const task = (async () => {
+    if (!diagnosisStore.online && !Object.keys(diagnosisStore.rows).length) {
+      try {
+        const cached = JSON.parse(localStorage.getItem(DIAGNOSIS_CACHE_KEY) || 'null');
+        if (Array.isArray(cached)) applyPublishedRows(cached, 'cache');
+      } catch { /* Invalid local copies never become the published source. */ }
+    }
+    try {
+      if (!navigator.onLine) throw new Error('offline');
+      const rows = [];
+      let after = null;
+      for (;;) {
+        let query = sb.from('diagnosis_trees').select('symptom_id,tree,revision,updated_at')
+          .order('symptom_id', { ascending:true }).limit(100);
+        if (after !== null) query = query.gt('symptom_id', after);
+        const { data, error } = await query;
+        if (error) throw error;
+        if (!data || !data.length) break;
+        rows.push(...data);
+        after = data[data.length - 1].symptom_id;
       }
+      if (!currentUser || currentUser.id !== userId) return false;
+      // An incomplete initialization must not silently enable publication.
+      if (rows.length !== Object.keys(BUILTIN_TREES).length) throw new Error('안내 초기 설정이 완료되지 않았습니다.');
+      applyPublishedRows(rows, 'server');
+      diagnosisStore.online = true;
+      try { localStorage.setItem(DIAGNOSIS_CACHE_KEY, JSON.stringify(rows)); } catch { /* Cache is optional. */ }
+      return true;
+    } catch {
+      diagnosisStore.online = false;
+      if (diagnosisStore.source === 'server') diagnosisStore.source = 'cache';
+      return false;
+    } finally { updateDiagnosisNotice(); }
+  })();
+  diagnosisStore.pending = task;
+  try { return await task; } finally { if (diagnosisStore.pending === task) diagnosisStore.pending = null; }
+}
+
+function diagramDraftKey(){ return 'kioskHelperDrafts:' + SUPABASE_URL + ':' + (currentUser?.id || ''); }
+
+function getDiagramDraft(sid){
+  const owner = currentUser?.id;
+  if (diagramDrafts[sid]?.owner === owner && (diagramDrafts[sid].dirty || diagramDrafts[sid].revision === diagnosisStore.rows[sid]?.revision)) return diagramDrafts[sid];
+  const row = diagnosisStore.rows[sid];
+  let draft = { owner, tree:cloneDiagnosis(TREES[sid]), revision:row?.revision || 0, dirty:false };
+  try {
+    const saved = JSON.parse(localStorage.getItem(diagramDraftKey()) || '{}')[sid];
+    if (saved?.tree?.nodes && saved.owner === owner && Number.isInteger(saved.revision)
+        && saved.dirty && Object.keys(saved.tree.nodes).join('|') === Object.keys(TREES[sid].nodes).join('|')) { validateDiagnosisTree(saved.tree); draft = saved; }
+  } catch { /* Start from the published copy if a local draft is unreadable. */ }
+  diagramDrafts[sid] = draft;
+  return draft;
+}
+
+function persistDiagramDrafts(){
+  try {
+    const mine = Object.fromEntries(Object.entries(diagramDrafts).filter(([, d]) => d.owner === currentUser?.id && d.dirty));
+    localStorage.setItem(diagramDraftKey(), JSON.stringify(mine));
+  } catch { showToast('⚠️', '임시 보관 공간이 부족합니다. 저장 버튼으로 반영해주세요.'); }
+}
+
+function captureDiagramDraft(sid){
+  const draft = getDiagramDraft(sid);
+  const tree = cloneDiagnosis(draft.tree);
+  document.querySelectorAll('#diagramCanvas .dnode-text').forEach(element => {
+    tree.nodes[element.dataset.nid].text = element.innerText;
+  });
+  for (const [nid, options] of Object.entries(diagramOptState[sid] || {})) {
+    tree.nodes[nid].options = options.map((option, index) => {
+      const saved = { ...tree.nodes[nid].options[index], label:option.label };
+      delete saved.next; delete saved.end; delete saved.jump;
+      if (option.type === 'next') saved.next = option.target;
+      else if (option.type === 'jump') saved.jump = option.jump;
+      else saved.end = option.type;
+      return saved;
     });
-  });
-
-  lines.push('  classDef default fill:#2c2f38,stroke:#5a5d68,color:#f2ead9,stroke-width:1px');
-  lines.push('  classDef jumpNode fill:#3a3d1c,stroke:#d7e632,color:#d7e632');
-  lines.push('  classDef noteNode fill:#22262e,stroke:#4a4d57,color:#9aa0ac,font-style:italic');
-  if (usedEnd['END_SOLVED']) lines.push('  style END_SOLVED fill:#1c3a24,stroke:#4caf50,color:#8ee29a');
-  if (usedEnd['END_ESCALATE']) lines.push('  style END_ESCALATE fill:#3a2a14,stroke:#e0a256,color:#f0c98a');
-  if (usedEnd['END_AS']) lines.push('  style END_AS fill:#3a1418,stroke:#e07a7a,color:#f2a3a3');
-  lines.push('  style START fill:#d7e632,stroke:#d7e632,color:#1f1f23');
-
-  return lines.join('\n');
+  }
+  draft.dirty = JSON.stringify(tree) !== JSON.stringify(diagnosisStore.rows[sid]?.tree || BUILTIN_TREES[sid]);
+  draft.tree = tree;
+  persistDiagramDrafts();
+  updateDiagramSaveStatus(sid);
+  return draft;
 }
 
-let mermaidLoadPromise = null;
-function ensureMermaidLoaded(){
-  if (window.mermaid) return Promise.resolve();
-  if (mermaidLoadPromise) return mermaidLoadPromise;
-  mermaidLoadPromise = new Promise((resolve, reject)=>{
-    const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js';
-    s.onload = ()=>{ window.mermaid.initialize({ startOnLoad:false, theme:'dark', securityLevel:'loose' }); resolve(); };
-    s.onerror = reject;
-    document.head.appendChild(s);
-  });
-  return mermaidLoadPromise;
+function updateDiagramSaveStatus(sid, message, isError = false){
+  if (diagramSelectedSid !== sid) return;
+  const draft = getDiagramDraft(sid), status = document.getElementById('diagramSaveStatus');
+  if (status) {
+    status.textContent = message || (draft.dirty ? '수정 중 · 아직 안내에 반영되지 않았습니다.' : '저장된 안내입니다.');
+    status.classList.toggle('save-error', isError);
+  }
+  const button = document.getElementById('diagramSaveBtn');
+  if (button) { button.disabled = diagramSaving || !draft.dirty; button.textContent = diagramSaving ? '저장 중...' : '저장하고 적용'; }
 }
 
+async function saveDiagram(sid){
+  if (diagramSaving || !currentUser || currentUser.role !== 'admin') return;
+  const draft = captureDiagramDraft(sid);
+  if (!draft.dirty) return;
+  if (!navigator.onLine) { updateDiagramSaveStatus(sid, '오프라인에서는 반영할 수 없습니다. 수정 내용은 이 기기에 임시 보관했습니다.', true); return; }
+  try { validateDiagnosisTree(draft.tree); }
+  catch(error) { updateDiagramSaveStatus(sid, error.message, true); return; }
+  if (draft.revision < 1) { updateDiagramSaveStatus(sid, '저장 기능에 연결하지 못했습니다. 최신 안내를 다시 불러와주세요.', true); return; }
+  const candidate = cloneDiagnosis(draft.tree), revision = draft.revision, owner = currentUser.id;
+  closeEdgePopover();
+  diagramSaving = true;
+  updateDiagramSaveStatus(sid, '저장 중...');
+  document.querySelectorAll('#diagramCanvas [contenteditable]').forEach(el => { el.contentEditable = 'false'; });
+  try {
+    const { data, error } = await sb.rpc('save_diagnosis_tree', { p_symptom_id:sid, p_tree:candidate, p_expected_revision:revision });
+    if (error) throw error;
+    const row = Array.isArray(data) ? data[0] : data;
+    if (!row || row.symptom_id !== sid || row.revision !== revision + 1) throw new Error('저장 결과를 확인하지 못했습니다. 최신 안내를 다시 불러와주세요.');
+    validateDiagnosisTree(row.tree);
+    if (!currentUser || currentUser.id !== owner) return;
+    diagnosisStore.rows[sid] = cloneDiagnosis(row);
+    TREES[sid] = cloneDiagnosis(row.tree);
+    diagnosisStore.online = true; diagnosisStore.source = 'server';
+    draft.tree = cloneDiagnosis(row.tree); draft.revision = row.revision; draft.dirty = false;
+    persistDiagramDrafts();
+    try { localStorage.setItem(DIAGNOSIS_CACHE_KEY, JSON.stringify(Object.values(diagnosisStore.rows))); } catch {}
+    updateDiagramSaveStatus(sid, APP_ENV === 'staging' ? '저장 완료 · 테스트 사이트에 적용했습니다.' : '저장 완료 · 운영 사이트에 적용했습니다.');
+    updateDiagnosisNotice();
+  } catch(error) {
+    const conflict = error.code === '40001';
+    updateDiagramSaveStatus(sid, conflict
+      ? '다른 관리자가 먼저 저장했습니다. 수정본은 임시 보관했습니다. 복사한 뒤 최신 안내를 불러와 비교해주세요.'
+      : '저장하지 못했습니다. 수정본은 임시 보관했습니다. '+(error.message || '연결을 확인해주세요.'), true);
+  } finally {
+    diagramSaving = false;
+    if (diagramSelectedSid === sid && currentUser?.id === owner) {
+      document.querySelectorAll('#diagramCanvas [contenteditable]').forEach(el => { el.contentEditable = 'true'; });
+      const button = document.getElementById('diagramSaveBtn');
+      if (button) { button.disabled = !draft.dirty; button.textContent = '저장하고 적용'; }
+    }
+  }
+}
+
+async function reloadDiagramPublished(sid){
+  if (diagramSaving) return;
+  const draft = getDiagramDraft(sid);
+  if (draft.dirty && !window.confirm('이 기기의 수정본을 버리고 최신 저장본을 불러올까요? 필요한 내용은 먼저 복사해주세요.')) return;
+  if (!await loadPublishedDiagnosis()) { updateDiagramSaveStatus(sid, '최신 안내를 불러오지 못했습니다. 수정본을 유지합니다.', true); return; }
+  delete diagramDrafts[sid];
+  try { const saved = JSON.parse(localStorage.getItem(diagramDraftKey()) || '{}'); delete saved[sid]; localStorage.setItem(diagramDraftKey(), JSON.stringify(saved)); } catch {}
+  openDiagram(sid);
+}
+/* ============================= END PUBLISHED DIAGNOSIS ============================= */
+
+async function goToDiagramEditor(){
+  if (diagramSaving || currentUser?.role !== 'admin') return;
+  const owner=currentUser.id;
+  await loadPublishedDiagnosis();
+  if (currentUser?.id !== owner) return;
+  appState='diagramEditor'; render();
+}
 async function renderDiagramEditorScreen(){
   const area = document.getElementById('chatArea');
-  document.getElementById('breadcrumb').innerHTML = '진단 다이어그램 (테스트용)';
+  document.getElementById('breadcrumb').innerHTML = '진단 다이어그램 · ' + (APP_ENV === 'staging' ? '테스트' : '운영');
   area.innerHTML = '<div class="diagram-editor-screen">' +
       '<div class="diagram-editor-sidebar">' +
         '<div class="hub-sub" style="margin:0 0 10px;">기기별 증상을 골라주세요.</div>' +
@@ -4207,8 +4351,10 @@ function computeDiagramLayout(tree){
 let diagramOptState = {};
 
 function openDiagram(sid){
+  if (diagramSaving) return;
+  diagramSelectedSid = sid;
   const main = document.getElementById('diagramEditorMain');
-  const tree = TREES[sid];
+  const tree = getDiagramDraft(sid).tree;
   const label = SYMPTOM_LABEL[sid] || '';
   if (!tree) { main.innerHTML = '<div class="admin-empty">이 증상은 아직 트리가 없어요.</div>'; return; }
   const nodeIds = Object.keys(tree.nodes);
@@ -4228,8 +4374,11 @@ function openDiagram(sid){
   main.innerHTML =
     '<div class="diagram-header">' +
       '<h3>'+sid+' · '+escapeHtml(label)+'</h3>' +
+      '<button class="code-actions-single" id="diagramSaveBtn" style="width:auto">저장하고 적용</button>' +
+      '<button class="code-actions-single" id="diagramReloadBtn" style="width:auto">최신 안내 불러오기</button>' +
       '<button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
     '</div>' +
+    '<div id="diagramSaveStatus" role="status" aria-live="polite"></div>' +
     '<div class="diagram-note" style="margin:0 0 12px;">✏️ 박스 안 문구는 클릭해서 바로 고치고, 화살표에 붙은 라벨을 클릭하면 다음 단계나 결과를 바꿀 수 있어요.</div>' +
     '<div class="diagram-canvas-wrap"><div class="diagram-canvas" id="diagramCanvas"><svg class="diagram-svg" id="diagramSvg"></svg></div></div>' +
     '<div class="edge-popover" id="edgePopover" style="display:none;">' +
@@ -4239,6 +4388,7 @@ function openDiagram(sid){
         '<option value="solved">✅ 해결</option>' +
         '<option value="escalate">📞 담당자연결</option>' +
         '<option value="as">🔧 A/S필요</option>' +
+        '<option value="info">ℹ️ 안내 완료</option>' +
       '</select>' +
       '<select class="edge-pop-target" id="edgePopTarget"></select>' +
       '<button id="edgePopClose">확인</button>' +
@@ -4270,8 +4420,8 @@ function openDiagram(sid){
       '<div class="dnode-tag">STEP ['+nid+']'+(nid===tree.start?' <span class="start-badge">시작</span>':'')+'</div>' +
       '<div class="dnode-text" contenteditable="true" data-nid="'+nid+'">'+escapeHtml(node.text)+'</div>';
     canvas.appendChild(box);
-    box.querySelector('.dnode-text').addEventListener('input', ()=> requestAnimationFrame(()=> redrawDiagramLines(sid)));
-    box.querySelector('.dnode-text').addEventListener('blur', ()=> requestAnimationFrame(()=> redrawDiagramLines(sid)));
+    box.querySelector('.dnode-text').addEventListener('input', ()=> { captureDiagramDraft(sid); requestAnimationFrame(()=> redrawDiagramLines(sid)); });
+    box.querySelector('.dnode-text').addEventListener('blur', ()=> { captureDiagramDraft(sid); requestAnimationFrame(()=> redrawDiagramLines(sid)); });
   });
 
   canvas.dataset.endNodesY = '30';
@@ -4280,6 +4430,9 @@ function openDiagram(sid){
 
   requestAnimationFrame(()=> redrawDiagramLines(sid));
 
+  document.getElementById('diagramSaveBtn').onclick = ()=>saveDiagram(sid);
+  document.getElementById('diagramReloadBtn').onclick = ()=>reloadDiagramPublished(sid);
+  updateDiagramSaveStatus(sid);
   document.getElementById('diagramCopyContentBtn').onclick = (e)=> copyDiagramContent(sid, tree, e.currentTarget);
 }
 
@@ -4289,6 +4442,7 @@ function closeEdgePopover(){
 }
 
 function openEdgePopover(sid, nid, optIdx, chipEl){
+  if (diagramSaving) return;
   const pop = document.getElementById('edgePopover');
   const opt = diagramOptState[sid][nid][optIdx];
   const nodeIds = Object.keys(TREES[sid].nodes);
@@ -4311,9 +4465,11 @@ function openEdgePopover(sid, nid, optIdx, chipEl){
   pop.style.display = 'flex';
 
   const commit = ()=>{
+    if (diagramSaving) return;
     opt.label = document.getElementById('edgePopLabel').value.trim();
     opt.type = typeSel.value;
     opt.target = targetSel.value;
+    captureDiagramDraft(sid);
     redrawDiagramLines(sid);
   };
   document.getElementById('edgePopLabel').oninput = commit;
@@ -4497,6 +4653,7 @@ document.addEventListener('click', (e)=>{
     closeEdgePopover();
   }
 });
+
 
 // Bound each read to the initial highest ID, then advance by ID rather than offsets.
 // Continue until empty even if the server returns fewer rows than requested.
@@ -5369,7 +5526,7 @@ function renderChat(){
         : '';
       card.innerHTML = '<div class="end-title">'+meta.icon+' '+meta.label+'</div><div class="end-desc">'+escapeHtml(desc)+'</div>' +
         encourageHtml +
-        (step.endAttachment ? '<div class="attachment-tag">'+step.endAttachment+'</div>' : '');
+        (step.endAttachment ? '<div class="attachment-tag">'+escapeHtml(step.endAttachment)+'</div>' : '');
       inner.appendChild(card);
 
       const actions = document.createElement('div');

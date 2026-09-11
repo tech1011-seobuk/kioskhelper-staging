@@ -22,13 +22,14 @@ function lockManager() {
   let tail = Promise.resolve();
   return { request(_name, fn) { const run = tail.then(fn); tail = run.catch(() => {}); return run; } };
 }
-const queueKey = 'kioskHelperOfflineEvents';
+const projectUrl = html.match(/const SUPABASE_URL = '([^']+)'/)[1];
+const queueKey = html.includes("const APP_ENV = 'staging'") ? 'kioskHelperOfflineEvents:staging:' + projectUrl : 'kioskHelperOfflineEvents';
 const event = (user_id, detail = 'test') => ({ user_id, event_type: 'symptom_click', detail, created_at: '2026-09-10T01:00:00.000Z' });
 function queueHarness(options = {}) {
   const localStorage = options.storage || storage();
   const inserted = [];
   const context = vm.createContext({
-    localStorage, crypto: { randomUUID }, navigator: { onLine: true, ...(options.locks ? { locks: options.locks } : {}) },
+    SUPABASE_URL: projectUrl, localStorage, crypto: { randomUUID }, navigator: { onLine: true, ...(options.locks ? { locks: options.locks } : {}) },
     currentUser: { id: 'A' }, showToast() {}, window: { addEventListener() {} },
     sb: { from(table) { assert.equal(table, 'events'); return { async insert(payload) {
       inserted.push(structuredClone(payload));
