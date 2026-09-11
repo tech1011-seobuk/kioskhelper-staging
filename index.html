@@ -1853,6 +1853,7 @@
 .edge-popover{position:absolute;width:300px;max-width:calc(100vw - 32px);box-sizing:border-box;z-index:100}
 @media(max-width:760px){.diagram-editor-sidebar{width:100%;max-height:190px}.diagram-editor-screen{flex-direction:column}.diagram-editor-main{width:100%;box-sizing:border-box}.chat-area:has(.diagram-editor-screen){padding:12px}.diagram-canvas-wrap{height:65vh;min-height:360px}}
 
+.diagram-add-actions{display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}.diagram-add-actions button{flex:1;background:transparent;color:var(--accent);border:1px dashed var(--border);border-radius:8px;padding:9px 5px;font:inherit;font-size:11px;cursor:pointer}.diagram-add-actions button:hover{border-color:var(--accent)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -4194,7 +4195,7 @@ function getDiagramDraft(sid){
   try {
     const saved = JSON.parse(localStorage.getItem(diagramDraftKey()) || '{}')[sid];
     if (saved?.tree?.nodes && saved.owner === owner && Number.isInteger(saved.revision)
-        && saved.dirty && Object.keys(saved.tree.nodes).join('|') === Object.keys(TREES[sid].nodes).join('|')) { validateDiagnosisTree(saved.tree); draft = saved; }
+        && saved.dirty) { validateDiagnosisTree(saved.tree); draft = saved; }
   } catch { /* Start from the published copy if a local draft is unreadable. */ }
   diagramDrafts[sid] = draft;
   return draft;
@@ -4293,6 +4294,47 @@ async function reloadDiagramPublished(sid){
   try { const saved = JSON.parse(localStorage.getItem(diagramDraftKey()) || '{}'); delete saved[sid]; localStorage.setItem(diagramDraftKey(), JSON.stringify(saved)); } catch {}
   openDiagram(sid);
 }
+
+const diagramAdditionHistory = {};
+function extendDiagnosisTree(tree, nid, kind){
+  const copy=cloneDiagnosis(tree), node=copy.nodes[nid];
+  if(!node) throw new Error('추가할 단계를 찾지 못했습니다.');
+  if(node.options.length>=12) throw new Error('한 단계에는 선택지를 최대 12개까지 추가할 수 있습니다.');
+  if(kind==='step'){
+    if(Object.keys(copy.nodes).length>=150) throw new Error('단계는 최대 150개까지 추가할 수 있습니다.');
+    let index=1;while(Object.hasOwn(copy.nodes,'new'+index))index++;
+    const id='new'+index;
+    copy.nodes[id]={text:'새 안내를 입력해주세요.',options:[{label:'해결되었습니다',end:'solved'}]};
+    node.options.push({label:'동일합니다',next:id});
+  } else node.options.push({label:'해결되었습니다',end:'solved'});
+  return copy;
+}
+function addDiagramItem(sid,nid,kind){
+  if(diagramSaving || currentUser?.role!=='admin')return;
+  const draft=captureDiagramDraft(sid);
+  try{
+    const next=extendDiagnosisTree(draft.tree,nid,kind);
+    const history=diagramAdditionHistory[sid] ||= [];
+    history.push({owner:currentUser.id,tree:cloneDiagnosis(draft.tree)});if(history.length>20)history.shift();
+    draft.tree=next;draft.dirty=true;persistDiagramDrafts();
+    const wrap=document.querySelector('.diagram-canvas-wrap'), scroll={x:wrap.scrollLeft,y:wrap.scrollTop};
+    const zoom=Number(document.getElementById('diagramCanvas').style.zoom||1);
+    openDiagram(sid);setDiagramZoom(zoom);
+    requestAnimationFrame(()=>{
+      const nextWrap=document.querySelector('.diagram-canvas-wrap');nextWrap.scrollLeft=scroll.x;nextWrap.scrollTop=scroll.y;
+      updateDiagramSaveStatus(sid,kind==='step'?'새 단계와 ‘동일합니다’ 연결을 추가했습니다. 문구를 수정한 뒤 저장해주세요.':'‘해결되었습니다’ 선택지를 추가했습니다. 선택지를 눌러 문구와 결과를 바꿀 수 있습니다.');
+    });
+  }catch(error){updateDiagramSaveStatus(sid,error.message,true);}
+}
+function undoDiagramAddition(sid){
+  if(diagramSaving || currentUser?.role!=='admin')return;
+  const history=diagramAdditionHistory[sid], previous=history?.at(-1);
+  if(!previous || previous.owner!==currentUser.id)return;
+  history.pop();const draft=getDiagramDraft(sid);draft.tree=previous.tree;
+  draft.dirty=JSON.stringify(draft.tree)!==JSON.stringify(diagnosisStore.rows[sid]?.tree||BUILTIN_TREES[sid]);
+  persistDiagramDrafts();openDiagram(sid);
+}
+
 /* ============================= END PUBLISHED DIAGNOSIS ============================= */
 
 async function goToDiagramEditor(){
@@ -4407,8 +4449,8 @@ function openDiagram(sid){
       '<button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
     '</div>' +
     '<div id="diagramSaveStatus" role="status" aria-live="polite"></div>' +
-    '<div class="diagram-note" style="margin:0 0 12px;">✏️ 박스 안 문구는 클릭해서 바로 고치고, 카드 아래 선택지를 누르면 연결을 바꿀 수 있어요. 흐름은 왼쪽에서 오른쪽으로 읽습니다.</div>' +
-    '<div class="diagram-toolbar"><button id="diagramListToggle">목록 접기 / 펼치기</button><button id="diagramZoomOut" aria-label="다이어그램 축소">−</button><span id="diagramZoomValue">100%</span><button id="diagramZoomIn" aria-label="다이어그램 확대">＋</button><button id="diagramZoomReset">원래 크기</button><span>가로로 스크롤해 다음 단계를 확인하세요 →</span></div>' +
+    '<div class="diagram-note" style="margin:0 0 12px;">✏️ 박스 안 문구는 클릭해서 바로 고치고, 카드 아래에서 선택지·다음 단계를 추가하고, 선택지를 눌러 문구와 연결을 바꿀 수 있어요. 흐름은 왼쪽에서 오른쪽으로 읽습니다.</div>' +
+    '<div class="diagram-toolbar"><button id="diagramListToggle">목록 접기 / 펼치기</button><button id="diagramZoomOut" aria-label="다이어그램 축소">−</button><span id="diagramZoomValue">100%</span><button id="diagramZoomIn" aria-label="다이어그램 확대">＋</button><button id="diagramZoomReset">원래 크기</button><button id="diagramUndoAddition">최근 추가 취소</button><span>가로로 스크롤해 다음 단계를 확인하세요 →</span></div>' +
     '<div class="diagram-canvas-wrap"><div class="diagram-canvas" id="diagramCanvas"><svg class="diagram-svg" id="diagramSvg"></svg></div></div>' +
     '<div class="edge-popover" id="edgePopover" style="display:none;">' +
       '<input type="text" class="edge-pop-label" id="edgePopLabel" placeholder="선택지 문구">' +
@@ -4463,6 +4505,7 @@ function openDiagram(sid){
   document.getElementById('diagramZoomOut').onclick=()=>setDiagramZoom(Number(canvas.style.zoom||1)-.1);
   document.getElementById('diagramZoomIn').onclick=()=>setDiagramZoom(Number(canvas.style.zoom||1)+.1);
   document.getElementById('diagramZoomReset').onclick=()=>setDiagramZoom(1);
+  const undo=document.getElementById('diagramUndoAddition');undo.disabled=diagramAdditionHistory[sid]?.at(-1)?.owner!==currentUser?.id;undo.onclick=()=>undoDiagramAddition(sid);
   document.getElementById('diagramSaveBtn').onclick = ()=>saveDiagram(sid);
   document.getElementById('diagramReloadBtn').onclick = ()=>reloadDiagramPublished(sid);
   updateDiagramSaveStatus(sid);
@@ -4478,14 +4521,14 @@ function openEdgePopover(sid, nid, optIdx, chipEl){
   if (diagramSaving) return;
   const pop = document.getElementById('edgePopover');
   const opt = diagramOptState[sid][nid][optIdx];
-  const nodeIds = Object.keys(TREES[sid].nodes);
+  const nodeIds = Object.keys(getDiagramDraft(sid).tree.nodes);
   document.getElementById('edgePopLabel').value = opt.label;
   const typeSel = document.getElementById('edgePopType');
   const targetSel = document.getElementById('edgePopTarget');
   typeSel.value = opt.type === 'jump' ? 'next' : opt.type;
   targetSel.innerHTML = nodeIds.map(id=>{
-    const preview = TREES[sid].nodes[id].text.slice(0,18);
-    return '<option value="'+id+'">'+id+' — '+escapeHtml(preview)+(TREES[sid].nodes[id].text.length>18?'…':'')+'</option>';
+    const preview = getDiagramDraft(sid).tree.nodes[id].text.slice(0,18);
+    return '<option value="'+id+'">'+id+' — '+escapeHtml(preview)+(getDiagramDraft(sid).tree.nodes[id].text.length>18?'…':'')+'</option>';
   }).join('');
   targetSel.value = opt.target;
   targetSel.style.display = typeSel.value === 'next' ? 'inline-block' : 'none';
@@ -4536,7 +4579,7 @@ function redrawDiagramLines(sid){
   if (!canvas || !svg || diagramSelectedSid !== sid) return;
   const tree = getDiagramDraft(sid).tree;
   const labels = {solved:'해결', escalate:'담당자 연결', as:'A/S 필요', info:'안내 완료'};
-  canvas.querySelectorAll('.diagram-options, .diagram-column-label').forEach(el=>el.remove());
+  canvas.querySelectorAll('.diagram-options, .diagram-column-label, .diagram-add-actions').forEach(el=>el.remove());
   const positions = computeDiagramLayout(tree);
   const columns = new Map();
   for (const nid of Object.keys(tree.nodes)) {
@@ -4555,6 +4598,12 @@ function redrawDiagramLines(sid){
       else row.onclick=e=>{e.stopPropagation();openEdgePopover(sid,nid,i,row);};
     });
     box.appendChild(options);
+    const actions=document.createElement('div');actions.className='diagram-add-actions';
+    for(const [kind,label] of [['option','＋ 선택지 추가'],['step','＋ 다음 단계 추가']]){
+      const button=document.createElement('button');button.type='button';button.textContent=label;button.setAttribute('aria-label',nid+' '+label);button.disabled=diagramSaving;
+      button.onclick=()=>addDiagramItem(sid,nid,kind);actions.appendChild(button);
+    }
+    box.appendChild(actions);
     const column=positions[nid].x;
     if(!columns.has(column)) columns.set(column,[]);
     columns.get(column).push(nid);

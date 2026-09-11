@@ -48,3 +48,12 @@ test('conflicting save preserves published content and local draft',async()=>{
 test('staff cannot invoke editor save',async()=>{
  let called=false;const c=harness(async()=>{called=true});c.currentUser.role='staff';await c.api.saveDiagram('CAM-1');assert.equal(called,false);
 });
+
+test('adding steps and choices preserves original tree and creates valid unique connections',()=>{
+ const c=harness(),tree=c.api.TREES['CAM-1'],before=JSON.stringify(tree);
+ c.tree=tree;vm.runInContext("globalThis.added=extendDiagnosisTree(tree,tree.start,'step');globalThis.twice=extendDiagnosisTree(added,tree.start,'step');",c);
+ assert.equal(JSON.stringify(tree),before);assert.ok(c.twice.nodes.new1);assert.ok(c.twice.nodes.new2);
+ assert.equal(c.twice.nodes[tree.start].options.at(-1).next,'new2');c.api.validateDiagnosisTree(c.twice);
+ vm.runInContext("globalThis.choice=extendDiagnosisTree(tree,tree.start,'option');",c);
+ assert.equal(c.choice.nodes[tree.start].options.at(-1).label,'해결되었습니다');
+});
