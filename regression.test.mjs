@@ -186,13 +186,14 @@ test('admin fetch propagates page errors instead of showing partial totals', asy
 
 function workerHarness(options = {}) {
   const handlers = {}, removed = [], put = [], matched = [];
+  const cacheName = swSource.match(/const CACHE_NAME = '([^']+)'/)[1];
   let claimed = false, skipped = false;
   const cache = { async addAll() { if (options.installFails) throw new Error('download failed'); }, async add() {},
     async put(key, value) { put.push({ key, value }); }, async match(key) { matched.push(key); return options.cached; } };
   const worker = vm.createContext({ URL, Response, Set, console,
     self: { location: { href: 'https://example.com/KIOSKHELPER/sw.js' }, addEventListener: (type, handler) => { handlers[type] = handler; },
       clients: { async claim() { claimed = true; } }, async skipWaiting() { skipped = true; } },
-    caches: { async open() { return cache; }, async keys() { return ['photoism-helper-v5', 'photoism-helper-v6', 'photoism-helper-staging-v1', 'photoism-helper-staging-v2', 'another-app']; }, async delete(key) { removed.push(key); } },
+    caches: { async open() { return cache; }, async keys() { return ['photoism-helper-v5', cacheName, 'photoism-helper-staging-v1', 'another-app']; }, async delete(key) { removed.push(key); } },
     fetch: options.fetch || (async () => new Response('online')),
   });
   vm.runInContext(swSource, worker);
@@ -203,7 +204,7 @@ test('worker upgrade removes only this environment old cache', async () => {
   const h = workerHarness(); let done;
   h.handlers.activate({ waitUntil: p => { done = p; } });
   await done;
-  const staging = swSource.includes("'photoism-helper-staging-v2'");
+  const staging = /const CACHE_NAME = 'photoism-helper-staging-/.test(swSource);
   assert.deepEqual(h.removed, [staging ? 'photoism-helper-staging-v1' : 'photoism-helper-v5']);
   assert.equal(h.claimed(), true);
 });
