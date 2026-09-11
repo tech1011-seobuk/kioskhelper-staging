@@ -1826,6 +1826,33 @@
 
 
 .diagram-header{flex-wrap:wrap;gap:8px} #diagramSaveStatus{margin:12px 0;color:var(--accent)} #diagramSaveStatus.save-error{color:#e0a256} .dnode-text{white-space:pre-wrap} button:disabled{opacity:.5;cursor:default}
+/* Spacious left-to-right diagnosis editor. */
+.chat-area:has(.diagram-editor-screen){padding:20px 20px 32px;align-items:stretch}
+.diagram-editor-screen{width:100%;max-width:none;gap:16px;box-sizing:border-box}
+.diagram-editor-sidebar{width:210px;box-sizing:border-box;max-height:78vh;padding:12px}
+.diagram-editor-main{min-width:0;padding:18px;position:relative}
+.diagram-editor-screen.hide-list .diagram-editor-sidebar{display:none}
+.diagram-header h3{font-size:17px;flex:1 1 100%}
+.diagram-header .code-actions-single{font-size:12px!important;margin:0!important;padding:9px 14px!important}
+.diagram-header #diagramReloadBtn,.diagram-header #diagramCopyContentBtn{background:var(--panel2);color:var(--text);border:1px solid var(--border)}
+.diagram-toolbar{display:flex;align-items:center;gap:8px;margin:12px 0;flex-wrap:wrap}
+.diagram-toolbar button{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 12px;cursor:pointer;font:inherit;font-size:12px}
+.diagram-toolbar span{font-size:12px;color:var(--muted);min-width:40px;text-align:center}
+.diagram-canvas-wrap{height:calc(100vh - 310px);min-height:420px;max-height:none;background-color:var(--panel);background-image:radial-gradient(#81899625 1px,transparent 1px);background-size:24px 24px}
+.dnode-step{box-sizing:border-box;width:340px;padding:18px;border-radius:14px;box-shadow:0 8px 24px #00000020}
+.dnode-tag{font-size:11px;margin-bottom:12px;letter-spacing:.04em}
+.dnode-text{font-size:14px;line-height:1.7;padding:10px;white-space:pre-wrap;margin-bottom:14px}
+.diagram-options{display:flex;flex-direction:column;gap:8px}
+.diagram-option{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;text-align:left;width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--text);font:inherit;font-size:12px;line-height:1.5;cursor:pointer}
+.diagram-option:hover{border-color:var(--accent)}
+.diagram-option>span:first-child{min-width:0;overflow-wrap:anywhere}
+.diagram-result{font-size:11px;white-space:nowrap;flex-shrink:0;color:var(--muted)}
+.diagram-option[data-kind=solved] .diagram-result{color:#66bf84}
+.diagram-option[data-kind=escalate] .diagram-result,.diagram-option[data-kind=as] .diagram-result{color:#dbaa72}
+.diagram-column-label{position:absolute;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--muted)}
+.edge-popover{position:absolute;width:300px;max-width:calc(100vw - 32px);box-sizing:border-box;z-index:100}
+@media(max-width:760px){.diagram-editor-sidebar{width:100%;max-height:190px}.diagram-editor-screen{flex-direction:column}.diagram-editor-main{width:100%;box-sizing:border-box}.chat-area:has(.diagram-editor-screen){padding:12px}.diagram-canvas-wrap{height:65vh;min-height:360px}}
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -4343,8 +4370,9 @@ function computeDiagramLayout(tree){
   order.forEach(([nid, depth])=>{
     const col = colCounters[depth] || 0;
     colCounters[depth] = col + 1;
-    positions[nid] = { x: 30 + col * 360, y: 30 + depth * 250 };
+    positions[nid] = { x: 40 + depth * 520, y: 90 + col * 400 };
   });
+  for(const nid of Object.keys(tree.nodes)) if(!positions[nid]) positions[nid]={x:40+(Object.keys(colCounters).length)*520,y:90};
   return positions;
 }
 
@@ -4379,7 +4407,8 @@ function openDiagram(sid){
       '<button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
     '</div>' +
     '<div id="diagramSaveStatus" role="status" aria-live="polite"></div>' +
-    '<div class="diagram-note" style="margin:0 0 12px;">✏️ 박스 안 문구는 클릭해서 바로 고치고, 화살표에 붙은 라벨을 클릭하면 다음 단계나 결과를 바꿀 수 있어요.</div>' +
+    '<div class="diagram-note" style="margin:0 0 12px;">✏️ 박스 안 문구는 클릭해서 바로 고치고, 카드 아래 선택지를 누르면 연결을 바꿀 수 있어요. 흐름은 왼쪽에서 오른쪽으로 읽습니다.</div>' +
+    '<div class="diagram-toolbar"><button id="diagramListToggle">목록 접기 / 펼치기</button><button id="diagramZoomOut" aria-label="다이어그램 축소">−</button><span id="diagramZoomValue">100%</span><button id="diagramZoomIn" aria-label="다이어그램 확대">＋</button><button id="diagramZoomReset">원래 크기</button><span>가로로 스크롤해 다음 단계를 확인하세요 →</span></div>' +
     '<div class="diagram-canvas-wrap"><div class="diagram-canvas" id="diagramCanvas"><svg class="diagram-svg" id="diagramSvg"></svg></div></div>' +
     '<div class="edge-popover" id="edgePopover" style="display:none;">' +
       '<input type="text" class="edge-pop-label" id="edgePopLabel" placeholder="선택지 문구">' +
@@ -4430,6 +4459,10 @@ function openDiagram(sid){
 
   requestAnimationFrame(()=> redrawDiagramLines(sid));
 
+  document.getElementById('diagramListToggle').onclick=()=>document.querySelector('.diagram-editor-screen').classList.toggle('hide-list');
+  document.getElementById('diagramZoomOut').onclick=()=>setDiagramZoom(Number(canvas.style.zoom||1)-.1);
+  document.getElementById('diagramZoomIn').onclick=()=>setDiagramZoom(Number(canvas.style.zoom||1)+.1);
+  document.getElementById('diagramZoomReset').onclick=()=>setDiagramZoom(1);
   document.getElementById('diagramSaveBtn').onclick = ()=>saveDiagram(sid);
   document.getElementById('diagramReloadBtn').onclick = ()=>reloadDiagramPublished(sid);
   updateDiagramSaveStatus(sid);
@@ -4457,11 +4490,11 @@ function openEdgePopover(sid, nid, optIdx, chipEl){
   targetSel.value = opt.target;
   targetSel.style.display = typeSel.value === 'next' ? 'inline-block' : 'none';
 
-  const canvasWrap = document.querySelector('.diagram-canvas-wrap');
-  const canvasRect = document.getElementById('diagramCanvas').getBoundingClientRect();
+
   const chipRect = chipEl.getBoundingClientRect();
-  pop.style.left = (chipRect.left - canvasRect.left + canvasWrap.scrollLeft) + 'px';
-  pop.style.top = (chipRect.bottom - canvasRect.top + canvasWrap.scrollTop + 6) + 'px';
+  const mainRect = document.getElementById('diagramEditorMain').getBoundingClientRect();
+  pop.style.left = Math.max(8,Math.min(chipRect.left-mainRect.left,mainRect.width-320)) + 'px';
+  pop.style.top = Math.max(8,Math.min(chipRect.bottom+6,window.innerHeight-270)-mainRect.top) + 'px';
   pop.style.display = 'flex';
 
   const commit = ()=>{
@@ -4500,115 +4533,72 @@ function getOrCreateEndNode(sid, canvas, endType){
 function redrawDiagramLines(sid){
   const canvas = document.getElementById('diagramCanvas');
   const svg = document.getElementById('diagramSvg');
-  if (!canvas || !svg) return;
-  canvas.querySelectorAll('.edge-chip').forEach(c=>c.remove());
-  canvas.querySelectorAll('.dnode-end').forEach(c=>c.remove());
-  canvas.dataset.endNodesY = '30';
-  svg.setAttribute('width', canvas.style.width);
-  svg.setAttribute('height', canvas.style.height);
-  svg.innerHTML = '<defs>' +
-    '<marker id="arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0, 8 4, 0 8" fill="#8a8d97"/></marker>' +
-    '<marker id="arrowhead-start" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0, 8 4, 0 8" fill="#d7e632"/></marker>' +
-    '</defs>';
-
-  function centerOf(el, side){
-    const l = parseFloat(el.style.left) || 0;
-    const t = parseFloat(el.style.top) || 0;
-    const w = el.offsetWidth;
-    const h = el.offsetHeight;
-    if (side === 'top') return { x: l + w/2, y: t };
-    if (side === 'bottom') return { x: l + w/2, y: t + h };
-    if (side === 'left') return { x: l, y: t + h/2 };
-    return { x: l + w, y: t + h/2 };
-  }
-
-  function bezierPoint(p0, p1, p2, p3, t){
-    const mt = 1 - t;
-    const x = mt*mt*mt*p0.x + 3*mt*mt*t*p1.x + 3*mt*t*t*p2.x + t*t*t*p3.x;
-    const y = mt*mt*mt*p0.y + 3*mt*mt*t*p1.y + 3*mt*t*t*p2.y + t*t*t*p3.y;
-    return { x, y };
-  }
-
-  function drawLine(fromEl, toEl, color, marker){
-    if (!fromEl || !toEl) return null;
-    const p1 = centerOf(fromEl, 'bottom');
-    const p2 = centerOf(toEl, 'top');
-    const midY = (p1.y + p2.y) / 2;
-    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
-    const d = 'M '+p1.x+' '+p1.y+' C '+p1.x+' '+midY+', '+p2.x+' '+midY+', '+p2.x+' '+p2.y;
-    path.setAttribute('d', d);
-    path.setAttribute('fill','none');
-    path.setAttribute('stroke', color || '#8a8d97');
-    path.setAttribute('stroke-width','1.6');
-    path.setAttribute('marker-end', 'url(#'+(marker||'arrowhead')+')');
-    svg.appendChild(path);
-    // 라벨은 곡선의 중간이 아니라 출발점 쪽(30%)에 둬서, 도착점이 겹치는 경우에도 서로 덜 겹치게 함
-    const ctrl1 = { x: p1.x, y: midY };
-    const ctrl2 = { x: p2.x, y: midY };
-    return bezierPoint(p1, ctrl1, ctrl2, p2, 0.3);
-  }
-
-  const tree = TREES[sid];
-  const startEl = document.getElementById('dn_START');
-  const firstEl = document.getElementById('dn_' + tree.start);
-  drawLine(startEl, firstEl, '#d7e632', 'arrowhead-start');
-
-  const placedChips = []; // {x, y, w, h}
-  const CHIP_H = 24;
-
-  // 박스들도 장애물로 등록해서 라벨이 박스 위에 겹치지 않게 함
-  canvas.querySelectorAll('.dnode-step, .dnode-start, .dnode-end').forEach(box=>{
-    const l = parseFloat(box.style.left) || 0;
-    const t = parseFloat(box.style.top) || 0;
-    placedChips.push({ x: l + box.offsetWidth/2, y: t + box.offsetHeight/2, w: box.offsetWidth + 10, h: box.offsetHeight + 10 });
-  });
-
-  Object.keys(diagramOptState[sid]).forEach(nid=>{
-    const fromEl = document.getElementById('dn_' + nid);
-    diagramOptState[sid][nid].forEach((opt, i)=>{
-      let toEl, color;
-      if (opt.type === 'jump') {
-        return; // 이동형 옵션은 이 화면에서 그리지 않음(수정 불가 항목)
-      } else if (opt.type === 'next') {
-        toEl = document.getElementById('dn_' + opt.target);
-        color = '#8a8d97';
-      } else {
-        toEl = getOrCreateEndNode(sid, canvas, opt.type);
-        color = opt.type === 'solved' ? '#4caf50' : (opt.type === 'escalate' ? '#e0a256' : '#e07a7a');
-      }
-      const pos = drawLine(fromEl, toEl, color);
-      if (!pos) return;
-      const text = opt.label || '(문구 없음)';
-      const estW = Math.max(50, text.length * 7.2 + 20);
-
-      // 겹침 방지: 기존에 배치된 칩·박스와 겹치면 살짝 아래로 밀어냄
-      let y = pos.y;
-      let moved = true;
-      let guard = 0;
-      while (moved && guard < 60) {
-        moved = false;
-        for (const c of placedChips) {
-          const overlapX = Math.abs(pos.x - c.x) < (estW/2 + c.w/2 + 6);
-          const overlapY = Math.abs(y - c.y) < (CHIP_H/2 + c.h/2 + 4);
-          if (overlapX && overlapY) {
-            y = c.y + c.h/2 + CHIP_H/2 + 8;
-            moved = true;
-          }
-        }
-        guard++;
-      }
-      placedChips.push({ x: pos.x, y, w: estW, h: CHIP_H });
-
-      const chip = document.createElement('div');
-      chip.className = 'edge-chip';
-      chip.style.left = pos.x + 'px';
-      chip.style.top = y + 'px';
-      chip.style.borderColor = color;
-      chip.textContent = text;
-      chip.onclick = (e)=>{ e.stopPropagation(); openEdgePopover(sid, nid, i, chip); };
-      canvas.appendChild(chip);
+  if (!canvas || !svg || diagramSelectedSid !== sid) return;
+  const tree = getDiagramDraft(sid).tree;
+  const labels = {solved:'해결', escalate:'담당자 연결', as:'A/S 필요', info:'안내 완료'};
+  canvas.querySelectorAll('.diagram-options, .diagram-column-label').forEach(el=>el.remove());
+  const positions = computeDiagramLayout(tree);
+  const columns = new Map();
+  for (const nid of Object.keys(tree.nodes)) {
+    const box = document.getElementById('dn_'+nid);
+    const options = document.createElement('div');
+    options.className = 'diagram-options';
+    (diagramOptState[sid][nid] || []).forEach((opt,i)=>{
+      const row = document.createElement('button');
+      row.type='button'; row.className='diagram-option'; row.dataset.option=String(i);
+      row.dataset.kind=opt.type;
+      const label=document.createElement('span'); label.textContent=opt.label || '(문구 없음)';
+      const target=document.createElement('span'); target.className='diagram-result';
+      target.textContent=opt.type==='next' ? '→ '+opt.target : opt.type==='jump' ? '↗ '+opt.jump : labels[opt.type] || opt.type;
+      row.append(label,target); options.appendChild(row);
+      if(opt.type==='jump') { row.title='다른 증상으로 이동하는 기존 연결'; row.disabled=true; }
+      else row.onclick=e=>{e.stopPropagation();openEdgePopover(sid,nid,i,row);};
     });
+    box.appendChild(options);
+    const column=positions[nid].x;
+    if(!columns.has(column)) columns.set(column,[]);
+    columns.get(column).push(nid);
+  }
+  let maxY=0,maxX=0;
+  [...columns.entries()].sort((a,b)=>a[0]-b[0]).forEach(([x,ids],column)=>{
+    let y=90;
+    const heading=document.createElement('div'); heading.className='diagram-column-label';
+    heading.style.left=x+'px';heading.style.top='26px';heading.textContent=(column+1)+'단계';canvas.appendChild(heading);
+    for(const nid of ids){
+      const box=document.getElementById('dn_'+nid);box.style.left=x+'px';box.style.top=y+'px';
+      y+=box.offsetHeight+80; maxX=Math.max(maxX,x+box.offsetWidth);
+    }
+    maxY=Math.max(maxY,y);
   });
+  const start=document.getElementById('dn_START');if(start) start.style.display='none';
+  canvas.style.width=(maxX+80)+'px';canvas.style.height=(maxY+60)+'px';
+  svg.setAttribute('width',maxX+80);svg.setAttribute('height',maxY+60);
+  svg.innerHTML='<defs><marker id="diagramArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="#83939e"/></marker></defs>';
+  for(const nid of Object.keys(tree.nodes)){
+    const box=document.getElementById('dn_'+nid);
+    (diagramOptState[sid][nid]||[]).forEach((opt,i)=>{
+      if(opt.type!=='next')return;
+      const dest=document.getElementById('dn_'+opt.target), row=box.querySelector('[data-option="'+i+'"]');
+      if(!dest || !row)return;
+      const x1=parseFloat(box.style.left)+box.offsetWidth;
+      const y1=parseFloat(box.style.top)+row.offsetTop+row.offsetHeight/2;
+      const x2=parseFloat(dest.style.left),y2=parseFloat(dest.style.top)+38;
+      let d;
+      if(x2>x1){ const lane=x1+45+i*16; d='M'+x1+','+y1+' H'+lane+' V'+y2+' H'+x2; }
+      else { const lane=maxY+16+i*12;d='M'+x1+','+y1+' H'+(x1+30)+' V'+lane+' H'+(x2-28)+' V'+y2+' H'+x2; }
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      path.setAttribute('d',d);path.setAttribute('fill','none');path.setAttribute('stroke','#83939e');path.setAttribute('stroke-width','1.6');
+      path.setAttribute('stroke-linejoin','round');path.setAttribute('marker-end','url(#diagramArrow)');svg.appendChild(path);
+      row.onmouseenter=()=>{path.setAttribute('stroke','var(--accent)');path.setAttribute('stroke-width','3');};
+      row.onmouseleave=()=>{path.setAttribute('stroke','#83939e');path.setAttribute('stroke-width','1.6');};
+    });
+  }
+}
+
+function setDiagramZoom(value){
+  const canvas=document.getElementById('diagramCanvas');if(!canvas)return;
+  const zoom=Math.max(.5,Math.min(1.4,value));canvas.style.zoom=zoom;
+  document.getElementById('diagramZoomValue').textContent=Math.round(zoom*100)+'%';closeEdgePopover();
 }
 
 function copyDiagramContent(sid, tree, btn){
