@@ -4366,7 +4366,7 @@ function addStandaloneDiagramCard(sid,nid,index){
   const positions=diagramWorkspace(sid).positions;
   let x=Math.max(24,(wrap.scrollLeft+wrap.clientWidth/2)/zoom-170),y=Math.max(24,(wrap.scrollTop+80)/zoom);
   const origin=nid&&document.getElementById('dn_'+nid);if(origin){x=parseFloat(origin.style.left)+420;y=parseFloat(origin.style.top);}
-  while(Object.entries(positions).some(([id,p])=>draft.tree.nodes[id]&&Math.abs(p.x-x)<360&&Math.abs(p.y-y)<260))y+=100;
+  while(Object.entries(positions).some(([id,p])=>{const box=document.getElementById('dn_'+id);return draft.tree.nodes[id]&&x<p.x+360&&x+360>p.x&&y<p.y+(box?.offsetHeight||450)+40&&y+450>p.y;}))x+=400;
   positions[added.id]={x,y};rememberDiagramWorkspace(sid);
   const history=diagramAdditionHistory[sid] ||= [];history.push({owner:currentUser.id,tree:cloneDiagnosis(draft.tree)});if(history.length>20)history.shift();
   draft.tree=added.tree;draft.dirty=true;persistDiagramDrafts();closeEdgePopover();openDiagram(sid);
