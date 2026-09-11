@@ -57,3 +57,5 @@ test('adding steps and choices preserves original tree and creates valid unique 
  vm.runInContext("globalThis.choice=extendDiagnosisTree(tree,tree.start,'option');",c);
  assert.equal(c.choice.nodes[tree.start].options.at(-1).label,'해결되었습니다');
 });
+
+test('database JSON key ordering does not create a false unsaved draft',()=>{ const c=harness();vm.runInContext("globalThis.equal=sameDiagnosis({text:'a',options:[{label:'ok',end:'solved'}]},{options:[{end:'solved',label:'ok'}],text:'a'});",c);assert.equal(c.equal,true); });

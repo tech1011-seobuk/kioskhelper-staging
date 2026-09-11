@@ -4082,6 +4082,10 @@ const diagramDrafts = {};
 let diagramSelectedSid = null;
 let diagramSaving = false;
 
+function sameDiagnosis(a,b){
+ const canonical=value=>Array.isArray(value)?value.map(canonical):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
+ return JSON.stringify(canonical(a))===JSON.stringify(canonical(b));
+}
 function cloneDiagnosis(value){ return JSON.parse(JSON.stringify(value)); }
 
 function validateDiagnosisTree(tree){
@@ -4224,7 +4228,7 @@ function captureDiagramDraft(sid){
       return saved;
     });
   }
-  draft.dirty = JSON.stringify(tree) !== JSON.stringify(diagnosisStore.rows[sid]?.tree || BUILTIN_TREES[sid]);
+  draft.dirty = !sameDiagnosis(tree, diagnosisStore.rows[sid]?.tree || BUILTIN_TREES[sid]);
   draft.tree = tree;
   persistDiagramDrafts();
   updateDiagramSaveStatus(sid);
@@ -4331,7 +4335,7 @@ function undoDiagramAddition(sid){
   const history=diagramAdditionHistory[sid], previous=history?.at(-1);
   if(!previous || previous.owner!==currentUser.id)return;
   history.pop();const draft=getDiagramDraft(sid);draft.tree=previous.tree;
-  draft.dirty=JSON.stringify(draft.tree)!==JSON.stringify(diagnosisStore.rows[sid]?.tree||BUILTIN_TREES[sid]);
+  draft.dirty=!sameDiagnosis(draft.tree,diagnosisStore.rows[sid]?.tree||BUILTIN_TREES[sid]);
   persistDiagramDrafts();openDiagram(sid);
 }
 
