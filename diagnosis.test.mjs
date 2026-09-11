@@ -6,7 +6,7 @@ const html=readFileSync(new URL('index.html',import.meta.url),'utf8');
 const section=(a,b)=>html.slice(html.indexOf(a),html.indexOf(b,html.indexOf(a)));
 function harness(rpc){
  const values=new Map();
- const ctx=vm.createContext({TextEncoder, navigator:{onLine:true}, SUPABASE_URL:'https://test.supabase.co', APP_ENV:'staging', currentUser:{id:'admin',role:'admin'},
+ const ctx=vm.createContext({TextEncoder, URL, navigator:{onLine:true}, SUPABASE_URL:'https://test.supabase.co', APP_ENV:'staging', currentUser:{id:'admin',role:'admin'},
   localStorage:{getItem:k=>values.get(k)||null,setItem:(k,v)=>values.set(k,v)},
   document:{getElementById:()=>null,querySelectorAll:()=>[]},closeEdgePopover(){},showToast(){},
   sb:{rpc:rpc||(()=>{})},diagramOptState:{}});
@@ -61,3 +61,5 @@ test('adding steps and choices preserves original tree and creates valid unique 
 test('database JSON key ordering does not create a false unsaved draft',()=>{ const c=harness();vm.runInContext("globalThis.equal=sameDiagnosis({text:'a',options:[{label:'ok',end:'solved'}]},{options:[{end:'solved',label:'ok'}],text:'a'});",c);assert.equal(c.equal,true); });
 
 test('new large card can replace an existing option destination without adding choices',()=>{const c=harness();c.tree=c.api.TREES['CAM-1'];const original=JSON.stringify(c.tree);vm.runInContext("globalThis.card=createDiagnosisCard(tree,tree.start,1);",c);assert.equal(JSON.stringify(c.tree),original);const option=c.card.tree.nodes[c.tree.start].options[1];assert.equal(option.label,c.tree.nodes[c.tree.start].options[1].label);assert.equal(option.next,c.card.id);assert.equal(option.end,undefined);assert.equal(c.card.tree.nodes[c.tree.start].options.length,c.tree.nodes[c.tree.start].options.length);c.api.validateDiagnosisTree(c.card.tree);});
+
+test('media validation accepts HTTPS and private file references but rejects unsafe URLs',()=>{const c=harness();vm.runInContext("validateDiagnosisMedia([{kind:'image',url:'https://example.com/a.jpg',name:'사진'}]);",c);assert.throws(()=>vm.runInContext("validateDiagnosisMedia([{kind:'link',url:'javascript:alert(1)',name:'bad'}]);",c));assert.throws(()=>vm.runInContext("validateDiagnosisMedia([{kind:'image',path:'../secret',name:'bad'}]);",c));});

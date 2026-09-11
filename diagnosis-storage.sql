@@ -1,6 +1,28 @@
 -- Additive migration: apply to production AND the separate staging project.
 -- No changes to existing profiles, events, or login credentials.
 begin;
+create or replace function public.valid_diagnosis_media(items jsonb)
+returns boolean language plpgsql immutable set search_path = '' as $$
+declare item jsonb;
+begin
+ if jsonb_typeof(items) is distinct from 'array' then return false; end if;
+ if jsonb_array_length(items)>6 then return false; end if;
+ for item in select value from jsonb_array_elements(items) loop
+  if jsonb_typeof(item) is distinct from 'object' then return false; end if;
+  if exists(select 1 from jsonb_object_keys(item) k where k not in ('kind','path','url','name'))
+    or item->>'kind' is null or item->>'kind' not in ('image','video','link')
+    or jsonb_typeof(item->'name') is distinct from 'string' or length(btrim(item->>'name'))=0 or length(item->>'name')>200
+    or (item ? 'path') = (item ? 'url') then return false; end if;
+  if item ? 'path' then
+   if jsonb_typeof(item->'path') is distinct from 'string' or item->>'path' !~ '^[a-f0-9-]{36}/[a-f0-9-]{36}\.(jpg|png|webp|gif|mp4|webm)$' or item->>'kind'='link' then return false; end if;
+  else
+   if jsonb_typeof(item->'url') is distinct from 'string' or length(item->>'url')>2000 or item->>'url' !~ '^https://[^[:space:]]+$' then return false; end if;
+  end if;
+ end loop;
+ return true;
+end; $$;
+revoke all on function public.valid_diagnosis_media(jsonb) from public, anon, authenticated;
+
 create table if not exists public.diagnosis_trees (
   symptom_id text primary key check(symptom_id ~ '^[A-Z][A-Z0-9-]{0,39}$'),
   tree jsonb not null,
@@ -66,11 +88,12 @@ begin
        or jsonb_typeof(v_node.value->'options') is distinct from 'array' then
       raise exception '단계 문구 또는 선택지를 확인해주세요: %', v_node.key using errcode = '22023';
     end if;
-    if exists(select 1 from jsonb_object_keys(v_node.value) as k(key) where key not in ('text','options','attachment'))
+    if exists(select 1 from jsonb_object_keys(v_node.value) as k(key) where key not in ('text','options','attachment','media'))
        or ((v_node.value ? 'attachment') and (jsonb_typeof(v_node.value->'attachment') is distinct from 'string'
           or length(v_node.value->>'attachment') > 20000)) then
       raise exception '단계 부가 안내 형식이 올바르지 않습니다.' using errcode = '22023';
     end if;
+    if v_node.value ? 'media' and not public.valid_diagnosis_media(v_node.value->'media') then raise exception '사진·영상 첨부 형식이 올바르지 않습니다.' using errcode='22023'; end if;
     if jsonb_array_length(v_node.value->'options') < 1 or jsonb_array_length(v_node.value->'options') > 12 then
       raise exception '선택지는 단계별로 1~12개여야 합니다.' using errcode = '22023';
     end if;

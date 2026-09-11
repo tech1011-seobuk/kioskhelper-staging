@@ -1854,6 +1854,7 @@
 @media(max-width:760px){.diagram-editor-sidebar{width:100%;max-height:190px}.diagram-editor-screen{flex-direction:column}.diagram-editor-main{width:100%;box-sizing:border-box}.chat-area:has(.diagram-editor-screen){padding:12px}.diagram-canvas-wrap{height:65vh;min-height:360px}}
 
 .diagram-add-actions{display:flex;gap:8px;margin-top:14px;padding-top:12px;border-top:1px solid var(--border)}.diagram-add-actions button{flex:1;background:transparent;color:var(--accent);border:1px dashed var(--border);border-radius:8px;padding:9px 5px;font:inherit;font-size:11px;cursor:pointer}.diagram-add-actions button:hover{border-color:var(--accent)}
+.diagnosis-media{display:grid;gap:10px;margin:12px 0}.diagnosis-media img,.diagnosis-media video{display:block;width:100%;max-height:360px;object-fit:contain;border-radius:8px;background:#101114}.diagnosis-media img{cursor:zoom-in}.diagnosis-media a{color:var(--accent);overflow-wrap:anywhere}.diagram-media-editor{border-top:1px solid var(--border);padding-top:10px;margin:10px 0}.diagram-media-editor .diagnosis-media img,.diagram-media-editor .diagnosis-media video{height:100px}.diagram-media-editor small{font-size:10px;color:var(--muted)}.media-file-row{display:flex;gap:7px;align-items:center;margin:6px 0;font-size:11px}.media-file-row span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.media-file-row button{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px;cursor:pointer;font:inherit;font-size:11px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -2692,7 +2693,7 @@ function buildBubbleInner(stepCounter, step, node){
     : '';
   return '<div class="step-tag">STEP '+stepCounter+' · '+step.symptomId+'</div>' +
     escapeHtml(node.text) +
-    photosHtml +
+    photosHtml + renderDiagnosisMedia(node) +
     (!photoList.length && node.attachment ? '<div class="attachment-tag">'+escapeHtml(node.attachment)+'</div>' : '');
 }
 
@@ -4098,10 +4099,11 @@ function validateDiagnosisTree(tree){
   if (!ids.length || ids.length > 150 || new TextEncoder().encode(JSON.stringify(tree)).length > 250000) throw new Error('안내 크기가 너무 큽니다.');
   for (const id of ids) {
     const node = tree.nodes[id];
-    if (!/^[A-Za-z][A-Za-z0-9_]{0,39}$/.test(id) || !object(node) || !allowed(node, ['text','options','attachment'])
+    if (!/^[A-Za-z][A-Za-z0-9_]{0,39}$/.test(id) || !object(node) || !allowed(node, ['text','options','attachment','media'])
         || !text(node.text, 20000) || !Array.isArray(node.options) || !node.options.length || node.options.length > 12) {
       throw new Error('STEP ['+id+']의 문구와 선택지를 확인해주세요.');
     }
+    if (Object.hasOwn(node, 'media')) validateDiagnosisMedia(node.media);
     if (Object.hasOwn(node, 'attachment') && !text(node.attachment, 20000, true)) throw new Error('부가 안내 형식을 확인해주세요.');
     for (const option of node.options) {
       if (!object(option) || !allowed(option, ['label','next','jump','end','note','attachment']) || !text(option.label, 500)) throw new Error('선택지 문구를 입력해주세요.');
@@ -4207,7 +4209,8 @@ function getDiagramDraft(sid){
 
 function persistDiagramDrafts(){
   try {
-    const mine = Object.fromEntries(Object.entries(diagramDrafts).filter(([, d]) => d.owner === currentUser?.id && d.dirty));
+    const mine = JSON.parse(localStorage.getItem(diagramDraftKey()) || '{}');
+    for(const [sid,draft] of Object.entries(diagramDrafts)) if(draft.owner===currentUser?.id){if(draft.dirty)mine[sid]=draft;else delete mine[sid];}
     localStorage.setItem(diagramDraftKey(), JSON.stringify(mine));
   } catch { showToast('⚠️', '임시 보관 공간이 부족합니다. 저장 버튼으로 반영해주세요.'); }
 }
@@ -4243,11 +4246,11 @@ function updateDiagramSaveStatus(sid, message, isError = false){
     status.classList.toggle('save-error', isError);
   }
   const button = document.getElementById('diagramSaveBtn');
-  if (button) { button.disabled = diagramSaving || !draft.dirty; button.textContent = diagramSaving ? '저장 중...' : '저장하고 적용'; }
+  if (button) { button.disabled = diagramSaving || mediaUploading || !draft.dirty; button.textContent = diagramSaving ? '저장 중...' : '저장하고 적용'; }
 }
 
 async function saveDiagram(sid){
-  if (diagramSaving || !currentUser || currentUser.role !== 'admin') return;
+  if (diagramSaving || mediaUploading || !currentUser || currentUser.role !== 'admin') return;
   const draft = captureDiagramDraft(sid);
   if (!draft.dirty) return;
   if (!navigator.onLine) { updateDiagramSaveStatus(sid, '오프라인에서는 반영할 수 없습니다. 수정 내용은 이 기기에 임시 보관했습니다.', true); return; }
@@ -4290,7 +4293,7 @@ async function saveDiagram(sid){
 }
 
 async function reloadDiagramPublished(sid){
-  if (diagramSaving) return;
+  if (diagramSaving || mediaUploading) return;
   const draft = getDiagramDraft(sid);
   if (draft.dirty && !window.confirm('이 기기의 수정본을 버리고 최신 저장본을 불러올까요? 필요한 내용은 먼저 복사해주세요.')) return;
   if (!await loadPublishedDiagnosis()) { updateDiagramSaveStatus(sid, '최신 안내를 불러오지 못했습니다. 수정본을 유지합니다.', true); return; }
@@ -4314,7 +4317,7 @@ function extendDiagnosisTree(tree, nid, kind){
   return copy;
 }
 function addDiagramItem(sid,nid,kind){
-  if(diagramSaving || currentUser?.role!=='admin')return;
+  if(diagramSaving || mediaUploading || currentUser?.role!=='admin')return;
   const draft=captureDiagramDraft(sid);
   try{
     const next=extendDiagnosisTree(draft.tree,nid,kind);
@@ -4331,7 +4334,7 @@ function addDiagramItem(sid,nid,kind){
   }catch(error){updateDiagramSaveStatus(sid,error.message,true);}
 }
 function undoDiagramAddition(sid){
-  if(diagramSaving || currentUser?.role!=='admin')return;
+  if(diagramSaving || mediaUploading || currentUser?.role!=='admin')return;
   const history=diagramAdditionHistory[sid], previous=history?.at(-1);
   if(!previous || previous.owner!==currentUser.id)return;
   history.pop();const draft=getDiagramDraft(sid);draft.tree=previous.tree;
@@ -4353,7 +4356,7 @@ function createDiagnosisCard(tree,nid,index){
  return {tree:copy,id};
 }
 function addStandaloneDiagramCard(sid,nid,index){
- if(diagramSaving||currentUser?.role!=='admin')return;
+ if(diagramSaving||mediaUploading||currentUser?.role!=='admin')return;
  const draft=captureDiagramDraft(sid);
  try{
   const added=createDiagnosisCard(draft.tree,nid,index);
@@ -4364,6 +4367,118 @@ function addStandaloneDiagramCard(sid,nid,index){
    updateDiagramSaveStatus(sid,nid!=null?'선택지에 새 안내 카드를 연결했습니다. 내용을 입력하고 저장해주세요.':'새 안내 카드를 만들었습니다. 연결할 선택지를 눌러 이 카드를 다음 단계로 지정해주세요.');
   });
  }catch(error){updateDiagramSaveStatus(sid,error.message,true);}
+}
+
+let mediaUploading = false;
+const mediaUrlCache = new Map();
+function validateDiagnosisMedia(items){
+  if(!Array.isArray(items)||items.length>6)throw new Error('사진·영상은 카드당 최대 6개까지 첨부할 수 있습니다.');
+  for(const item of items){
+    if(!item||typeof item!=='object'||Array.isArray(item)||!['image','video','link'].includes(item.kind)
+      ||Object.keys(item).some(k=>!['kind','path','url','name'].includes(k))
+      ||typeof item.name!=='string'||!item.name.trim()||item.name.length>200
+      ||(Object.hasOwn(item,'path')===Object.hasOwn(item,'url')))throw new Error('첨부 자료 형식을 확인해주세요.');
+    if(item.path){
+      if(typeof item.path!=='string'||! /^[a-f0-9-]{36}\/[a-f0-9-]{36}\.(jpg|png|webp|gif|mp4|webm)$/.test(item.path)||item.kind==='link')throw new Error('파일 경로가 올바르지 않습니다.');
+    }else{
+      let url;try{url=new URL(item.url);}catch{throw new Error('올바른 HTTPS 주소를 입력해주세요.');}
+      if(typeof item.url!=='string'||item.url.length>2000||url.protocol!=='https:'||url.username||url.password)throw new Error('HTTPS 주소만 사용할 수 있습니다.');
+    }
+  }
+}
+function renderDiagnosisMedia(node){
+  if(!node.media?.length)return '';
+  try{validateDiagnosisMedia(node.media);}catch{return '';}
+  return '<div class="diagnosis-media" data-media="'+encodeURIComponent(JSON.stringify(node.media))+'"></div>';
+}
+async function hydrateDiagnosisMedia(){
+  if(!currentUser)return;
+  const owner=currentUser.id;
+  for(const container of document.querySelectorAll('.diagnosis-media:not([data-loaded])')){
+    container.dataset.loaded='true';
+    let items;try{items=JSON.parse(decodeURIComponent(container.dataset.media));validateDiagnosisMedia(items);}catch{continue;}
+    for(const item of items){
+      const wrapper=document.createElement('div');wrapper.className='diagnosis-media-item';container.appendChild(wrapper);
+      try{
+        let src=item.url;
+        if(item.path){
+          const cached=mediaUrlCache.get(item.path);
+          if(cached?.expires>Date.now())src=cached.url;
+          else{
+            const {data,error}=await sb.storage.from('diagnosis-media').createSignedUrl(item.path,3600);
+            if(error||!data?.signedUrl)throw new Error('첨부 자료를 불러오지 못했습니다.');
+            src=data.signedUrl;mediaUrlCache.set(item.path,{url:src,expires:Date.now()+3300000});
+          }
+        }
+        if(!wrapper.isConnected||currentUser?.id!==owner)continue;
+        if(item.kind==='image'){
+          const img=document.createElement('img');img.src=src;img.alt=item.name;img.loading='lazy';img.referrerPolicy='no-referrer';
+          img.onclick=()=>openLightbox(src);img.onerror=()=>{wrapper.textContent='사진을 불러오지 못했습니다. 연결 또는 주소를 확인해주세요.';};wrapper.appendChild(img);
+        }else if(item.kind==='video'){
+          const video=document.createElement('video');video.src=src;video.controls=true;video.preload='metadata';video.playsInline=true;
+          video.setAttribute('aria-label',item.name);video.onerror=()=>{wrapper.textContent='영상을 재생하지 못했습니다. 파일 형식과 연결을 확인해주세요.';};wrapper.appendChild(video);
+        }else{
+          const link=document.createElement('a');link.href=src;link.target='_blank';link.rel='noopener noreferrer';link.textContent='↗ '+item.name+' (새 탭)';wrapper.appendChild(link);
+        }
+      }catch{wrapper.textContent='첨부 자료를 불러오지 못했습니다. 인터넷 연결 후 화면을 다시 열어주세요.';}
+    }
+  }
+}
+function finishDiagramMediaChange(sid){
+  const draft=getDiagramDraft(sid);draft.dirty=!sameDiagnosis(draft.tree,diagnosisStore.rows[sid]?.tree||BUILTIN_TREES[sid]);
+  persistDiagramDrafts();if(diagramSelectedSid===sid){redrawDiagramLines(sid);updateDiagramSaveStatus(sid,'첨부 자료를 수정했습니다. 저장하고 적용을 눌러 반영해주세요.');}
+}
+function buildDiagramMediaControls(sid,nid,box){
+  const panel=document.createElement('div');panel.className='diagram-media-editor';
+  const node=getDiagramDraft(sid).tree.nodes[nid];
+  panel.innerHTML=renderDiagnosisMedia(node);
+  const preview=panel.querySelector('.diagnosis-media');if(preview)preview.style.minHeight=(node.media.length*110)+'px';
+  for(const [index,item] of (node.media||[]).entries()){
+    const row=document.createElement('div');row.className='media-file-row';
+    const name=document.createElement('span');name.textContent=item.name;
+    const remove=document.createElement('button');remove.textContent='첨부 해제';remove.type='button';remove.disabled=mediaUploading||diagramSaving;
+    remove.onclick=()=>{if(mediaUploading||diagramSaving)return;captureDiagramDraft(sid);getDiagramDraft(sid).tree.nodes[nid].media.splice(index,1);finishDiagramMediaChange(sid);};
+    row.append(name,remove);panel.appendChild(row);
+  }
+  const actions=document.createElement('div');actions.className='media-file-row';
+  const input=document.createElement('input');input.type='file';input.hidden=true;input.accept='image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm';
+  input.onchange=()=>{if(input.files?.[0])uploadDiagramMedia(sid,nid,input.files[0]);};
+  const upload=document.createElement('button');upload.type='button';upload.textContent='＋ 사진·영상 업로드';upload.setAttribute('aria-label',nid+' 사진·영상 업로드');
+  upload.disabled=mediaUploading||diagramSaving;upload.onclick=()=>input.click();
+  const link=document.createElement('button');link.type='button';link.textContent='＋ 링크';link.setAttribute('aria-label',nid+' 사진·영상 링크 추가');link.disabled=mediaUploading||diagramSaving;
+  link.onclick=()=>{
+    if(mediaUploading||diagramSaving)return;
+    const url=window.prompt('사진·영상 HTTPS 주소를 입력하세요. YouTube 등 영상 페이지는 새 탭으로 열립니다.');if(!url?.trim())return;
+    try{
+      const parsed=new URL(url.trim());const ext=parsed.pathname.toLowerCase();
+      const kind=/\.(jpg|jpeg|png|gif|webp)$/.test(ext)?'image':/\.(mp4|webm)$/.test(ext)?'video':'link';
+      const item={kind,url:parsed.href,name:kind==='image'?'조치 사진':kind==='video'?'조치 영상':'영상·참고 자료'};
+      validateDiagnosisMedia([item]);const draft=captureDiagramDraft(sid),media=draft.tree.nodes[nid].media||[];
+      if(media.length>=6)throw new Error('카드당 최대 6개까지 첨부할 수 있습니다.');draft.tree.nodes[nid].media=[...media,item];finishDiagramMediaChange(sid);
+    }catch(error){updateDiagramSaveStatus(sid,error.message,true);}
+  };
+  actions.append(upload,link,input);panel.appendChild(actions);
+  const hint=document.createElement('small');hint.textContent='사진 10MB · 영상 50MB 이하 / 카드당 6개';panel.appendChild(hint);
+  box.appendChild(panel);
+}
+async function uploadDiagramMedia(sid,nid,file){
+  if(mediaUploading||diagramSaving||currentUser?.role!=='admin')return;
+  const types={'image/jpeg':'jpg','image/png':'png','image/webp':'webp','image/gif':'gif','video/mp4':'mp4','video/webm':'webm'};
+  const ext=types[file.type],kind=file.type.startsWith('image/')?'image':'video';
+  const draft=captureDiagramDraft(sid),owner=currentUser.id;
+  if(!ext||!file.size||file.size>(kind==='image'?10:50)*1024*1024){updateDiagramSaveStatus(sid,'JPG·PNG·WebP·GIF 사진(10MB) 또는 MP4·WebM 영상(50MB)을 선택해주세요.',true);return;}
+  if((draft.tree.nodes[nid].media||[]).length>=6){updateDiagramSaveStatus(sid,'카드당 최대 6개까지 첨부할 수 있습니다.',true);return;}
+  if(!navigator.onLine){updateDiagramSaveStatus(sid,'파일 업로드에는 인터넷 연결이 필요합니다.',true);return;}
+  mediaUploading=true;updateDiagramSaveStatus(sid,'파일 업로드 중...');
+  try{
+    const path=owner+'/'+crypto.randomUUID()+'.'+ext;
+    const {error}=await sb.storage.from('diagnosis-media').upload(path,file,{contentType:file.type,upsert:false});if(error)throw error;
+    if(currentUser?.id!==owner)return;
+    const liveDraft=getDiagramDraft(sid);if(!liveDraft.tree.nodes[nid])throw new Error('첨부할 카드가 없어졌습니다.');
+    liveDraft.tree.nodes[nid].media=[...(liveDraft.tree.nodes[nid].media||[]),{kind,path,name:file.name.slice(0,200)||'첨부 자료'}];
+    finishDiagramMediaChange(sid);
+  }catch(error){updateDiagramSaveStatus(sid,'업로드하지 못했습니다. '+(error.message||'연결을 확인해주세요.'),true);}
+  finally{mediaUploading=false;if(currentUser?.id===owner&&diagramSelectedSid===sid){redrawDiagramLines(sid);const button=document.getElementById('diagramSaveBtn');if(button)button.disabled=!getDiagramDraft(sid).dirty;}}
 }
 
 /* ============================= END PUBLISHED DIAGNOSIS ============================= */
@@ -4613,7 +4728,7 @@ function redrawDiagramLines(sid){
   if (!canvas || !svg || diagramSelectedSid !== sid) return;
   const tree = getDiagramDraft(sid).tree;
   const labels = {solved:'해결', escalate:'담당자 연결', as:'A/S 필요', info:'안내 완료'};
-  canvas.querySelectorAll('.diagram-options, .diagram-column-label, .diagram-add-actions').forEach(el=>el.remove());
+  canvas.querySelectorAll('.diagram-options, .diagram-column-label, .diagram-add-actions, .diagram-media-editor').forEach(el=>el.remove());
   const positions = computeDiagramLayout(tree);
   const columns = new Map();
   for (const nid of Object.keys(tree.nodes)) {
@@ -4631,6 +4746,7 @@ function redrawDiagramLines(sid){
       if(opt.type==='jump') { row.title='다른 증상으로 이동하는 기존 연결'; row.disabled=true; }
       else row.onclick=e=>{e.stopPropagation();openEdgePopover(sid,nid,i,row);};
     });
+    buildDiagramMediaControls(sid,nid,box);
     box.appendChild(options);
     const actions=document.createElement('div');actions.className='diagram-add-actions';
     for(const [kind,label] of [['option','＋ 선택지 추가'],['step','＋ 다음 단계 추가']]){
@@ -6162,6 +6278,8 @@ document.getElementById('themeToggle').addEventListener('click', (e)=>{
   addRipple(e.currentTarget, e);
 });
 
+const diagnosisMediaObserver=new MutationObserver(()=>{hydrateDiagnosisMedia();});
+diagnosisMediaObserver.observe(document.getElementById('chatArea'),{childList:true,subtree:true});
 initAuth();
 
 if ('serviceWorker' in navigator) {
