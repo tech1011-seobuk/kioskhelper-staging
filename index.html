@@ -4339,6 +4339,33 @@ function undoDiagramAddition(sid){
   persistDiagramDrafts();openDiagram(sid);
 }
 
+
+function createDiagnosisCard(tree,nid,index){
+ const copy=cloneDiagnosis(tree);
+ if(Object.keys(copy.nodes).length>=150)throw new Error('안내 카드는 최대 150개까지 추가할 수 있습니다.');
+ let number=1;while(Object.hasOwn(copy.nodes,'new'+number))number++;
+ const id='new'+number;
+ copy.nodes[id]={text:'새 안내를 입력해주세요.',options:[{label:'해결되었습니다',end:'solved'}]};
+ if(nid!=null){
+   const option=copy.nodes[nid]?.options[index];if(!option)throw new Error('연결할 선택지를 찾지 못했습니다.');
+   delete option.end;delete option.jump;option.next=id;
+ }
+ return {tree:copy,id};
+}
+function addStandaloneDiagramCard(sid,nid,index){
+ if(diagramSaving||currentUser?.role!=='admin')return;
+ const draft=captureDiagramDraft(sid);
+ try{
+  const added=createDiagnosisCard(draft.tree,nid,index);
+  const history=diagramAdditionHistory[sid] ||= [];history.push({owner:currentUser.id,tree:cloneDiagnosis(draft.tree)});if(history.length>20)history.shift();
+  draft.tree=added.tree;draft.dirty=true;persistDiagramDrafts();closeEdgePopover();openDiagram(sid);
+  requestAnimationFrame(()=>{
+   document.getElementById('dn_'+added.id)?.scrollIntoView({block:'nearest',inline:'center',behavior:'smooth'});
+   updateDiagramSaveStatus(sid,nid!=null?'선택지에 새 안내 카드를 연결했습니다. 내용을 입력하고 저장해주세요.':'새 안내 카드를 만들었습니다. 연결할 선택지를 눌러 이 카드를 다음 단계로 지정해주세요.');
+  });
+ }catch(error){updateDiagramSaveStatus(sid,error.message,true);}
+}
+
 /* ============================= END PUBLISHED DIAGNOSIS ============================= */
 
 async function goToDiagramEditor(){
@@ -4454,7 +4481,7 @@ function openDiagram(sid){
     '</div>' +
     '<div id="diagramSaveStatus" role="status" aria-live="polite"></div>' +
     '<div class="diagram-note" style="margin:0 0 12px;">✏️ 박스 안 문구는 클릭해서 바로 고치고, 카드 아래에서 선택지·다음 단계를 추가하고, 선택지를 눌러 문구와 연결을 바꿀 수 있어요. 흐름은 왼쪽에서 오른쪽으로 읽습니다.</div>' +
-    '<div class="diagram-toolbar"><button id="diagramListToggle">목록 접기 / 펼치기</button><button id="diagramZoomOut" aria-label="다이어그램 축소">−</button><span id="diagramZoomValue">100%</span><button id="diagramZoomIn" aria-label="다이어그램 확대">＋</button><button id="diagramZoomReset">원래 크기</button><button id="diagramUndoAddition">최근 추가 취소</button><span>가로로 스크롤해 다음 단계를 확인하세요 →</span></div>' +
+    '<div class="diagram-toolbar"><button id="diagramListToggle">목록 접기 / 펼치기</button><button id="diagramZoomOut" aria-label="다이어그램 축소">−</button><span id="diagramZoomValue">100%</span><button id="diagramZoomIn" aria-label="다이어그램 확대">＋</button><button id="diagramZoomReset">원래 크기</button><button id="diagramNewCard">＋ 새 안내 카드</button><button id="diagramUndoAddition">최근 추가 취소</button><span>가로로 스크롤해 다음 단계를 확인하세요 →</span></div>' +
     '<div class="diagram-canvas-wrap"><div class="diagram-canvas" id="diagramCanvas"><svg class="diagram-svg" id="diagramSvg"></svg></div></div>' +
     '<div class="edge-popover" id="edgePopover" style="display:none;">' +
       '<input type="text" class="edge-pop-label" id="edgePopLabel" placeholder="선택지 문구">' +
@@ -4466,6 +4493,7 @@ function openDiagram(sid){
         '<option value="info">ℹ️ 안내 완료</option>' +
       '</select>' +
       '<select class="edge-pop-target" id="edgePopTarget"></select>' +
+      '<button id="edgePopNewCard">＋ 이 선택지에 새 안내 카드 만들기</button>' +
       '<button id="edgePopClose">확인</button>' +
     '</div>';
 
@@ -4509,6 +4537,7 @@ function openDiagram(sid){
   document.getElementById('diagramZoomOut').onclick=()=>setDiagramZoom(Number(canvas.style.zoom||1)-.1);
   document.getElementById('diagramZoomIn').onclick=()=>setDiagramZoom(Number(canvas.style.zoom||1)+.1);
   document.getElementById('diagramZoomReset').onclick=()=>setDiagramZoom(1);
+  document.getElementById('diagramNewCard').onclick=()=>addStandaloneDiagramCard(sid);
   const undo=document.getElementById('diagramUndoAddition');undo.disabled=diagramAdditionHistory[sid]?.at(-1)?.owner!==currentUser?.id;undo.onclick=()=>undoDiagramAddition(sid);
   document.getElementById('diagramSaveBtn').onclick = ()=>saveDiagram(sid);
   document.getElementById('diagramReloadBtn').onclick = ()=>reloadDiagramPublished(sid);
@@ -4555,6 +4584,7 @@ function openEdgePopover(sid, nid, optIdx, chipEl){
   document.getElementById('edgePopLabel').oninput = commit;
   typeSel.onchange = ()=>{ targetSel.style.display = typeSel.value === 'next' ? 'inline-block' : 'none'; commit(); };
   targetSel.onchange = commit;
+  document.getElementById('edgePopNewCard').onclick=()=>{if(diagramSaving)return;commit();addStandaloneDiagramCard(sid,nid,optIdx);};
   document.getElementById('edgePopClose').onclick = ()=>{ commit(); closeEdgePopover(); };
 }
 

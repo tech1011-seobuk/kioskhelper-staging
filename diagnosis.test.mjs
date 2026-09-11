@@ -59,3 +59,5 @@ test('adding steps and choices preserves original tree and creates valid unique 
 });
 
 test('database JSON key ordering does not create a false unsaved draft',()=>{ const c=harness();vm.runInContext("globalThis.equal=sameDiagnosis({text:'a',options:[{label:'ok',end:'solved'}]},{options:[{end:'solved',label:'ok'}],text:'a'});",c);assert.equal(c.equal,true); });
+
+test('new large card can replace an existing option destination without adding choices',()=>{const c=harness();c.tree=c.api.TREES['CAM-1'];const original=JSON.stringify(c.tree);vm.runInContext("globalThis.card=createDiagnosisCard(tree,tree.start,1);",c);assert.equal(JSON.stringify(c.tree),original);const option=c.card.tree.nodes[c.tree.start].options[1];assert.equal(option.label,c.tree.nodes[c.tree.start].options[1].label);assert.equal(option.next,c.card.id);assert.equal(option.end,undefined);assert.equal(c.card.tree.nodes[c.tree.start].options.length,c.tree.nodes[c.tree.start].options.length);c.api.validateDiagnosisTree(c.card.tree);});
