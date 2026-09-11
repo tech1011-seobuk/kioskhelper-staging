@@ -745,15 +745,25 @@
     padding:8px 9px; margin-bottom:8px; min-height:20px; cursor:text;
   }
   .dnode-text:focus{ outline:2px solid var(--accent); }
-  .dopt-row{ display:flex; gap:5px; margin-bottom:5px; flex-wrap:wrap; }
-  .dopt-readonly{ font-size:10.5px; color:var(--muted); background:var(--panel); border-radius:7px; padding:6px 8px; }
-  .dopt-label{
-    flex:1 1 90px; min-width:70px; background:var(--panel); border:1px solid var(--border); border-radius:6px;
-    color:var(--text); font-size:11px; font-family:inherit; padding:5px 7px;
+  .edge-chip{
+    position:absolute; z-index:3; transform:translate(-50%,-50%);
+    background:var(--panel); border:1.5px solid var(--border); border-radius:20px;
+    padding:4px 10px; font-size:10.5px; color:var(--text); cursor:pointer; white-space:nowrap;
+    box-shadow:0 2px 6px rgba(0,0,0,.35);
   }
-  .dopt-type, .dopt-target{
-    background:var(--panel); border:1px solid var(--border); border-radius:6px;
-    color:var(--text); font-size:10.5px; font-family:inherit; padding:4px 5px; max-width:130px;
+  .edge-chip:hover{ filter:brightness(1.25); }
+  .edge-popover{
+    position:absolute; z-index:10; background:var(--panel2); border:1px solid var(--border);
+    border-radius:10px; padding:10px; gap:6px; box-shadow:0 6px 20px rgba(0,0,0,.5);
+    min-width:240px; flex-direction:column;
+  }
+  .edge-popover input, .edge-popover select{
+    background:var(--panel); border:1px solid var(--border); border-radius:7px;
+    color:var(--text); font-size:12px; font-family:inherit; padding:6px 8px; width:100%; box-sizing:border-box;
+  }
+  .edge-popover button{
+    background:var(--accent); color:var(--accent-ink); border:none; border-radius:7px;
+    padding:6px 10px; font-size:11.5px; font-weight:700; cursor:pointer; font-family:inherit;
   }
   .dnode-end{
     width:150px; padding:12px 14px; border-radius:12px; text-align:center; font-weight:700; font-size:12.5px;
@@ -4146,6 +4156,8 @@ function computeDiagramLayout(tree){
   return positions;
 }
 
+let diagramOptState = {};
+
 function openDiagram(sid){
   const main = document.getElementById('diagramEditorMain');
   const tree = TREES[sid];
@@ -4154,39 +4166,53 @@ function openDiagram(sid){
   const nodeIds = Object.keys(tree.nodes);
   const positions = computeDiagramLayout(tree);
 
-  const endTypeOptionsHtml =
-    '<option value="next">다음 단계로</option>' +
-    '<option value="solved">✅ 해결</option>' +
-    '<option value="escalate">📞 담당자연결</option>' +
-    '<option value="as">🔧 A/S필요</option>';
+  // 편집 상태 초기화 (문구 클릭 편집 + 라벨 칩 편집 모두 이 상태를 기준으로 함)
+  diagramOptState[sid] = {};
+  nodeIds.forEach(nid=>{
+    diagramOptState[sid][nid] = (tree.nodes[nid].options || []).map(opt=>({
+      label: opt.label || '',
+      jump: opt.jump || null,
+      type: opt.jump ? 'jump' : (opt.end || 'next'),
+      target: opt.next || (nodeIds.includes(opt.jump) ? opt.jump : nodeIds[0])
+    }));
+  });
 
   main.innerHTML =
     '<div class="diagram-header">' +
       '<h3>'+sid+' · '+escapeHtml(label)+'</h3>' +
       '<button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
     '</div>' +
-    '<div class="diagram-note" style="margin:0 0 12px;">✏️ 박스 안 문구는 클릭해서 바로 고치고, 화살표 옆 드롭다운으로 다음 단계나 결과를 바꿔주세요. 다 고치신 후 "수정 내용 복사하기"로 채팅에 붙여넣어 주시면 앱에 반영해드려요.</div>' +
-    '<div class="diagram-canvas-wrap"><div class="diagram-canvas" id="diagramCanvas"><svg class="diagram-svg" id="diagramSvg"></svg></div></div>';
+    '<div class="diagram-note" style="margin:0 0 12px;">✏️ 박스 안 문구는 클릭해서 바로 고치고, 화살표에 붙은 라벨을 클릭하면 다음 단계나 결과를 바꿀 수 있어요.</div>' +
+    '<div class="diagram-canvas-wrap"><div class="diagram-canvas" id="diagramCanvas"><svg class="diagram-svg" id="diagramSvg"></svg></div></div>' +
+    '<div class="edge-popover" id="edgePopover" style="display:none;">' +
+      '<input type="text" class="edge-pop-label" id="edgePopLabel" placeholder="선택지 문구">' +
+      '<select class="edge-pop-type" id="edgePopType">' +
+        '<option value="next">➡️ 다음 단계로</option>' +
+        '<option value="solved">✅ 해결</option>' +
+        '<option value="escalate">📞 담당자연결</option>' +
+        '<option value="as">🔧 A/S필요</option>' +
+      '</select>' +
+      '<select class="edge-pop-target" id="edgePopTarget"></select>' +
+      '<button id="edgePopClose">확인</button>' +
+    '</div>';
 
   const canvas = document.getElementById('diagramCanvas');
   let maxX = 0, maxY = 0;
 
-  // start node
   const startPos = positions[tree.start] || {x:30,y:30};
   const startEl = document.createElement('div');
   startEl.className = 'dnode dnode-start';
-  startEl.style.left = (startPos.x + 90) + 'px';
+  startEl.style.left = (startPos.x + 110) + 'px';
   startEl.style.top = (startPos.y - 70) + 'px';
   startEl.textContent = '시작';
   startEl.id = 'dn_START';
   canvas.appendChild(startEl);
 
-  // step nodes
   nodeIds.forEach(nid=>{
     const node = tree.nodes[nid];
     const pos = positions[nid] || {x:30,y:30};
-    maxX = Math.max(maxX, pos.x + 320);
-    maxY = Math.max(maxY, pos.y + 200);
+    maxX = Math.max(maxX, pos.x + 340);
+    maxY = Math.max(maxY, pos.y + 140);
     const box = document.createElement('div');
     box.className = 'dnode dnode-step';
     box.id = 'dn_' + nid;
@@ -4194,60 +4220,58 @@ function openDiagram(sid){
     box.style.top = pos.y + 'px';
     box.innerHTML =
       '<div class="dnode-tag">STEP ['+nid+']'+(nid===tree.start?' <span class="start-badge">시작</span>':'')+'</div>' +
-      '<div class="dnode-text" contenteditable="true" data-nid="'+nid+'">'+escapeHtml(node.text)+'</div>' +
-      '<div class="dnode-opts" data-nid="'+nid+'"></div>';
+      '<div class="dnode-text" contenteditable="true" data-nid="'+nid+'">'+escapeHtml(node.text)+'</div>';
     canvas.appendChild(box);
-
-    const optsWrap = box.querySelector('.dnode-opts');
-    (node.options || []).forEach((opt, i)=>{
-      if (opt.jump) {
-        const row = document.createElement('div');
-        row.className = 'dopt-row dopt-readonly';
-        row.textContent = '"'+opt.label+'" → ['+opt.jump+'] 증상으로 이동 (수정불가)';
-        optsWrap.appendChild(row);
-        return;
-      }
-      const row = document.createElement('div');
-      row.className = 'dopt-row';
-      row.dataset.nid = nid;
-      row.dataset.optidx = i;
-      const targetOptionsHtml = nodeIds.map(id=>{
-        const preview = tree.nodes[id].text.slice(0,16);
-        return '<option value="'+id+'">'+id+' '+escapeHtml(preview)+(tree.nodes[id].text.length>16?'…':'')+'</option>';
-      }).join('');
-      row.innerHTML =
-        '<input type="text" class="dopt-label" value="'+escapeHtml(opt.label||'')+'">' +
-        '<select class="dopt-type">'+endTypeOptionsHtml+'</select>' +
-        '<select class="dopt-target">'+targetOptionsHtml+'</select>';
-      optsWrap.appendChild(row);
-      const typeSel = row.querySelector('.dopt-type');
-      const targetSel = row.querySelector('.dopt-target');
-      const curType = opt.end || 'next';
-      typeSel.value = curType;
-      if (opt.next) targetSel.value = opt.next;
-      targetSel.style.display = curType === 'next' ? 'inline-block' : 'none';
-      typeSel.onchange = ()=>{
-        targetSel.style.display = typeSel.value === 'next' ? 'inline-block' : 'none';
-        redrawDiagramLines(sid);
-      };
-      targetSel.onchange = ()=> redrawDiagramLines(sid);
-    });
+    box.querySelector('.dnode-text').addEventListener('input', ()=> requestAnimationFrame(()=> redrawDiagramLines(sid)));
+    box.querySelector('.dnode-text').addEventListener('blur', ()=> requestAnimationFrame(()=> redrawDiagramLines(sid)));
   });
 
-  // end nodes (created on demand)
   canvas.dataset.endNodesY = '30';
-
   canvas.style.width = (maxX + 260) + 'px';
-  canvas.style.height = (maxY + 40) + 'px';
-
-  // re-draw lines whenever a text box changes size (debounced) and on load
-  canvas.querySelectorAll('.dnode-text').forEach(t=>{
-    t.addEventListener('input', ()=> requestAnimationFrame(()=> redrawDiagramLines(sid)));
-  });
+  canvas.style.height = (maxY + 60) + 'px';
 
   requestAnimationFrame(()=> redrawDiagramLines(sid));
 
   document.getElementById('diagramCopyContentBtn').onclick = (e)=> copyDiagramContent(sid, tree, e.currentTarget);
+}
+
+function closeEdgePopover(){
+  const pop = document.getElementById('edgePopover');
+  if (pop) pop.style.display = 'none';
+}
+
+function openEdgePopover(sid, nid, optIdx, chipEl){
+  const pop = document.getElementById('edgePopover');
+  const opt = diagramOptState[sid][nid][optIdx];
+  const nodeIds = Object.keys(TREES[sid].nodes);
+  document.getElementById('edgePopLabel').value = opt.label;
+  const typeSel = document.getElementById('edgePopType');
+  const targetSel = document.getElementById('edgePopTarget');
+  typeSel.value = opt.type === 'jump' ? 'next' : opt.type;
+  targetSel.innerHTML = nodeIds.map(id=>{
+    const preview = TREES[sid].nodes[id].text.slice(0,18);
+    return '<option value="'+id+'">'+id+' — '+escapeHtml(preview)+(TREES[sid].nodes[id].text.length>18?'…':'')+'</option>';
+  }).join('');
+  targetSel.value = opt.target;
+  targetSel.style.display = typeSel.value === 'next' ? 'inline-block' : 'none';
+
+  const canvasWrap = document.querySelector('.diagram-canvas-wrap');
+  const canvasRect = document.getElementById('diagramCanvas').getBoundingClientRect();
+  const chipRect = chipEl.getBoundingClientRect();
+  pop.style.left = (chipRect.left - canvasRect.left + canvasWrap.scrollLeft) + 'px';
+  pop.style.top = (chipRect.bottom - canvasRect.top + canvasWrap.scrollTop + 6) + 'px';
+  pop.style.display = 'flex';
+
+  const commit = ()=>{
+    opt.label = document.getElementById('edgePopLabel').value.trim();
+    opt.type = typeSel.value;
+    opt.target = targetSel.value;
+    redrawDiagramLines(sid);
+  };
+  document.getElementById('edgePopLabel').oninput = commit;
+  typeSel.onchange = ()=>{ targetSel.style.display = typeSel.value === 'next' ? 'inline-block' : 'none'; commit(); };
+  targetSel.onchange = commit;
+  document.getElementById('edgePopClose').onclick = ()=>{ commit(); closeEdgePopover(); };
 }
 
 function getOrCreateEndNode(sid, canvas, endType){
@@ -4273,10 +4297,15 @@ function redrawDiagramLines(sid){
   const canvas = document.getElementById('diagramCanvas');
   const svg = document.getElementById('diagramSvg');
   if (!canvas || !svg) return;
+  canvas.querySelectorAll('.edge-chip').forEach(c=>c.remove());
+  canvas.querySelectorAll('.dnode-end').forEach(c=>c.remove());
+  canvas.dataset.endNodesY = '30';
   svg.setAttribute('width', canvas.style.width);
   svg.setAttribute('height', canvas.style.height);
-  svg.innerHTML =
-    '<defs><marker id="arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0, 8 4, 0 8" fill="#8a8d97"/></marker></defs>';
+  svg.innerHTML = '<defs>' +
+    '<marker id="arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0, 8 4, 0 8" fill="#8a8d97"/></marker>' +
+    '<marker id="arrowhead-start" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0, 8 4, 0 8" fill="#d7e632"/></marker>' +
+    '</defs>';
 
   function centerOf(el, side){
     const l = parseFloat(el.style.left) || 0;
@@ -4289,8 +4318,8 @@ function redrawDiagramLines(sid){
     return { x: l + w, y: t + h/2 };
   }
 
-  function drawLine(fromEl, toEl, colorLabel){
-    if (!fromEl || !toEl) return;
+  function drawLine(fromEl, toEl, color, marker){
+    if (!fromEl || !toEl) return null;
     const p1 = centerOf(fromEl, 'bottom');
     const p2 = centerOf(toEl, 'top');
     const midY = (p1.y + p2.y) / 2;
@@ -4298,32 +4327,42 @@ function redrawDiagramLines(sid){
     const d = 'M '+p1.x+' '+p1.y+' C '+p1.x+' '+midY+', '+p2.x+' '+midY+', '+p2.x+' '+p2.y;
     path.setAttribute('d', d);
     path.setAttribute('fill','none');
-    path.setAttribute('stroke', colorLabel || '#8a8d97');
+    path.setAttribute('stroke', color || '#8a8d97');
     path.setAttribute('stroke-width','1.6');
-    path.setAttribute('marker-end','url(#arrowhead)');
+    path.setAttribute('marker-end', 'url(#'+(marker||'arrowhead')+')');
     svg.appendChild(path);
+    return { x: (p1.x+p2.x)/2, y: (p1.y+p2.y)/2 };
   }
 
-  // start -> first node
-  const startNode = TREES[sid];
+  const tree = TREES[sid];
   const startEl = document.getElementById('dn_START');
-  const firstEl = document.getElementById('dn_' + startNode.start);
-  drawLine(startEl, firstEl, '#d7e632');
+  const firstEl = document.getElementById('dn_' + tree.start);
+  drawLine(startEl, firstEl, '#d7e632', 'arrowhead-start');
 
-  canvas.querySelectorAll('.dopt-row[data-nid]').forEach(row=>{
-    const nid = row.dataset.nid;
+  Object.keys(diagramOptState[sid]).forEach(nid=>{
     const fromEl = document.getElementById('dn_' + nid);
-    const type = row.querySelector('.dopt-type').value;
-    let toEl;
-    let color = '#8a8d97';
-    if (type === 'next') {
-      const target = row.querySelector('.dopt-target').value;
-      toEl = document.getElementById('dn_' + target);
-    } else {
-      toEl = getOrCreateEndNode(sid, canvas, type);
-      color = type === 'solved' ? '#4caf50' : (type === 'escalate' ? '#e0a256' : '#e07a7a');
-    }
-    drawLine(fromEl, toEl, color);
+    diagramOptState[sid][nid].forEach((opt, i)=>{
+      let toEl, color;
+      if (opt.type === 'jump') {
+        return; // 이동형 옵션은 이 화면에서 그리지 않음(수정 불가 항목)
+      } else if (opt.type === 'next') {
+        toEl = document.getElementById('dn_' + opt.target);
+        color = '#8a8d97';
+      } else {
+        toEl = getOrCreateEndNode(sid, canvas, opt.type);
+        color = opt.type === 'solved' ? '#4caf50' : (opt.type === 'escalate' ? '#e0a256' : '#e07a7a');
+      }
+      const mid = drawLine(fromEl, toEl, color);
+      if (!mid) return;
+      const chip = document.createElement('div');
+      chip.className = 'edge-chip';
+      chip.style.left = mid.x + 'px';
+      chip.style.top = mid.y + 'px';
+      chip.style.borderColor = color;
+      chip.textContent = opt.label || '(문구 없음)';
+      chip.onclick = (e)=>{ e.stopPropagation(); openEdgePopover(sid, nid, i, chip); };
+      canvas.appendChild(chip);
+    });
   });
 }
 
@@ -4336,19 +4375,17 @@ function copyDiagramContent(sid, tree, btn){
     const text = textEl.textContent.trim();
     out += 'STEP ['+nid+']' + (nid === tree.start ? ' (시작)' : '') + '\n';
     out += '문구: ' + text + '\n';
-    box.querySelectorAll('.dopt-row').forEach(row=>{
-      if (row.classList.contains('dopt-readonly')) {
-        out += '  - ' + row.textContent.trim() + '\n';
+    (diagramOptState[sid][nid] || []).forEach(opt=>{
+      if (opt.type === 'jump') {
+        out += '  - "' + opt.label + '" → [' + opt.jump + '] 증상으로 이동 (수정불가)\n';
         return;
       }
-      const optLabel = row.querySelector('.dopt-label').value.trim();
-      const type = row.querySelector('.dopt-type').value;
       let resultText;
-      if (type === 'next') resultText = '→ [' + row.querySelector('.dopt-target').value + '] 단계로 이동';
-      else if (type === 'solved') resultText = '✅ 해결 (종료)';
-      else if (type === 'escalate') resultText = '📞 담당자 연결 (종료)';
-      else if (type === 'as') resultText = '🔧 A/S 필요 (종료)';
-      out += '  - "' + optLabel + '" ' + resultText + '\n';
+      if (opt.type === 'next') resultText = '→ [' + opt.target + '] 단계로 이동';
+      else if (opt.type === 'solved') resultText = '✅ 해결 (종료)';
+      else if (opt.type === 'escalate') resultText = '📞 담당자 연결 (종료)';
+      else if (opt.type === 'as') resultText = '🔧 A/S 필요 (종료)';
+      out += '  - "' + opt.label + '" ' + resultText + '\n';
     });
     out += '\n';
   });
@@ -4365,6 +4402,12 @@ function copyDiagramContent(sid, tree, btn){
   setTimeout(()=> btn.textContent = old, 2000);
 }
 
+document.addEventListener('click', (e)=>{
+  const pop = document.getElementById('edgePopover');
+  if (pop && pop.style.display !== 'none' && !pop.contains(e.target) && !e.target.classList.contains('edge-chip')) {
+    closeEdgePopover();
+  }
+});
 
 async function renderAdminDashboardScreen(){
   const area = document.getElementById('chatArea');
