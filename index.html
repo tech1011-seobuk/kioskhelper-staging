@@ -723,6 +723,45 @@
     border-radius:10px; font-size:13.5px; font-weight:800; cursor:pointer; font-family:inherit;
   }
 
+  .diagram-canvas-wrap{
+    overflow:auto; max-height:70vh; background:#16161a; border-radius:10px; border:1px solid var(--border);
+  }
+  .diagram-canvas{ position:relative; }
+  .diagram-svg{ position:absolute; top:0; left:0; pointer-events:none; z-index:1; }
+  .dnode{ position:absolute; z-index:2; }
+  .dnode-start{
+    width:80px; height:44px; border-radius:50%; background:var(--accent); color:var(--accent-ink);
+    display:flex; align-items:center; justify-content:center; font-weight:800; font-size:12px;
+  }
+  .dnode-step{
+    width:300px; background:var(--panel2); border:1px solid var(--border); border-radius:12px; padding:10px 12px;
+  }
+  .dnode-tag{ font-size:10px; color:var(--muted); margin-bottom:5px; font-family:'JetBrains Mono',monospace; }
+  .dnode-tag .start-badge{
+    background:var(--accent); color:var(--accent-ink); font-size:9px; font-weight:800; padding:1px 6px; border-radius:20px;
+  }
+  .dnode-text{
+    font-size:12.5px; line-height:1.5; color:var(--text); background:var(--panel); border-radius:8px;
+    padding:8px 9px; margin-bottom:8px; min-height:20px; cursor:text;
+  }
+  .dnode-text:focus{ outline:2px solid var(--accent); }
+  .dopt-row{ display:flex; gap:5px; margin-bottom:5px; flex-wrap:wrap; }
+  .dopt-readonly{ font-size:10.5px; color:var(--muted); background:var(--panel); border-radius:7px; padding:6px 8px; }
+  .dopt-label{
+    flex:1 1 90px; min-width:70px; background:var(--panel); border:1px solid var(--border); border-radius:6px;
+    color:var(--text); font-size:11px; font-family:inherit; padding:5px 7px;
+  }
+  .dopt-type, .dopt-target{
+    background:var(--panel); border:1px solid var(--border); border-radius:6px;
+    color:var(--text); font-size:10.5px; font-family:inherit; padding:4px 5px; max-width:130px;
+  }
+  .dnode-end{
+    width:150px; padding:12px 14px; border-radius:12px; text-align:center; font-weight:700; font-size:12.5px;
+  }
+  .dnode-end-solved{ background:#1c3a24; border:1px solid #4caf50; color:#8ee29a; }
+  .dnode-end-escalate{ background:#3a2a14; border:1px solid #e0a256; color:#f0c98a; }
+  .dnode-end-as{ background:#3a1418; border:1px solid #e07a7a; color:#f2a3a3; }
+
   @media (max-width:760px){
     .diagram-editor-screen{ flex-direction:column; }
     .diagram-editor-sidebar{ width:100%; position:relative; max-height:none; }
@@ -4082,138 +4121,250 @@ async function renderDiagramEditorScreen(){
   });
 }
 
-async function openDiagram(sid){
+function computeDiagramLayout(tree){
+  const start = tree.start;
+  const positions = {};
+  const depthCounts = {};
+  const visited = new Set();
+  const queue = [[start, 0]];
+  const order = [];
+  while (queue.length) {
+    const [nid, depth] = queue.shift();
+    if (visited.has(nid) || !tree.nodes[nid]) continue;
+    visited.add(nid);
+    order.push([nid, depth]);
+    (tree.nodes[nid].options || []).forEach(opt=>{
+      if (opt.next && !visited.has(opt.next)) queue.push([opt.next, depth + 1]);
+    });
+  }
+  const colCounters = {};
+  order.forEach(([nid, depth])=>{
+    const col = colCounters[depth] || 0;
+    colCounters[depth] = col + 1;
+    positions[nid] = { x: 30 + col * 360, y: 30 + depth * 250 };
+  });
+  return positions;
+}
+
+function openDiagram(sid){
   const main = document.getElementById('diagramEditorMain');
   const tree = TREES[sid];
   const label = SYMPTOM_LABEL[sid] || '';
   if (!tree) { main.innerHTML = '<div class="admin-empty">이 증상은 아직 트리가 없어요.</div>'; return; }
-  const mermaidCode = buildMermaidForSymptom(sid, tree);
   const nodeIds = Object.keys(tree.nodes);
+  const positions = computeDiagramLayout(tree);
 
-  const endOptionsHtml =
-    '<option value="next">다음 단계로 이동</option>' +
-    '<option value="solved">✅ 해결 (종료)</option>' +
-    '<option value="escalate">📞 담당자 연결 (종료)</option>' +
-    '<option value="as">🔧 A/S 필요 (종료)</option>';
-
-  let stepsHtml = '';
-  nodeIds.forEach(nid=>{
-    const node = tree.nodes[nid];
-    const isStart = nid === tree.start;
-    stepsHtml += '<div class="content-step-card" data-nid="'+nid+'">' +
-      '<div class="content-step-title">STEP <span class="mono">'+nid+'</span>'+(isStart?' <span class="start-badge">시작</span>':'')+'</div>' +
-      '<label class="content-field-label">안내 문구</label>' +
-      '<textarea class="content-step-text" data-nid="'+nid+'">'+escapeHtml(node.text)+'</textarea>';
-    (node.options||[]).forEach((opt, i)=>{
-      if (opt.jump) {
-        stepsHtml += '<div class="content-opt-row content-opt-readonly">' +
-          '<span class="mono">"'+escapeHtml(opt.label)+'"</span> → <b>['+opt.jump+']</b> 증상으로 이동 (이 화면에서는 수정 불가)' +
-        '</div>';
-        return;
-      }
-      const curType = opt.end || 'next';
-      const curNext = opt.next || '';
-      stepsHtml += '<div class="content-opt-row" data-nid="'+nid+'" data-optidx="'+i+'">' +
-        '<input type="text" class="content-opt-label" value="'+escapeHtml(opt.label||'')+'" placeholder="선택지 문구">' +
-        '<span class="content-opt-arrow">→</span>' +
-        '<select class="content-opt-type">' + endOptionsHtml + '</select>' +
-        '<select class="content-opt-target" style="display:none;"></select>' +
-      '</div>';
-    });
-    stepsHtml += '</div>';
-  });
+  const endTypeOptionsHtml =
+    '<option value="next">다음 단계로</option>' +
+    '<option value="solved">✅ 해결</option>' +
+    '<option value="escalate">📞 담당자연결</option>' +
+    '<option value="as">🔧 A/S필요</option>';
 
   main.innerHTML =
     '<div class="diagram-header">' +
       '<h3>'+sid+' · '+escapeHtml(label)+'</h3>' +
-      '<button class="toggle-code-btn" id="diagramCodeToggle">🔍 전체 흐름 그림으로 보기</button>' +
+      '<button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
     '</div>' +
-    '<div class="mermaid-wrap" id="diagramMermaidWrap" style="display:none;"><pre class="mermaid" id="mmdCurrent"></pre></div>' +
-    '<div id="contentEditorBox">' +
-      '<div class="diagram-note" style="margin:0 0 14px;">✏️ 문구를 자유롭게 고치고, 선택지 결과는 드롭다운으로 골라주세요. 다 고치신 후 맨 아래 "수정 내용 복사하기"를 눌러서 채팅으로 보내주시면 실제 앱에 반영해드릴게요.</div>' +
-      stepsHtml +
-      '<button class="code-actions-single" id="diagramCopyContentBtn">📋 수정 내용 복사하기</button>' +
-    '</div>';
+    '<div class="diagram-note" style="margin:0 0 12px;">✏️ 박스 안 문구는 클릭해서 바로 고치고, 화살표 옆 드롭다운으로 다음 단계나 결과를 바꿔주세요. 다 고치신 후 "수정 내용 복사하기"로 채팅에 붙여넣어 주시면 앱에 반영해드려요.</div>' +
+    '<div class="diagram-canvas-wrap"><div class="diagram-canvas" id="diagramCanvas"><svg class="diagram-svg" id="diagramSvg"></svg></div></div>';
 
-  // populate target selects with node previews, and set current values
-  main.querySelectorAll('.content-opt-row[data-nid]').forEach(row=>{
-    const nid = row.dataset.nid;
-    const idx = parseInt(row.dataset.optidx, 10);
-    const opt = tree.nodes[nid].options[idx];
-    const typeSel = row.querySelector('.content-opt-type');
-    const targetSel = row.querySelector('.content-opt-target');
-    targetSel.innerHTML = nodeIds.map(id=>{
-      const preview = tree.nodes[id].text.slice(0, 22);
-      return '<option value="'+id+'">'+id+' — '+escapeHtml(preview)+(tree.nodes[id].text.length>22?'...':'')+'</option>';
-    }).join('');
-    const curType = opt.end || 'next';
-    typeSel.value = curType;
-    if (opt.next) targetSel.value = opt.next;
-    targetSel.style.display = curType === 'next' ? 'inline-block' : 'none';
-    typeSel.onchange = ()=>{
-      targetSel.style.display = typeSel.value === 'next' ? 'inline-block' : 'none';
-    };
+  const canvas = document.getElementById('diagramCanvas');
+  let maxX = 0, maxY = 0;
+
+  // start node
+  const startPos = positions[tree.start] || {x:30,y:30};
+  const startEl = document.createElement('div');
+  startEl.className = 'dnode dnode-start';
+  startEl.style.left = (startPos.x + 90) + 'px';
+  startEl.style.top = (startPos.y - 70) + 'px';
+  startEl.textContent = '시작';
+  startEl.id = 'dn_START';
+  canvas.appendChild(startEl);
+
+  // step nodes
+  nodeIds.forEach(nid=>{
+    const node = tree.nodes[nid];
+    const pos = positions[nid] || {x:30,y:30};
+    maxX = Math.max(maxX, pos.x + 320);
+    maxY = Math.max(maxY, pos.y + 200);
+    const box = document.createElement('div');
+    box.className = 'dnode dnode-step';
+    box.id = 'dn_' + nid;
+    box.style.left = pos.x + 'px';
+    box.style.top = pos.y + 'px';
+    box.innerHTML =
+      '<div class="dnode-tag">STEP ['+nid+']'+(nid===tree.start?' <span class="start-badge">시작</span>':'')+'</div>' +
+      '<div class="dnode-text" contenteditable="true" data-nid="'+nid+'">'+escapeHtml(node.text)+'</div>' +
+      '<div class="dnode-opts" data-nid="'+nid+'"></div>';
+    canvas.appendChild(box);
+
+    const optsWrap = box.querySelector('.dnode-opts');
+    (node.options || []).forEach((opt, i)=>{
+      if (opt.jump) {
+        const row = document.createElement('div');
+        row.className = 'dopt-row dopt-readonly';
+        row.textContent = '"'+opt.label+'" → ['+opt.jump+'] 증상으로 이동 (수정불가)';
+        optsWrap.appendChild(row);
+        return;
+      }
+      const row = document.createElement('div');
+      row.className = 'dopt-row';
+      row.dataset.nid = nid;
+      row.dataset.optidx = i;
+      const targetOptionsHtml = nodeIds.map(id=>{
+        const preview = tree.nodes[id].text.slice(0,16);
+        return '<option value="'+id+'">'+id+' '+escapeHtml(preview)+(tree.nodes[id].text.length>16?'…':'')+'</option>';
+      }).join('');
+      row.innerHTML =
+        '<input type="text" class="dopt-label" value="'+escapeHtml(opt.label||'')+'">' +
+        '<select class="dopt-type">'+endTypeOptionsHtml+'</select>' +
+        '<select class="dopt-target">'+targetOptionsHtml+'</select>';
+      optsWrap.appendChild(row);
+      const typeSel = row.querySelector('.dopt-type');
+      const targetSel = row.querySelector('.dopt-target');
+      const curType = opt.end || 'next';
+      typeSel.value = curType;
+      if (opt.next) targetSel.value = opt.next;
+      targetSel.style.display = curType === 'next' ? 'inline-block' : 'none';
+      typeSel.onchange = ()=>{
+        targetSel.style.display = typeSel.value === 'next' ? 'inline-block' : 'none';
+        redrawDiagramLines(sid);
+      };
+      targetSel.onchange = ()=> redrawDiagramLines(sid);
+    });
   });
 
-  const pre = document.getElementById('mmdCurrent');
-  pre.textContent = mermaidCode;
+  // end nodes (created on demand)
+  canvas.dataset.endNodesY = '30';
 
-  document.getElementById('diagramCodeToggle').onclick = async ()=>{
-    const wrap = document.getElementById('diagramMermaidWrap');
-    const isHidden = wrap.style.display === 'none';
-    wrap.style.display = isHidden ? 'block' : 'none';
-    document.getElementById('diagramCodeToggle').textContent = isHidden ? '✏️ 내용 수정으로 돌아가기' : '🔍 전체 흐름 그림으로 보기';
-    document.getElementById('contentEditorBox').style.display = isHidden ? 'none' : 'block';
-    if (isHidden) {
-      try {
-        await ensureMermaidLoaded();
-        pre.removeAttribute('data-processed');
-        await window.mermaid.run({ nodes: [pre] });
-      } catch(err) {
-        wrap.innerHTML = '<div class="admin-empty">다이어그램을 불러오지 못했어요. 인터넷 연결을 확인해주세요.</div>';
-      }
-    }
-  };
+  canvas.style.width = (maxX + 260) + 'px';
+  canvas.style.height = (maxY + 40) + 'px';
 
-  document.getElementById('diagramCopyContentBtn').onclick = (e)=>{
-    let out = '['+sid+' · '+label+'] 수정된 내용\n\n';
-    main.querySelectorAll('.content-step-card').forEach(card=>{
-      const nid = card.dataset.nid;
-      const text = card.querySelector('.content-step-text').value.trim();
-      out += 'STEP ['+nid+']' + (nid === tree.start ? ' (시작)' : '') + '\n';
-      out += '문구: ' + text + '\n';
-      card.querySelectorAll('.content-opt-row').forEach(row=>{
-        if (row.classList.contains('content-opt-readonly')) {
-          out += '  - ' + row.textContent.trim() + '\n';
-          return;
-        }
-        const optLabel = row.querySelector('.content-opt-label').value.trim();
-        const type = row.querySelector('.content-opt-type').value;
-        let resultText;
-        if (type === 'next') {
-          const target = row.querySelector('.content-opt-target').value;
-          resultText = '→ [' + target + '] 단계로 이동';
-        } else if (type === 'solved') resultText = '✅ 해결 (종료)';
-        else if (type === 'escalate') resultText = '📞 담당자 연결 (종료)';
-        else if (type === 'as') resultText = '🔧 A/S 필요 (종료)';
-        out += '  - "' + optLabel + '" ' + resultText + '\n';
-      });
-      out += '\n';
-    });
+  // re-draw lines whenever a text box changes size (debounced) and on load
+  canvas.querySelectorAll('.dnode-text').forEach(t=>{
+    t.addEventListener('input', ()=> requestAnimationFrame(()=> redrawDiagramLines(sid)));
+  });
 
-    const ta = document.createElement('textarea');
-    ta.value = out;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
+  requestAnimationFrame(()=> redrawDiagramLines(sid));
 
-    const btn = e.currentTarget;
-    const old = btn.textContent;
-    btn.textContent = '복사됐어요! 채팅에 붙여넣어 주세요';
-    setTimeout(()=> btn.textContent = old, 2000);
-  };
+  document.getElementById('diagramCopyContentBtn').onclick = (e)=> copyDiagramContent(sid, tree, e.currentTarget);
 }
+
+function getOrCreateEndNode(sid, canvas, endType){
+  const id = 'dn_END_' + endType;
+  let el = document.getElementById(id);
+  if (el) return el;
+  const labelMap = { solved:'✅ 해결', escalate:'📞 담당자 연결', as:'🔧 A/S 필요' };
+  const y = parseInt(canvas.dataset.endNodesY || '30', 10);
+  canvas.dataset.endNodesY = (y + 130).toString();
+  const x = canvas.querySelectorAll('.dnode-step').length ? Math.max(...Array.from(canvas.querySelectorAll('.dnode-step')).map(n=>parseInt(n.style.left,10))) + 380 : 380;
+  el = document.createElement('div');
+  el.id = id;
+  el.className = 'dnode dnode-end dnode-end-' + endType;
+  el.style.left = x + 'px';
+  el.style.top = y + 'px';
+  el.textContent = labelMap[endType] || endType;
+  canvas.appendChild(el);
+  canvas.style.width = (x + 220) + 'px';
+  return el;
+}
+
+function redrawDiagramLines(sid){
+  const canvas = document.getElementById('diagramCanvas');
+  const svg = document.getElementById('diagramSvg');
+  if (!canvas || !svg) return;
+  svg.setAttribute('width', canvas.style.width);
+  svg.setAttribute('height', canvas.style.height);
+  svg.innerHTML =
+    '<defs><marker id="arrowhead" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><polygon points="0 0, 8 4, 0 8" fill="#8a8d97"/></marker></defs>';
+
+  function centerOf(el, side){
+    const l = parseFloat(el.style.left) || 0;
+    const t = parseFloat(el.style.top) || 0;
+    const w = el.offsetWidth;
+    const h = el.offsetHeight;
+    if (side === 'top') return { x: l + w/2, y: t };
+    if (side === 'bottom') return { x: l + w/2, y: t + h };
+    if (side === 'left') return { x: l, y: t + h/2 };
+    return { x: l + w, y: t + h/2 };
+  }
+
+  function drawLine(fromEl, toEl, colorLabel){
+    if (!fromEl || !toEl) return;
+    const p1 = centerOf(fromEl, 'bottom');
+    const p2 = centerOf(toEl, 'top');
+    const midY = (p1.y + p2.y) / 2;
+    const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+    const d = 'M '+p1.x+' '+p1.y+' C '+p1.x+' '+midY+', '+p2.x+' '+midY+', '+p2.x+' '+p2.y;
+    path.setAttribute('d', d);
+    path.setAttribute('fill','none');
+    path.setAttribute('stroke', colorLabel || '#8a8d97');
+    path.setAttribute('stroke-width','1.6');
+    path.setAttribute('marker-end','url(#arrowhead)');
+    svg.appendChild(path);
+  }
+
+  // start -> first node
+  const startNode = TREES[sid];
+  const startEl = document.getElementById('dn_START');
+  const firstEl = document.getElementById('dn_' + startNode.start);
+  drawLine(startEl, firstEl, '#d7e632');
+
+  canvas.querySelectorAll('.dopt-row[data-nid]').forEach(row=>{
+    const nid = row.dataset.nid;
+    const fromEl = document.getElementById('dn_' + nid);
+    const type = row.querySelector('.dopt-type').value;
+    let toEl;
+    let color = '#8a8d97';
+    if (type === 'next') {
+      const target = row.querySelector('.dopt-target').value;
+      toEl = document.getElementById('dn_' + target);
+    } else {
+      toEl = getOrCreateEndNode(sid, canvas, type);
+      color = type === 'solved' ? '#4caf50' : (type === 'escalate' ? '#e0a256' : '#e07a7a');
+    }
+    drawLine(fromEl, toEl, color);
+  });
+}
+
+function copyDiagramContent(sid, tree, btn){
+  const label = SYMPTOM_LABEL[sid] || '';
+  let out = '['+sid+' · '+label+'] 수정된 내용\n\n';
+  document.querySelectorAll('.dnode-step').forEach(box=>{
+    const textEl = box.querySelector('.dnode-text');
+    const nid = textEl.dataset.nid;
+    const text = textEl.textContent.trim();
+    out += 'STEP ['+nid+']' + (nid === tree.start ? ' (시작)' : '') + '\n';
+    out += '문구: ' + text + '\n';
+    box.querySelectorAll('.dopt-row').forEach(row=>{
+      if (row.classList.contains('dopt-readonly')) {
+        out += '  - ' + row.textContent.trim() + '\n';
+        return;
+      }
+      const optLabel = row.querySelector('.dopt-label').value.trim();
+      const type = row.querySelector('.dopt-type').value;
+      let resultText;
+      if (type === 'next') resultText = '→ [' + row.querySelector('.dopt-target').value + '] 단계로 이동';
+      else if (type === 'solved') resultText = '✅ 해결 (종료)';
+      else if (type === 'escalate') resultText = '📞 담당자 연결 (종료)';
+      else if (type === 'as') resultText = '🔧 A/S 필요 (종료)';
+      out += '  - "' + optLabel + '" ' + resultText + '\n';
+    });
+    out += '\n';
+  });
+
+  const ta = document.createElement('textarea');
+  ta.value = out;
+  document.body.appendChild(ta);
+  ta.select();
+  document.execCommand('copy');
+  document.body.removeChild(ta);
+
+  const old = btn.textContent;
+  btn.textContent = '복사됐어요! 채팅에 붙여넣어 주세요';
+  setTimeout(()=> btn.textContent = old, 2000);
+}
+
 
 async function renderAdminDashboardScreen(){
   const area = document.getElementById('chatArea');
