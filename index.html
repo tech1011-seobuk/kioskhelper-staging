@@ -681,6 +681,48 @@
   }
   .code-actions button:last-child{ background:var(--panel2); color:var(--text); border:1px solid var(--border); }
   .diagram-note{ margin-top:10px; font-size:11px; color:var(--muted); line-height:1.5; }
+
+  .content-step-card{
+    background:var(--panel2); border:1px solid var(--border); border-radius:12px;
+    padding:14px 16px; margin-bottom:14px;
+  }
+  .content-step-title{ font-size:13px; font-weight:700; margin-bottom:8px; }
+  .content-step-title .start-badge{
+    background:var(--accent); color:var(--accent-ink); font-size:10px; font-weight:800;
+    padding:2px 7px; border-radius:20px; margin-left:4px;
+  }
+  .content-field-label{ display:block; font-size:11px; color:var(--muted); margin-bottom:5px; }
+  .content-step-text{
+    width:100%; box-sizing:border-box; min-height:56px; resize:vertical;
+    background:var(--panel); border:1px solid var(--border); border-radius:8px;
+    color:var(--text); font-size:13px; font-family:inherit; padding:9px 11px; line-height:1.5;
+    margin-bottom:10px;
+  }
+  .content-step-text:focus{ outline:none; border-color:var(--accent); }
+  .content-opt-row{
+    display:flex; align-items:center; gap:8px; margin-bottom:6px; flex-wrap:wrap;
+  }
+  .content-opt-readonly{
+    font-size:12px; color:var(--muted); background:var(--panel); border-radius:8px; padding:8px 10px;
+  }
+  .content-opt-label{
+    flex:1 1 160px; min-width:120px;
+    background:var(--panel); border:1px solid var(--border); border-radius:7px;
+    color:var(--text); font-size:12.5px; font-family:inherit; padding:7px 10px;
+  }
+  .content-opt-label:focus{ outline:none; border-color:var(--accent); }
+  .content-opt-arrow{ color:var(--muted); font-size:12px; }
+  .content-opt-type, .content-opt-target{
+    background:var(--panel); border:1px solid var(--border); border-radius:7px;
+    color:var(--text); font-size:12px; font-family:inherit; padding:6px 8px;
+  }
+  .content-opt-target{ max-width:220px; }
+  .code-actions-single{
+    display:block; width:100%; margin-top:6px;
+    background:var(--accent); color:var(--accent-ink); border:none; padding:12px;
+    border-radius:10px; font-size:13.5px; font-weight:800; cursor:pointer; font-family:inherit;
+  }
+
   @media (max-width:760px){
     .diagram-editor-screen{ flex-direction:column; }
     .diagram-editor-sidebar{ width:100%; position:relative; max-height:none; }
@@ -4046,57 +4088,130 @@ async function openDiagram(sid){
   const label = SYMPTOM_LABEL[sid] || '';
   if (!tree) { main.innerHTML = '<div class="admin-empty">이 증상은 아직 트리가 없어요.</div>'; return; }
   const mermaidCode = buildMermaidForSymptom(sid, tree);
+  const nodeIds = Object.keys(tree.nodes);
+
+  const endOptionsHtml =
+    '<option value="next">다음 단계로 이동</option>' +
+    '<option value="solved">✅ 해결 (종료)</option>' +
+    '<option value="escalate">📞 담당자 연결 (종료)</option>' +
+    '<option value="as">🔧 A/S 필요 (종료)</option>';
+
+  let stepsHtml = '';
+  nodeIds.forEach(nid=>{
+    const node = tree.nodes[nid];
+    const isStart = nid === tree.start;
+    stepsHtml += '<div class="content-step-card" data-nid="'+nid+'">' +
+      '<div class="content-step-title">STEP <span class="mono">'+nid+'</span>'+(isStart?' <span class="start-badge">시작</span>':'')+'</div>' +
+      '<label class="content-field-label">안내 문구</label>' +
+      '<textarea class="content-step-text" data-nid="'+nid+'">'+escapeHtml(node.text)+'</textarea>';
+    (node.options||[]).forEach((opt, i)=>{
+      if (opt.jump) {
+        stepsHtml += '<div class="content-opt-row content-opt-readonly">' +
+          '<span class="mono">"'+escapeHtml(opt.label)+'"</span> → <b>['+opt.jump+']</b> 증상으로 이동 (이 화면에서는 수정 불가)' +
+        '</div>';
+        return;
+      }
+      const curType = opt.end || 'next';
+      const curNext = opt.next || '';
+      stepsHtml += '<div class="content-opt-row" data-nid="'+nid+'" data-optidx="'+i+'">' +
+        '<input type="text" class="content-opt-label" value="'+escapeHtml(opt.label||'')+'" placeholder="선택지 문구">' +
+        '<span class="content-opt-arrow">→</span>' +
+        '<select class="content-opt-type">' + endOptionsHtml + '</select>' +
+        '<select class="content-opt-target" style="display:none;"></select>' +
+      '</div>';
+    });
+    stepsHtml += '</div>';
+  });
 
   main.innerHTML =
     '<div class="diagram-header">' +
       '<h3>'+sid+' · '+escapeHtml(label)+'</h3>' +
-      '<button class="toggle-code-btn" id="diagramCodeToggle">코드 보기/수정</button>' +
+      '<button class="toggle-code-btn" id="diagramCodeToggle">🔍 전체 흐름 그림으로 보기</button>' +
     '</div>' +
-    '<div class="mermaid-wrap"><pre class="mermaid" id="mmdCurrent"></pre></div>' +
-    '<div class="code-box" id="diagramCodeBox" style="display:none;">' +
-      '<textarea id="diagramCodeTextarea" spellcheck="false"></textarea>' +
-      '<div class="code-actions">' +
-        '<button id="diagramRerenderBtn">🔄 미리보기 새로고침</button>' +
-        '<button id="diagramCopyBtn">📋 코드 복사</button>' +
-      '</div>' +
-      '<div class="diagram-note">✏️ 여기서 고친 내용은 이 화면(테스트 서버)에서만 보여요. 실제 앱에 반영하려면 코드를 복사해서 채팅으로 보내주세요.</div>' +
+    '<div class="mermaid-wrap" id="diagramMermaidWrap" style="display:none;"><pre class="mermaid" id="mmdCurrent"></pre></div>' +
+    '<div id="contentEditorBox">' +
+      '<div class="diagram-note" style="margin:0 0 14px;">✏️ 문구를 자유롭게 고치고, 선택지 결과는 드롭다운으로 골라주세요. 다 고치신 후 맨 아래 "수정 내용 복사하기"를 눌러서 채팅으로 보내주시면 실제 앱에 반영해드릴게요.</div>' +
+      stepsHtml +
+      '<button class="code-actions-single" id="diagramCopyContentBtn">📋 수정 내용 복사하기</button>' +
     '</div>';
 
-  document.getElementById('diagramCodeTextarea').value = mermaidCode;
+  // populate target selects with node previews, and set current values
+  main.querySelectorAll('.content-opt-row[data-nid]').forEach(row=>{
+    const nid = row.dataset.nid;
+    const idx = parseInt(row.dataset.optidx, 10);
+    const opt = tree.nodes[nid].options[idx];
+    const typeSel = row.querySelector('.content-opt-type');
+    const targetSel = row.querySelector('.content-opt-target');
+    targetSel.innerHTML = nodeIds.map(id=>{
+      const preview = tree.nodes[id].text.slice(0, 22);
+      return '<option value="'+id+'">'+id+' — '+escapeHtml(preview)+(tree.nodes[id].text.length>22?'...':'')+'</option>';
+    }).join('');
+    const curType = opt.end || 'next';
+    typeSel.value = curType;
+    if (opt.next) targetSel.value = opt.next;
+    targetSel.style.display = curType === 'next' ? 'inline-block' : 'none';
+    typeSel.onchange = ()=>{
+      targetSel.style.display = typeSel.value === 'next' ? 'inline-block' : 'none';
+    };
+  });
+
   const pre = document.getElementById('mmdCurrent');
   pre.textContent = mermaidCode;
 
-  try {
-    await ensureMermaidLoaded();
-    await window.mermaid.run({ nodes: [pre] });
-  } catch(err) {
-    main.querySelector('.mermaid-wrap').innerHTML = '<div class="admin-empty">다이어그램을 불러오지 못했어요. 인터넷 연결을 확인해주세요.</div>';
-  }
-
-  document.getElementById('diagramCodeToggle').onclick = ()=>{
-    const box = document.getElementById('diagramCodeBox');
-    box.style.display = box.style.display === 'none' ? 'block' : 'none';
-  };
-  document.getElementById('diagramRerenderBtn').onclick = async ()=>{
-    const code = document.getElementById('diagramCodeTextarea').value;
-    const target = document.getElementById('mmdCurrent');
-    target.removeAttribute('data-processed');
-    target.textContent = code;
-    try {
-      await ensureMermaidLoaded();
-      await window.mermaid.run({ nodes: [target] });
-    } catch(err) {
-      showToast('⚠️', '다이어그램 코드에 오류가 있어요.');
+  document.getElementById('diagramCodeToggle').onclick = async ()=>{
+    const wrap = document.getElementById('diagramMermaidWrap');
+    const isHidden = wrap.style.display === 'none';
+    wrap.style.display = isHidden ? 'block' : 'none';
+    document.getElementById('diagramCodeToggle').textContent = isHidden ? '✏️ 내용 수정으로 돌아가기' : '🔍 전체 흐름 그림으로 보기';
+    document.getElementById('contentEditorBox').style.display = isHidden ? 'none' : 'block';
+    if (isHidden) {
+      try {
+        await ensureMermaidLoaded();
+        pre.removeAttribute('data-processed');
+        await window.mermaid.run({ nodes: [pre] });
+      } catch(err) {
+        wrap.innerHTML = '<div class="admin-empty">다이어그램을 불러오지 못했어요. 인터넷 연결을 확인해주세요.</div>';
+      }
     }
   };
-  document.getElementById('diagramCopyBtn').onclick = (e)=>{
-    const ta = document.getElementById('diagramCodeTextarea');
+
+  document.getElementById('diagramCopyContentBtn').onclick = (e)=>{
+    let out = '['+sid+' · '+label+'] 수정된 내용\n\n';
+    main.querySelectorAll('.content-step-card').forEach(card=>{
+      const nid = card.dataset.nid;
+      const text = card.querySelector('.content-step-text').value.trim();
+      out += 'STEP ['+nid+']' + (nid === tree.start ? ' (시작)' : '') + '\n';
+      out += '문구: ' + text + '\n';
+      card.querySelectorAll('.content-opt-row').forEach(row=>{
+        if (row.classList.contains('content-opt-readonly')) {
+          out += '  - ' + row.textContent.trim() + '\n';
+          return;
+        }
+        const optLabel = row.querySelector('.content-opt-label').value.trim();
+        const type = row.querySelector('.content-opt-type').value;
+        let resultText;
+        if (type === 'next') {
+          const target = row.querySelector('.content-opt-target').value;
+          resultText = '→ [' + target + '] 단계로 이동';
+        } else if (type === 'solved') resultText = '✅ 해결 (종료)';
+        else if (type === 'escalate') resultText = '📞 담당자 연결 (종료)';
+        else if (type === 'as') resultText = '🔧 A/S 필요 (종료)';
+        out += '  - "' + optLabel + '" ' + resultText + '\n';
+      });
+      out += '\n';
+    });
+
+    const ta = document.createElement('textarea');
+    ta.value = out;
+    document.body.appendChild(ta);
     ta.select();
     document.execCommand('copy');
+    document.body.removeChild(ta);
+
     const btn = e.currentTarget;
     const old = btn.textContent;
-    btn.textContent = '복사됨!';
-    setTimeout(()=> btn.textContent = old, 1200);
+    btn.textContent = '복사됐어요! 채팅에 붙여넣어 주세요';
+    setTimeout(()=> btn.textContent = old, 2000);
   };
 }
 
