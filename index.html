@@ -1857,6 +1857,8 @@
 .diagnosis-media{display:grid;gap:10px;margin:12px 0}.diagnosis-media img,.diagnosis-media video{display:block;width:100%;max-height:360px;object-fit:contain;border-radius:8px;background:#101114}.diagnosis-media img{cursor:zoom-in}.diagnosis-media a{color:var(--accent);overflow-wrap:anywhere}.diagram-media-editor{border-top:1px solid var(--border);padding-top:10px;margin:10px 0}.diagram-media-editor .diagnosis-media img,.diagram-media-editor .diagnosis-media video{height:100px}.diagram-media-editor small{font-size:10px;color:var(--muted)}.media-file-row{display:flex;gap:7px;align-items:center;margin:6px 0;font-size:11px}.media-file-row span{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.media-file-row button{background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:6px;padding:7px;cursor:pointer;font:inherit;font-size:11px}
 
 .dnode-tag{cursor:grab;touch-action:none;user-select:none;padding:8px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center}.dnode-tag:before{content:'⠿';font-size:20px}.dnode-tag:focus-visible{outline:2px solid var(--accent)}.dnode-step.dragging{z-index:20;box-shadow:0 18px 50px #0006;border-color:var(--accent)}.dnode-step.dragging .dnode-tag{cursor:grabbing}.diagram-card-tools{display:flex;justify-content:space-between;margin:4px 0 12px;gap:8px}.diagram-card-tools button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:11px;cursor:pointer}.diagram-card-tools button:disabled{opacity:.35}.diagram-canvas-wrap{cursor:grab;overscroll-behavior:contain}.diagram-canvas-wrap.panning{cursor:grabbing}.dnode{cursor:default}.diagram-svg{pointer-events:none}.connecting .dnode-step{outline:2px dashed var(--accent);cursor:crosshair}.connecting .dnode-step:hover{outline:4px solid var(--accent)}.diagram-editor-main{padding:12px}.diagram-note{font-size:12px}.diagram-media-editor:has(.diagnosis-media:empty){margin:5px 0}.diagram-toolbar #diagramNewCard{background:var(--accent);color:#181a20;font-weight:700}
+
+.diagram-options{position:absolute;width:200px;gap:14px;z-index:3}.diagram-options .diagram-option{min-height:52px;padding:10px 14px;border-radius:24px;background:var(--panel2);box-shadow:0 3px 12px #0003;flex-direction:column;gap:2px;align-items:flex-start;border-color:#8794a8}.diagram-options .diagram-option>span:first-child{font-size:13px;font-weight:600}.diagram-options .diagram-result{font-size:10px}.diagram-options .diagram-option[data-kind=solved]{border-color:#66bf84}.diagram-options .diagram-option[data-kind=escalate],.diagram-options .diagram-option[data-kind=as]{border-color:#dbaa72}.dnode-step .diagram-add-actions{margin-top:8px}.dnode-step{padding:14px}.diagram-card-tools{margin-bottom:6px}.dnode-text{margin-bottom:6px}.edge-popover{max-height:70vh;overflow:auto}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -4331,6 +4333,7 @@ function addDiagramItem(sid,nid,kind){
     openDiagram(sid);setDiagramZoom(zoom);
     requestAnimationFrame(()=>{
       const nextWrap=document.querySelector('.diagram-canvas-wrap');nextWrap.scrollLeft=scroll.x;nextWrap.scrollTop=scroll.y;
+      if(kind==='option'){const row=document.querySelector('.diagram-options[data-nid="'+nid+'"] .diagram-option:last-child');if(row){openEdgePopover(sid,nid,diagramOptState[sid][nid].length-1,row);document.getElementById('edgePopLabel').select();}}
       updateDiagramSaveStatus(sid,kind==='step'?'새 단계와 ‘동일합니다’ 연결을 추가했습니다. 문구를 수정한 뒤 저장해주세요.':'‘해결되었습니다’ 선택지를 추가했습니다. 선택지를 눌러 문구와 결과를 바꿀 수 있습니다.');
     });
   }catch(error){updateDiagramSaveStatus(sid,error.message,true);}
@@ -4365,7 +4368,7 @@ function addStandaloneDiagramCard(sid,nid,index){
   const canvas=document.getElementById('diagramCanvas'),wrap=canvas.parentElement,zoom=Number(canvas.style.zoom||1);
   const positions=diagramWorkspace(sid).positions;
   let x=Math.max(24,(wrap.scrollLeft+wrap.clientWidth/2)/zoom-170),y=Math.max(24,(wrap.scrollTop+80)/zoom);
-  const origin=nid&&document.getElementById('dn_'+nid);if(origin){x=parseFloat(origin.style.left)+420;y=parseFloat(origin.style.top);}
+  const origin=nid&&document.getElementById('dn_'+nid);if(origin){x=parseFloat(origin.style.left)+820;y=parseFloat(origin.style.top);}
   while(Object.entries(positions).some(([id,p])=>{const box=document.getElementById('dn_'+id);return draft.tree.nodes[id]&&x<p.x+360&&x+360>p.x&&y<p.y+(box?.offsetHeight||450)+40&&y+450>p.y;}))x+=400;
   positions[added.id]={x,y};rememberDiagramWorkspace(sid);
   const history=diagramAdditionHistory[sid] ||= [];history.push({owner:currentUser.id,tree:cloneDiagnosis(draft.tree)});if(history.length>20)history.shift();
@@ -4566,9 +4569,9 @@ function computeDiagramLayout(tree){
   order.forEach(([nid, depth])=>{
     const col = colCounters[depth] || 0;
     colCounters[depth] = col + 1;
-    positions[nid] = { x: 40 + depth * 520, y: 90 + col * 400 };
+    positions[nid] = { x: 40 + depth * 820, y: 90 + col * 400 };
   });
-  for(const nid of Object.keys(tree.nodes)) if(!positions[nid]) positions[nid]={x:40+(Object.keys(colCounters).length)*520,y:90};
+  for(const nid of Object.keys(tree.nodes)) if(!positions[nid]) positions[nid]={x:40+(Object.keys(colCounters).length)*820,y:90};
   return positions;
 }
 
@@ -4579,35 +4582,41 @@ let diagramOptState = {};
 const diagramWorkspaces = {};
 let diagramConnectFrom = null;
 function diagramWorkspace(sid){
- const key=diagramDraftKey()+':canvas:'+sid;
+ const key=diagramDraftKey()+':branch-canvas:'+sid;
  if(!diagramWorkspaces[key]){try{diagramWorkspaces[key]=JSON.parse(localStorage.getItem(key))||{};}catch{diagramWorkspaces[key]={};}}
  const state=diagramWorkspaces[key];state.positions ||= {};return state;
 }
-function rememberDiagramWorkspace(sid){try{localStorage.setItem(diagramDraftKey()+':canvas:'+sid,JSON.stringify(diagramWorkspace(sid)));}catch{showToast('⚠️','카드 배치를 보관하지 못했습니다.');}}
+function rememberDiagramWorkspace(sid){try{localStorage.setItem(diagramDraftKey()+':branch-canvas:'+sid,JSON.stringify(diagramWorkspace(sid)));}catch{showToast('⚠️','카드 배치를 보관하지 못했습니다.');}}
 function diagramBounds(sid){
- const boxes=[...document.querySelectorAll('#diagramCanvas .dnode-step')];
+ const boxes=[...document.querySelectorAll('#diagramCanvas .dnode-step, #diagramCanvas .diagram-options')];
  return {width:Math.max(600,...boxes.map(b=>parseFloat(b.style.left)+b.offsetWidth+100)),height:Math.max(450,...boxes.map(b=>parseFloat(b.style.top)+b.offsetHeight+100))};
 }
 function drawFreeDiagramEdges(sid){
  const canvas=document.getElementById('diagramCanvas'),svg=document.getElementById('diagramSvg');if(!canvas||!svg)return;
- const bounds=diagramBounds(sid),wrap=canvas.parentElement,zoom=Number(canvas.style.zoom||1);
- canvas.style.width=Math.max(bounds.width,wrap.clientWidth/zoom+200)+'px';canvas.style.height=Math.max(bounds.height,wrap.clientHeight/zoom+200)+'px';
- svg.setAttribute('width',canvas.style.width);svg.setAttribute('height',canvas.style.height);
  svg.innerHTML='<defs><marker id="diagramArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="context-stroke"/></marker></defs>';
+ const lines=[];
+ function line(d,arrow=false){const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);path.setAttribute('fill','none');path.setAttribute('stroke','#8794a8');path.setAttribute('stroke-width','2');if(arrow)path.setAttribute('marker-end','url(#diagramArrow)');svg.appendChild(path);return path;}
  for(const [nid,opts] of Object.entries(diagramOptState[sid]||{})){
-  const box=document.getElementById('dn_'+nid);if(!box)continue;
+  const box=document.getElementById('dn_'+nid),group=canvas.querySelector('.diagram-options[data-nid="'+nid+'"]');if(!box||!group)continue;
+  const x=parseFloat(box.style.left)+box.offsetWidth,y=parseFloat(box.style.top)+box.offsetHeight/2;
+  const gx=x+100,gy=Math.max(24,y-group.offsetHeight/2);group.style.left=gx+'px';group.style.top=gy+'px';
+  const ys=[];
   opts.forEach((opt,i)=>{
-   if(opt.type!=='next')return;const dest=document.getElementById('dn_'+opt.target),row=box.querySelector('[data-option="'+i+'"]');if(!dest||!row)return;
-   const a=box.getBoundingClientRect(),b=dest.getBoundingClientRect(),r=row.getBoundingClientRect(),c=canvas.getBoundingClientRect();
-   const right=b.left>=a.left;const x1=((right?a.right:a.left)-c.left)/zoom,y1=(r.top+r.height/2-c.top)/zoom;
-   const x2=((right?b.left:b.right)-c.left)/zoom,y2=(b.top+28*zoom-c.top)/zoom;
-   const bend=Math.max(70,Math.abs(x2-x1)*.5),sign=right?1:-1;
-   const path=document.createElementNS('http://www.w3.org/2000/svg','path');
-   path.setAttribute('d','M'+x1+','+y1+' C'+(x1+sign*bend)+','+y1+' '+(x2-sign*bend)+','+y2+' '+x2+','+y2);
-   path.setAttribute('fill','none');path.setAttribute('stroke','#8794a8');path.setAttribute('stroke-width','2');path.setAttribute('marker-end','url(#diagramArrow)');svg.appendChild(path);
-   row.onmouseenter=()=>{path.setAttribute('stroke','var(--accent)');path.setAttribute('stroke-width','4');};row.onmouseleave=()=>{path.setAttribute('stroke','#8794a8');path.setAttribute('stroke-width','2');};
+   const row=group.querySelector('[data-option="'+i+'"]');if(!row)return;const ry=gy+row.offsetTop+row.offsetHeight/2;ys.push(ry);
+   const paths=[line('M'+(x+48)+','+ry+' H'+gx)];
+   if(opt.type==='next'){
+    const dest=document.getElementById('dn_'+opt.target);if(dest){
+     const x1=gx+row.offsetWidth,x2=parseFloat(dest.style.left),y2=parseFloat(dest.style.top)+40;
+     if(x2>x1+30){const middle=(x1+x2)/2;paths.push(line('M'+x1+','+ry+' C'+middle+','+ry+' '+middle+','+y2+' '+x2+','+y2,true));}
+     else {const bottom=Math.max(gy+group.offsetHeight,parseFloat(box.style.top)+box.offsetHeight,parseFloat(dest.style.top)+dest.offsetHeight)+60+i*24;paths.push(line('M'+x1+','+ry+' H'+(x1+35)+' V'+bottom+' H'+(x2-24)+' V'+y2+' H'+x2,true));lines.push(bottom);}
+    }
+   }
+   row.onmouseenter=()=>paths.forEach(p=>{p.setAttribute('stroke','var(--accent)');p.setAttribute('stroke-width','3');});row.onmouseleave=()=>paths.forEach(p=>{p.setAttribute('stroke','#8794a8');p.setAttribute('stroke-width','2');});
   });
+  if(ys.length){line('M'+x+','+y+' H'+(x+48));line('M'+(x+48)+','+Math.min(y,...ys)+' V'+Math.max(y,...ys));}
  }
+ const bounds=diagramBounds(sid),wrap=canvas.parentElement,zoom=Number(canvas.style.zoom||1);
+ canvas.style.width=Math.max(bounds.width,wrap.clientWidth/zoom+120)+'px';canvas.style.height=Math.max(bounds.height,...lines.map(y=>y+40),wrap.clientHeight/zoom+120)+'px';svg.setAttribute('width',canvas.style.width);svg.setAttribute('height',canvas.style.height);
 }
 function bindFreeDiagramCard(sid,nid,box){
  const handle=box.querySelector('.dnode-tag');handle.tabIndex=0;handle.setAttribute('role','button');handle.setAttribute('aria-label',nid+' 카드 이동');handle.title='끌어서 이동 · 방향키로 이동';
@@ -4638,7 +4647,7 @@ function bindFreeDiagramCard(sid,nid,box){
 }
 function fitDiagram(sid){const b=diagramBounds(sid),wrap=document.querySelector('.diagram-canvas-wrap');setDiagramZoom(Math.min(1,(wrap.clientWidth-32)/b.width,(wrap.clientHeight-32)/b.height));wrap.scrollLeft=0;wrap.scrollTop=0;}
 function bindDiagramPan(sid){
- const wrap=document.querySelector('.diagram-canvas-wrap');wrap.onpointerdown=e=>{if(e.button!==0||e.target.closest('.dnode'))return;e.preventDefault();wrap.setPointerCapture(e.pointerId);const x=e.clientX,y=e.clientY,sx=wrap.scrollLeft,sy=wrap.scrollTop;wrap.classList.add('panning');wrap.onpointermove=p=>{wrap.scrollLeft=sx+x-p.clientX;wrap.scrollTop=sy+y-p.clientY;};const stop=()=>{wrap.onpointermove=null;wrap.classList.remove('panning');};wrap.onpointerup=stop;wrap.onpointercancel=stop;};
+ const wrap=document.querySelector('.diagram-canvas-wrap');wrap.onpointerdown=e=>{if(e.button!==0||e.target.closest('.dnode, .diagram-options'))return;e.preventDefault();wrap.setPointerCapture(e.pointerId);const x=e.clientX,y=e.clientY,sx=wrap.scrollLeft,sy=wrap.scrollTop;wrap.classList.add('panning');wrap.onpointermove=p=>{wrap.scrollLeft=sx+x-p.clientX;wrap.scrollTop=sy+y-p.clientY;};const stop=()=>{wrap.onpointermove=null;wrap.classList.remove('panning');};wrap.onpointerup=stop;wrap.onpointercancel=stop;};
  wrap.onkeydown=e=>{if(e.key==='Escape'){diagramConnectFrom=null;document.getElementById('diagramCanvas').classList.remove('connecting');closeEdgePopover();updateDiagramSaveStatus(sid);}};wrap.tabIndex=0;
 }
 
@@ -4674,7 +4683,7 @@ function openDiagram(sid){
       '<button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
     '</div>' +
     '<div id="diagramSaveStatus" role="status" aria-live="polite"></div>' +
-    '<div class="diagram-note" style="margin:0 0 12px;">카드 윗부분을 잡고 이동 · 문구를 눌러 수정 · 선택지를 눌러 연결 변경 · 빈 배경을 끌어 화면 이동</div>' +
+    '<div class="diagram-note" style="margin:0 0 12px;">카드는 안내만 · 선 위의 분기 문구를 눌러 수정·연결 · ＋ 분기 추가로 갈림길 만들기 · 카드와 빈 배경을 끌어 이동</div>' +
     '<div class="diagram-toolbar"><button id="diagramListToggle">목록 접기 / 펼치기</button><button id="diagramZoomOut" aria-label="다이어그램 축소">−</button><span id="diagramZoomValue">100%</span><button id="diagramZoomIn" aria-label="다이어그램 확대">＋</button><button id="diagramZoomReset">원래 크기</button><button id="diagramNewCard">＋ 새 안내 카드</button><button id="diagramFit">전체 보기</button><button id="diagramAutoLayout">자동 정렬</button><button id="diagramUndoAddition">추가·삭제 되돌리기</button><span>배치는 이 브라우저에 자동 보관됩니다</span></div>' +
     '<div class="diagram-canvas-wrap"><div class="diagram-canvas" id="diagramCanvas"><svg class="diagram-svg" id="diagramSvg"></svg></div></div>' +
     '<div class="edge-popover" id="edgePopover" style="display:none;">' +
@@ -4820,7 +4829,7 @@ function redrawDiagramLines(sid){
   for (const nid of Object.keys(tree.nodes)) {
     const box = document.getElementById('dn_'+nid);
     const options = document.createElement('div');
-    options.className = 'diagram-options';
+    options.className = 'diagram-options';options.dataset.nid=nid;
     (diagramOptState[sid][nid] || []).forEach((opt,i)=>{
       const row = document.createElement('button');
       row.type='button'; row.className='diagram-option'; row.dataset.option=String(i);
@@ -4833,9 +4842,9 @@ function redrawDiagramLines(sid){
       else row.onclick=e=>{e.stopPropagation();openEdgePopover(sid,nid,i,row);};
     });
     buildDiagramMediaControls(sid,nid,box);
-    box.appendChild(options);
+    canvas.appendChild(options);
     const actions=document.createElement('div');actions.className='diagram-add-actions';
-    for(const [kind,label] of [['option','＋ 선택지 추가'],['step','＋ 다음 단계 추가']]){
+    for(const [kind,label] of [['option','＋ 분기 추가'],['step','＋ 분기와 안내 추가']]){
       const button=document.createElement('button');button.type='button';button.textContent=label;button.setAttribute('aria-label',nid+' '+label);button.disabled=diagramSaving;
       button.onclick=()=>addDiagramItem(sid,nid,kind);actions.appendChild(button);
     }
@@ -4847,7 +4856,7 @@ function redrawDiagramLines(sid){
   const workspace=diagramWorkspace(sid);
   for(const [x,ids] of [...columns.entries()].sort((a,b)=>a[0]-b[0])){
    let y=50;
-   for(const nid of ids){const box=document.getElementById('dn_'+nid);const p=workspace.positions[nid] ||= {x,y};box.style.left=p.x+'px';box.style.top=p.y+'px';y+=box.offsetHeight+100;}
+   for(const nid of ids){const box=document.getElementById('dn_'+nid);const p=workspace.positions[nid] ||= {x,y};box.style.left=p.x+'px';box.style.top=p.y+'px';y+=Math.max(box.offsetHeight,(diagramOptState[sid][nid]?.length||1)*72)+130;}
   }
   const start=document.getElementById('dn_START');if(start)start.style.display='none';
   rememberDiagramWorkspace(sid);drawFreeDiagramEdges(sid);
