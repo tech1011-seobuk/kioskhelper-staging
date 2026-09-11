@@ -4318,6 +4318,13 @@ function redrawDiagramLines(sid){
     return { x: l + w, y: t + h/2 };
   }
 
+  function bezierPoint(p0, p1, p2, p3, t){
+    const mt = 1 - t;
+    const x = mt*mt*mt*p0.x + 3*mt*mt*t*p1.x + 3*mt*t*t*p2.x + t*t*t*p3.x;
+    const y = mt*mt*mt*p0.y + 3*mt*mt*t*p1.y + 3*mt*t*t*p2.y + t*t*t*p3.y;
+    return { x, y };
+  }
+
   function drawLine(fromEl, toEl, color, marker){
     if (!fromEl || !toEl) return null;
     const p1 = centerOf(fromEl, 'bottom');
@@ -4331,13 +4338,26 @@ function redrawDiagramLines(sid){
     path.setAttribute('stroke-width','1.6');
     path.setAttribute('marker-end', 'url(#'+(marker||'arrowhead')+')');
     svg.appendChild(path);
-    return { x: (p1.x+p2.x)/2, y: (p1.y+p2.y)/2 };
+    // 라벨은 곡선의 중간이 아니라 출발점 쪽(30%)에 둬서, 도착점이 겹치는 경우에도 서로 덜 겹치게 함
+    const ctrl1 = { x: p1.x, y: midY };
+    const ctrl2 = { x: p2.x, y: midY };
+    return bezierPoint(p1, ctrl1, ctrl2, p2, 0.3);
   }
 
   const tree = TREES[sid];
   const startEl = document.getElementById('dn_START');
   const firstEl = document.getElementById('dn_' + tree.start);
   drawLine(startEl, firstEl, '#d7e632', 'arrowhead-start');
+
+  const placedChips = []; // {x, y, w, h}
+  const CHIP_H = 24;
+
+  // 박스들도 장애물로 등록해서 라벨이 박스 위에 겹치지 않게 함
+  canvas.querySelectorAll('.dnode-step, .dnode-start, .dnode-end').forEach(box=>{
+    const l = parseFloat(box.style.left) || 0;
+    const t = parseFloat(box.style.top) || 0;
+    placedChips.push({ x: l + box.offsetWidth/2, y: t + box.offsetHeight/2, w: box.offsetWidth + 10, h: box.offsetHeight + 10 });
+  });
 
   Object.keys(diagramOptState[sid]).forEach(nid=>{
     const fromEl = document.getElementById('dn_' + nid);
@@ -4352,14 +4372,35 @@ function redrawDiagramLines(sid){
         toEl = getOrCreateEndNode(sid, canvas, opt.type);
         color = opt.type === 'solved' ? '#4caf50' : (opt.type === 'escalate' ? '#e0a256' : '#e07a7a');
       }
-      const mid = drawLine(fromEl, toEl, color);
-      if (!mid) return;
+      const pos = drawLine(fromEl, toEl, color);
+      if (!pos) return;
+      const text = opt.label || '(문구 없음)';
+      const estW = Math.max(50, text.length * 7.2 + 20);
+
+      // 겹침 방지: 기존에 배치된 칩·박스와 겹치면 살짝 아래로 밀어냄
+      let y = pos.y;
+      let moved = true;
+      let guard = 0;
+      while (moved && guard < 60) {
+        moved = false;
+        for (const c of placedChips) {
+          const overlapX = Math.abs(pos.x - c.x) < (estW/2 + c.w/2 + 6);
+          const overlapY = Math.abs(y - c.y) < (CHIP_H/2 + c.h/2 + 4);
+          if (overlapX && overlapY) {
+            y = c.y + c.h/2 + CHIP_H/2 + 8;
+            moved = true;
+          }
+        }
+        guard++;
+      }
+      placedChips.push({ x: pos.x, y, w: estW, h: CHIP_H });
+
       const chip = document.createElement('div');
       chip.className = 'edge-chip';
-      chip.style.left = mid.x + 'px';
-      chip.style.top = mid.y + 'px';
+      chip.style.left = pos.x + 'px';
+      chip.style.top = y + 'px';
       chip.style.borderColor = color;
-      chip.textContent = opt.label || '(문구 없음)';
+      chip.textContent = text;
       chip.onclick = (e)=>{ e.stopPropagation(); openEdgePopover(sid, nid, i, chip); };
       canvas.appendChild(chip);
     });
