@@ -9,13 +9,13 @@
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PHOTOISM 헬퍼</title>
+<title>🧪 [테스트 서버] PHOTOISM 헬퍼</title>
 <link rel="manifest" href="./manifest.json">
-<meta name="theme-color" content="#1f1f23">
+<meta name="theme-color" content="#7a3b12">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="포토이즘 헬퍼">
+<meta name="apple-mobile-web-app-title" content="🧪테스트 헬퍼">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@500;700&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
@@ -251,6 +251,14 @@
 
   .app{ position:relative; z-index:2; }
   .mono{font-family:'JetBrains Mono', monospace;}
+
+  #stagingBanner{
+    position:sticky; top:0; z-index:500;
+    background:repeating-linear-gradient(135deg, #7a3b12, #7a3b12 12px, #9a4a16 12px, #9a4a16 24px);
+    color:#fff; text-align:center; font-size:12.5px; font-weight:700;
+    padding:7px 12px; letter-spacing:.2px;
+    box-shadow:0 2px 8px rgba(0,0,0,.3);
+  }
 
   .app{
     display:flex;
@@ -1809,6 +1817,7 @@
   </svg>
 </div>
 
+<div id="stagingBanner">🧪 테스트 서버입니다 — 여기서 하는 작업은 실제 서비스(운영 사이트)에 반영되지 않아요</div>
 <div class="app">
   <main class="main">
     <div class="topbar">
