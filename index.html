@@ -1859,6 +1859,8 @@
 .dnode-tag{cursor:grab;touch-action:none;user-select:none;padding:8px;border-bottom:1px solid var(--border);display:flex;gap:8px;align-items:center}.dnode-tag:before{content:'⠿';font-size:20px}.dnode-tag:focus-visible{outline:2px solid var(--accent)}.dnode-step.dragging{z-index:20;box-shadow:0 18px 50px #0006;border-color:var(--accent)}.dnode-step.dragging .dnode-tag{cursor:grabbing}.diagram-card-tools{display:flex;justify-content:space-between;margin:4px 0 12px;gap:8px}.diagram-card-tools button{border:0;background:transparent;color:var(--muted);font:inherit;font-size:11px;cursor:pointer}.diagram-card-tools button:disabled{opacity:.35}.diagram-canvas-wrap{cursor:grab;overscroll-behavior:contain}.diagram-canvas-wrap.panning{cursor:grabbing}.dnode{cursor:default}.diagram-svg{pointer-events:none}.connecting .dnode-step{outline:2px dashed var(--accent);cursor:crosshair}.connecting .dnode-step:hover{outline:4px solid var(--accent)}.diagram-editor-main{padding:12px}.diagram-note{font-size:12px}.diagram-media-editor:has(.diagnosis-media:empty){margin:5px 0}.diagram-toolbar #diagramNewCard{background:var(--accent);color:#181a20;font-weight:700}
 
 .diagram-options{position:absolute;width:200px;gap:14px;z-index:3}.diagram-options .diagram-option{min-height:52px;padding:10px 14px;border-radius:24px;background:var(--panel2);box-shadow:0 3px 12px #0003;flex-direction:column;gap:2px;align-items:flex-start;border-color:#8794a8}.diagram-options .diagram-option>span:first-child{font-size:13px;font-weight:600}.diagram-options .diagram-result{font-size:10px}.diagram-options .diagram-option[data-kind=solved]{border-color:#66bf84}.diagram-options .diagram-option[data-kind=escalate],.diagram-options .diagram-option[data-kind=as]{border-color:#dbaa72}.dnode-step .diagram-add-actions{margin-top:8px}.dnode-step{padding:14px}.diagram-card-tools{margin-bottom:6px}.dnode-text{margin-bottom:6px}.edge-popover{max-height:70vh;overflow:auto}
+
+.helper-dialog{width:min(720px,92vw);max-height:88vh;box-sizing:border-box;border:1px solid var(--border);border-radius:16px;background:var(--panel);color:var(--text);padding:24px;overflow:auto}.helper-dialog::backdrop{background:#0009}.helper-dialog h2{font-size:20px}.helper-dialog-body{display:grid;gap:12px}.helper-dialog label{display:grid;gap:6px;font-size:13px}.helper-dialog textarea,.helper-dialog input{box-sizing:border-box;width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font:inherit}.helper-dialog textarea{resize:vertical;line-height:1.6}.helper-dialog button,.helper-dialog a{display:inline-block;margin:4px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text);font:inherit;cursor:pointer}.helper-dialog p{font-size:13px;line-height:1.6}.history-version{width:100%;text-align:left}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -4679,7 +4681,7 @@ function openDiagram(sid){
     '<div class="diagram-header">' +
       '<h3>'+sid+' · '+escapeHtml(label)+'</h3>' +
       '<button class="code-actions-single" id="diagramSaveBtn" style="width:auto">저장하고 적용</button>' +
-      '<button class="code-actions-single" id="diagramReloadBtn" style="width:auto">최신 안내 불러오기</button>' +
+      '<button class="code-actions-single" id="diagramHistoryBtn" style="width:auto">이전 버전 복구</button><button class="code-actions-single" id="diagramReloadBtn" style="width:auto">최신 안내 불러오기</button>' +
       '<button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
     '</div>' +
     '<div id="diagramSaveStatus" role="status" aria-live="polite"></div>' +
@@ -4748,6 +4750,7 @@ function openDiagram(sid){
   document.getElementById('diagramNewCard').onclick=()=>addStandaloneDiagramCard(sid);
   const undo=document.getElementById('diagramUndoAddition');undo.disabled=diagramAdditionHistory[sid]?.at(-1)?.owner!==currentUser?.id;undo.onclick=()=>undoDiagramAddition(sid);
   document.getElementById('diagramSaveBtn').onclick = ()=>saveDiagram(sid);
+  document.getElementById('diagramHistoryBtn').onclick=()=>openDiagnosisHistory(sid);
   document.getElementById('diagramReloadBtn').onclick = ()=>reloadDiagramPublished(sid);
   updateDiagramSaveStatus(sid);
   document.getElementById('diagramCopyContentBtn').onclick = (e)=> copyDiagramContent(sid, tree, e.currentTarget);
@@ -5791,7 +5794,7 @@ function renderChat(){
       actions.innerHTML = '<button onclick="resetAll()">🏠 처음으로</button>' +
         (step.endType==='escalate' || step.endType==='as'
           ? '<a href="https://cms.seobuk.kr/" target="_blank" rel="noopener" class="channel-btn">💬 채널톡으로 문의하기</a>' +
-            '<button class="copy-btn" onclick="copyHistory(this)">📋 진단 내역 복사하기 (채널톡 문의용)</button>'
+            '<button class="copy-btn" onclick="openHandoff()">📋 담당자 인계 내용 만들기</button>'
           : '');
       inner.appendChild(actions);
 
@@ -5914,6 +5917,61 @@ function buildHistoryText(){
   });
 
   return lines.join('\n');
+}
+
+
+function openHelperDialog(title){
+ document.getElementById('helperDialog')?.remove();
+ const dialog=document.createElement('dialog');dialog.id='helperDialog';dialog.className='helper-dialog';
+ const heading=document.createElement('h2');heading.textContent=title;dialog.appendChild(heading);
+ const body=document.createElement('div');body.className='helper-dialog-body';dialog.appendChild(body);
+ const close=document.createElement('button');close.textContent='닫기';close.onclick=()=>dialog.close();dialog.appendChild(close);
+ dialog.addEventListener('close',()=>dialog.remove());document.body.appendChild(dialog);dialog.showModal();return {dialog,body};
+}
+function describeDiagnosisVersion(tree){
+ const result={solved:'해결',escalate:'담당자 연결',as:'A/S 필요',info:'안내 완료'};
+ return '시작 카드: '+tree.start+'\n\n'+Object.entries(tree.nodes).map(([id,node])=>
+ '['+id+'] '+node.text+'\n'+node.options.map(o=>'  • '+o.label+' → '+(o.next?'카드 '+o.next:o.jump?'증상 '+o.jump:result[o.end])).join('\n')+(node.media?.length?'\n  첨부: '+node.media.map(m=>m.name).join(', '):'')).join('\n\n');
+}
+async function openDiagnosisHistory(sid){
+ if(currentUser?.role!=='admin'||diagramSaving||mediaUploading)return;
+ const owner=currentUser.id,{dialog,body}=openHelperDialog('이전 버전 복구 · '+sid);
+ const note=document.createElement('p');note.textContent='이전 내용을 확인한 뒤 수정본으로 불러오세요. 마지막에 ‘저장하고 적용’을 누르면 새 버전으로 복구되며 기존 이력도 남습니다.';body.appendChild(note);
+ const list=document.createElement('div'),preview=document.createElement('textarea'),status=document.createElement('p'),more=document.createElement('button');
+ preview.readOnly=true;preview.setAttribute('aria-label','선택한 버전 내용');preview.rows=12;more.textContent='저장 이력 더 보기';body.append(list,more,status,preview);
+ const restore=document.createElement('button');restore.textContent='선택한 버전을 수정본으로 불러오기';restore.disabled=true;body.appendChild(restore);
+ let offset=0,selected=null,request=0;
+ async function load(){more.disabled=true;status.textContent='저장 이력을 불러오는 중...';try{
+ const {data,error}=await sb.from('diagnosis_tree_revisions').select('revision,updated_at').eq('symptom_id',sid).order('revision',{ascending:false}).range(offset,offset+19);if(error)throw error;
+ if(!dialog.isConnected||currentUser?.id!==owner)return;
+ for(const row of data||[]){const button=document.createElement('button');button.className='history-version';button.textContent='버전 '+row.revision+' · '+new Date(row.updated_at).toLocaleString('ko-KR')+(row.revision===diagnosisStore.rows[sid]?.revision?' · 현재 저장본':'');list.appendChild(button);
+ button.onclick=async()=>{const token=++request;selected=null;restore.disabled=true;status.textContent='버전 내용을 불러오는 중...';try{
+ const {data:version,error}=await sb.from('diagnosis_tree_revisions').select('revision,tree').eq('symptom_id',sid).eq('revision',row.revision).single();if(error)throw error;
+ if(token!==request||!dialog.isConnected||currentUser?.id!==owner)return;validateDiagnosisTree(version.tree);selected=version;preview.value=describeDiagnosisVersion(version.tree);status.textContent='버전 '+version.revision+' · 안내 카드 '+Object.keys(version.tree.nodes).length+'개';restore.disabled=false;
+ }catch(e){if(token===request&&dialog.isConnected)status.textContent='버전 내용을 불러오지 못했습니다. '+(e.message||'연결을 확인해주세요.');}};
+ }
+ offset+=(data||[]).length;more.hidden=(data||[]).length<20;status.textContent=offset?'저장 이력을 선택해 내용을 확인하세요.':'저장 이력이 없습니다.';
+ }catch(e){status.textContent='이력을 불러오지 못했습니다. '+(e.message||'연결을 확인해주세요.');}finally{more.disabled=false;}}
+ more.onclick=load;
+ restore.onclick=()=>{if(!selected||currentUser?.id!==owner||currentUser?.role!=='admin'||diagramSaving||mediaUploading)return;
+ const draft=captureDiagramDraft(sid);if(draft.dirty&&!confirm('현재 수정본을 선택한 이전 버전으로 바꿀까요? 추가·삭제 되돌리기로 현재 수정본을 되찾을 수 있습니다.'))return;
+ (diagramAdditionHistory[sid] ||= []).push({owner,tree:cloneDiagnosis(draft.tree)});draft.tree=cloneDiagnosis(selected.tree);draft.dirty=!sameDiagnosis(draft.tree,diagnosisStore.rows[sid]?.tree||BUILTIN_TREES[sid]);persistDiagramDrafts();dialog.close();openDiagram(sid);updateDiagramSaveStatus(sid,'버전 '+selected.revision+'을 불러왔습니다. 내용을 확인하고 저장하고 적용을 누르면 복구됩니다.');};
+ await load();
+}
+function makeHandoffText(history,fields,time){
+ return '[장비 장애 인계]\n작성 시각: '+time+'\n매장: '+(fields.store.trim()||'미입력')+'\n부스/장비 번호: '+(fields.booth.trim()||'미입력')+'\n회신 연락처: '+(fields.contact.trim()||'미입력')+'\n\n'+history+'\n\n[추가 상황 / 요청]\n'+(fields.memo.trim()||'추가 기재 없음')+'\n\n※ 아래 내역은 사용자가 선택한 응답을 정리한 것으로, 실제 조치 수행 여부는 담당자가 확인해주세요.';
+}
+function openHandoff(){
+ const history=buildHistoryText();if(!history)return;
+ const {dialog,body}=openHelperDialog('해결 실패 · 담당자 인계');
+ const help=document.createElement('p');help.textContent='지금까지의 안내와 선택 결과를 정리했습니다. 매장과 장비 정보를 보완한 뒤 복사하여 문의 채널에 붙여넣으세요. 복사만으로 전송되지는 않습니다.';body.appendChild(help);
+ const inputs={};for(const [key,label] of [['store','매장명'],['booth','부스/장비 번호'],['contact','회신 연락처 (선택)'],['memo','추가 상황 / 요청']]){const wrap=document.createElement('label');wrap.textContent=label;const input=document.createElement(key==='memo'?'textarea':'input');input.maxLength=key==='memo'?2000:200;input.setAttribute('aria-label',label);inputs[key]=input;wrap.appendChild(input);body.appendChild(wrap);}
+ const preview=document.createElement('textarea');preview.readOnly=true;preview.rows=12;preview.setAttribute('aria-label','담당자 인계 내용');body.appendChild(preview);
+ const time=new Date().toLocaleString('ko-KR');const update=()=>preview.value=makeHandoffText(history,Object.fromEntries(Object.entries(inputs).map(([k,v])=>[k,v.value])),time);Object.values(inputs).forEach(i=>i.oninput=update);update();
+ const status=document.createElement('p');status.setAttribute('role','status');body.appendChild(status);
+ const copy=document.createElement('button');copy.textContent='인계 내용 복사';copy.onclick=async()=>{try{await navigator.clipboard.writeText(preview.value);status.textContent='복사했습니다. 문의 채널에 붙여넣어 전달해주세요.';}catch{preview.focus();preview.select();status.textContent='자동 복사가 차단되었습니다. 선택된 내용을 Ctrl+C로 복사하거나 파일로 저장해주세요.';}};body.appendChild(copy);
+ const download=document.createElement('button');download.textContent='인계 내용 파일로 저장';download.onclick=()=>{const url=URL.createObjectURL(new Blob([preview.value],{type:'text/plain;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download='장비장애_인계.txt';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};body.appendChild(download);
+ const channel=document.createElement('a');channel.href='https://cms.seobuk.kr/';channel.target='_blank';channel.rel='noopener';channel.textContent='문의 채널 열기';body.appendChild(channel);
 }
 
 function copyHistory(btn){
