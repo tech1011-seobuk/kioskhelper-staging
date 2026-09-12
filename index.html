@@ -1862,6 +1862,19 @@
 
 .helper-dialog{width:min(720px,92vw);max-height:88vh;box-sizing:border-box;border:1px solid var(--border);border-radius:16px;background:var(--panel);color:var(--text);padding:24px;overflow:auto}.helper-dialog::backdrop{background:#0009}.helper-dialog h2{font-size:20px}.helper-dialog-body{display:grid;gap:12px}.helper-dialog label{display:grid;gap:6px;font-size:13px}.helper-dialog textarea,.helper-dialog input{box-sizing:border-box;width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font:inherit}.helper-dialog textarea{resize:vertical;line-height:1.6}.helper-dialog button,.helper-dialog a{display:inline-block;margin:4px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text);font:inherit;cursor:pointer}.helper-dialog p{font-size:13px;line-height:1.6}.history-version{width:100%;text-align:left}
 .helper-dialog [hidden]{display:none!important}
+
+/* Short holographic assembly; decorative layers never block device selection. */
+.holo-boot{isolation:isolate;perspective:1100px}
+.holo-boot>svg,.holo-boot>.photo-stage{animation:kioskMaterialize 1050ms cubic-bezier(.16,1,.3,1) var(--boot-delay,0ms) both;transform-origin:50% 90%}
+.holo-scan,.holo-base,.holo-corners{position:absolute;pointer-events:none;z-index:4}
+.holo-scan{left:3%;right:3%;top:0;height:22%;background:linear-gradient(transparent,rgba(98,234,255,.04) 65%,rgba(98,234,255,.25) 97%,#b6fbff);filter:drop-shadow(0 0 8px #63eaff);animation:kioskScan 1100ms ease-in-out var(--boot-delay,0ms) both}
+.holo-base{left:6%;right:6%;bottom:2%;height:10%;border:1px solid #78e9ea;border-radius:50%;box-shadow:0 0 20px #63eaff55,inset 0 0 16px #63eaff33;animation:kioskPlatform 1200ms ease-out var(--boot-delay,0ms) both}
+.holo-corners{inset:1% 2%;background:linear-gradient(#92f4ff,#92f4ff) left top/22px 2px no-repeat,linear-gradient(#92f4ff,#92f4ff) left top/2px 22px no-repeat,linear-gradient(#92f4ff,#92f4ff) right bottom/22px 2px no-repeat,linear-gradient(#92f4ff,#92f4ff) right bottom/2px 22px no-repeat;animation:kioskLock 1100ms ease-out var(--boot-delay,0ms) both}
+@keyframes kioskMaterialize{0%{opacity:0;transform:translateY(20px) rotateX(7deg) scale(.96);filter:brightness(1.8) saturate(.35) drop-shadow(0 0 16px #61e8ff);clip-path:inset(0 0 100% 0)}55%{opacity:1;clip-path:inset(0 0 0 0);filter:brightness(1.15) saturate(.75) drop-shadow(0 0 9px #61e8ff66)}100%{opacity:1;transform:none;filter:drop-shadow(0 16px 24px #0007);clip-path:inset(0 0 0 0)}}
+@keyframes kioskScan{0%{opacity:0;transform:translateY(-40%)}12%{opacity:1}85%{opacity:.8}100%{opacity:0;transform:translateY(390%)}}
+@keyframes kioskPlatform{0%{opacity:0;transform:scale(.5)}30%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(1.08)}}
+@keyframes kioskLock{0%{opacity:0;transform:scale(1.08)}30%{opacity:.85}75%{opacity:.45;transform:scale(1)}100%{opacity:0;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.holo-boot>svg,.holo-boot>.photo-stage{animation:none}.holo-scan,.holo-base,.holo-corners{display:none}.hotspot{transition:none}.chat-area.stage-enter,.chat-area.stage-leave{animation:none}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -5339,19 +5352,15 @@ function renderSnapismPickerScreen(){
 }
 
 function playKioskDrawIn(area){
-  const svgs = area.querySelectorAll('.k-stage svg');
-  svgs.forEach((svg, i)=>{
-    svg.classList.remove('kiosk-svg-draw');
-    void svg.getBoundingClientRect(); // 리플로우 강제 (애니메이션 재시작용)
-    svg.style.animationDelay = (i * 120) + 'ms';
-    svg.classList.add('kiosk-svg-draw');
-  });
-  const hotspots = area.querySelectorAll('.hotspot');
-  hotspots.forEach(h => h.classList.remove('visible'));
-  const baseDelay = svgs.length ? 1150 + (svgs.length - 1) * 120 : 0;
-  hotspots.forEach((h, i)=>{
-    setTimeout(()=> h.classList.add('visible'), baseDelay + i * 70);
-  });
+ const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+ const stages=area.querySelectorAll('.k-stage');
+ stages.forEach((stage,i)=>{
+  if(reduced)return;
+  stage.style.setProperty('--boot-delay',(i*80)+'ms');stage.classList.add('holo-boot');
+  for(const kind of ['scan','base','corners']){const layer=document.createElement('span');layer.className='holo-'+kind;layer.setAttribute('aria-hidden','true');stage.appendChild(layer);}
+  setTimeout(()=>{stage.classList.remove('holo-boot');stage.querySelectorAll('.holo-scan,.holo-base,.holo-corners').forEach(el=>el.remove());},1400+i*80);
+ });
+ area.querySelectorAll('.hotspot').forEach((h,i)=>{if(reduced)h.classList.add('visible');else setTimeout(()=>{if(h.isConnected)h.classList.add('visible');},260+Math.min(i*35,280));});
 }
 
 function goToPhotoismTools(){
