@@ -1861,6 +1861,7 @@
 .diagram-options{position:absolute;width:200px;gap:14px;z-index:3}.diagram-options .diagram-option{min-height:52px;padding:10px 14px;border-radius:24px;background:var(--panel2);box-shadow:0 3px 12px #0003;flex-direction:column;gap:2px;align-items:flex-start;border-color:#8794a8}.diagram-options .diagram-option>span:first-child{font-size:13px;font-weight:600}.diagram-options .diagram-result{font-size:10px}.diagram-options .diagram-option[data-kind=solved]{border-color:#66bf84}.diagram-options .diagram-option[data-kind=escalate],.diagram-options .diagram-option[data-kind=as]{border-color:#dbaa72}.dnode-step .diagram-add-actions{margin-top:8px}.dnode-step{padding:14px}.diagram-card-tools{margin-bottom:6px}.dnode-text{margin-bottom:6px}.edge-popover{max-height:70vh;overflow:auto}
 
 .helper-dialog{width:min(720px,92vw);max-height:88vh;box-sizing:border-box;border:1px solid var(--border);border-radius:16px;background:var(--panel);color:var(--text);padding:24px;overflow:auto}.helper-dialog::backdrop{background:#0009}.helper-dialog h2{font-size:20px}.helper-dialog-body{display:grid;gap:12px}.helper-dialog label{display:grid;gap:6px;font-size:13px}.helper-dialog textarea,.helper-dialog input{box-sizing:border-box;width:100%;background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:10px;font:inherit}.helper-dialog textarea{resize:vertical;line-height:1.6}.helper-dialog button,.helper-dialog a{display:inline-block;margin:4px;padding:10px 14px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text);font:inherit;cursor:pointer}.helper-dialog p{font-size:13px;line-height:1.6}.history-version{width:100%;text-align:left}
+.helper-dialog [hidden]{display:none!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -4750,6 +4751,7 @@ function openDiagram(sid){
   document.getElementById('diagramNewCard').onclick=()=>addStandaloneDiagramCard(sid);
   const undo=document.getElementById('diagramUndoAddition');undo.disabled=diagramAdditionHistory[sid]?.at(-1)?.owner!==currentUser?.id;undo.onclick=()=>undoDiagramAddition(sid);
   document.getElementById('diagramSaveBtn').onclick = ()=>saveDiagram(sid);
+  if(APP_ENV==='staging'){const promote=document.createElement('button');promote.className='code-actions-single';promote.style.width='auto';promote.textContent='운영에 반영';promote.onclick=()=>openProductionPromotion(sid);document.querySelector('.diagram-header').appendChild(promote);}
   document.getElementById('diagramHistoryBtn').onclick=()=>openDiagnosisHistory(sid);
   document.getElementById('diagramReloadBtn').onclick = ()=>reloadDiagramPublished(sid);
   updateDiagramSaveStatus(sid);
@@ -5972,6 +5974,60 @@ function openHandoff(){
  const copy=document.createElement('button');copy.textContent='인계 내용 복사';copy.onclick=async()=>{try{await navigator.clipboard.writeText(preview.value);status.textContent='복사했습니다. 문의 채널에 붙여넣어 전달해주세요.';}catch{preview.focus();preview.select();status.textContent='자동 복사가 차단되었습니다. 선택된 내용을 Ctrl+C로 복사하거나 파일로 저장해주세요.';}};body.appendChild(copy);
  const download=document.createElement('button');download.textContent='인계 내용 파일로 저장';download.onclick=()=>{const url=URL.createObjectURL(new Blob([preview.value],{type:'text/plain;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download='장비장애_인계.txt';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};body.appendChild(download);
  const channel=document.createElement('a');channel.href='https://cms.seobuk.kr/';channel.target='_blank';channel.rel='noopener';channel.textContent='문의 채널 열기';body.appendChild(channel);
+}
+
+
+async function openProductionPromotion(sid){
+ if(APP_ENV!=='staging'||currentUser?.role!=='admin'||diagramSaving||mediaUploading)return;
+ const draft=captureDiagramDraft(sid);if(draft.dirty){updateDiagramSaveStatus(sid,'먼저 테스트 안내를 저장하고 적용한 뒤 운영에 반영해주세요.',true);return;}
+ const owner=currentUser.id,source=cloneDiagnosis(draft.tree),sourceRevision=draft.revision;
+ const {dialog,body}=openHelperDialog('운영에 반영 · '+sid);
+ const note=document.createElement('p');note.textContent='저장된 테스트 안내 한 개와 첨부 파일을 운영으로 복사합니다. 운영 관리자 계정으로 확인한 뒤 변경 내용을 검토해주세요.';body.appendChild(note);
+ const email=document.createElement('input');email.type='email';email.autocomplete='username';email.placeholder='운영 관리자 이메일';email.setAttribute('aria-label','운영 관리자 이메일');
+ const password=document.createElement('input');password.type='password';password.autocomplete='current-password';password.placeholder='운영 관리자 비밀번호';password.setAttribute('aria-label','운영 관리자 비밀번호');
+ const verify=document.createElement('button');verify.textContent='비밀번호 확인 및 변경 내용 조회';
+ const status=document.createElement('p');status.setAttribute('role','status');
+ const preview=document.createElement('textarea');preview.readOnly=true;preview.rows=14;preview.setAttribute('aria-label','운영 반영 전후 내용');
+ const apply=document.createElement('button');apply.textContent='확인한 내용으로 운영에 반영';apply.disabled=true;body.append(email,password,verify,status,preview,apply);
+ let client=null,target=null,busy=false,verifiedAt=0;const close=dialog.lastElementChild;
+ async function release(){const old=client;client=null;target=null;apply.disabled=true;if(old)try{await old.auth.signOut({scope:'local'});}catch{}}
+ dialog.addEventListener('cancel',e=>{if(busy)e.preventDefault();});dialog.addEventListener('close',()=>{password.value='';void release();});
+ function lock(value){busy=value;close.disabled=value;verify.disabled=value;email.disabled=value;password.disabled=value;apply.disabled=value||!target;}
+ verify.onclick=async()=>{
+ if(busy)return;lock(true);await release();const secret=password.value;password.value='';status.textContent='운영 관리자 계정을 확인하는 중...';
+ try{
+ client=window.supabase.createClient('https://lsetixbyarexggxsihen.supabase.co','sb_publishable_hbv-ismSGLV_QDHffrT-qA_PK3X81XO',{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'promotion-'+crypto.randomUUID()}});
+ const {data,error}=await client.auth.signInWithPassword({email:email.value.trim(),password:secret});if(error||!data?.user)throw new Error('운영 관리자 이메일 또는 비밀번호를 확인해주세요.');
+ const role=await client.rpc('is_admin');if(role.error||role.data!==true)throw new Error('운영 관리자 권한이 있는 계정만 반영할 수 있습니다.');
+ const result=await client.from('diagnosis_trees').select('tree,revision').eq('symptom_id',sid).single();if(result.error)throw result.error;validateDiagnosisTree(result.data.tree);
+ if(!dialog.isConnected||currentUser?.id!==owner)throw new Error('테스트 로그인 상태가 변경되었습니다.');
+ target={revision:result.data.revision,userId:data.user.id};verifiedAt=Date.now();
+ preview.value='[현재 운영 버전 '+target.revision+']\n'+describeDiagnosisVersion(result.data.tree)+'\n\n[반영할 테스트 버전 '+sourceRevision+']\n'+describeDiagnosisVersion(source);
+ status.textContent='운영 관리자 확인 완료. 위의 전후 내용을 검토한 후 반영해주세요. 운영의 기존 버전은 복구 이력에 남습니다.';
+ }catch(e){status.textContent=e.message||'운영 정보를 확인하지 못했습니다.';await release();}finally{lock(false);}
+ };
+ apply.onclick=async()=>{
+ if(busy||!target||!client)return;
+ if(Date.now()-verifiedAt>5*60*1000){status.textContent='확인 후 5분이 지났습니다. 비밀번호를 다시 확인해주세요.';await release();return;}
+ if(currentUser?.id!==owner||currentUser?.role!=='admin'){status.textContent='테스트 관리자 로그인 상태를 확인해주세요.';await release();return;}
+ lock(true);let uploaded=0;
+ try{
+ const latest=await sb.from('diagnosis_trees').select('revision').eq('symptom_id',sid).single();if(latest.error)throw latest.error;if(latest.data.revision!==sourceRevision)throw new Error('테스트 안내가 변경되었습니다. 창을 닫고 최신 안내를 다시 확인해주세요.');
+ const current=await client.from('diagnosis_trees').select('revision').eq('symptom_id',sid).single();if(current.error)throw current.error;if(current.data.revision!==target.revision)throw new Error('운영 안내가 변경되었습니다. 비밀번호 확인으로 변경 내용을 다시 조회해주세요.');
+ const candidate=cloneDiagnosis(source),copied=new Map();
+ for(const node of Object.values(candidate.nodes))for(const media of node.media||[]){if(!media.path)continue;
+ if(copied.has(media.path)){media.path=copied.get(media.path);continue;}
+ status.textContent='첨부 파일을 운영으로 복사하는 중... '+(uploaded+1)+'번째';
+ const file=await sb.storage.from('diagnosis-media').download(media.path);if(file.error)throw file.error;
+ const ext=media.path.split('.').pop(),mime={jpg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',mp4:'video/mp4',webm:'video/webm'}[ext];
+ const dest=target.userId+'/'+crypto.randomUUID()+'.'+ext;const result=await client.storage.from('diagnosis-media').upload(dest,file.data,{contentType:mime,upsert:false});if(result.error)throw result.error;uploaded++;copied.set(media.path,dest);media.path=dest;
+ }
+ validateDiagnosisTree(candidate);status.textContent='운영 안내를 반영하는 중...';
+ const result=await client.rpc('save_diagnosis_tree',{p_symptom_id:sid,p_tree:candidate,p_expected_revision:target.revision});if(result.error)throw result.error;
+ const saved=Array.isArray(result.data)?result.data[0]:result.data;if(!saved||saved.revision!==target.revision+1)throw new Error('반영 결과를 확인하지 못했습니다. 운영 저장 이력을 확인해주세요.');
+ status.textContent='운영 반영 완료 · '+sid+' · 운영 버전 '+saved.revision+' · 첨부 '+uploaded+'개 복사';apply.textContent='운영 반영 완료';verify.hidden=true;email.hidden=true;password.hidden=true;await release();
+ }catch(e){status.textContent='반영을 완료하지 못했습니다. '+(e.message||'연결을 확인해주세요.')+(uploaded?' 복사된 파일은 보관되어 있습니다.':'');await release();}finally{lock(false);}
+ };
 }
 
 function copyHistory(btn){
