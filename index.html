@@ -1894,6 +1894,18 @@
 .helper-dialog[open]{animation:softDialogIn 300ms var(--motion-settle) both}
 @keyframes softDialogIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.chat-area.stage-enter,.chat-area.stage-leave,.kiosk-soft-reveal>svg,.kiosk-soft-reveal>.photo-stage,.enter,.options-wrap.enter .opt-btn,.end-card,.helper-dialog[open]{animation:none!important}.brand-panel,.symptom-card,.tool-card,.hotspot,.hotspot .chip,.device-btn,.symptom-btn,.opt-btn,.reset-btn{transition:none!important}}
+
+/* Trace the existing device geometry, then crossfade into the unmodified illustration. */
+.kiosk-line-reveal{isolation:isolate}
+.k-stage>svg.kiosk-line-overlay{position:absolute;inset:0 0 auto;width:100%;height:auto;z-index:3;pointer-events:none;overflow:visible;filter:drop-shadow(0 0 3px rgba(146,213,255,.55));animation:traceOverlayOut 450ms ease 1250ms both}
+.kiosk-line-overlay *{fill:none!important;stroke:#b8e7ff;stroke-width:1.35;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke;pointer-events:none}
+.kiosk-trace-path{stroke-dasharray:var(--trace-length);stroke-dashoffset:var(--trace-length);animation:traceDevicePath 900ms cubic-bezier(.45,0,.2,1) var(--trace-delay) both}
+.kiosk-line-source{animation:traceDeviceFill 620ms cubic-bezier(.22,1,.36,1) calc(800ms + var(--trace-offset,0ms)) both}
+@keyframes traceDevicePath{from{stroke-dashoffset:var(--trace-length);opacity:.55}to{stroke-dashoffset:0;opacity:1}}
+@keyframes traceDeviceFill{from{opacity:0}to{opacity:1}}
+@keyframes traceOverlayOut{from{opacity:1}to{opacity:0}}
+html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
+@media(prefers-reduced-motion:reduce){.k-stage>svg.kiosk-line-overlay{display:none!important}.kiosk-line-source{animation:none!important}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -5372,12 +5384,17 @@ function renderSnapismPickerScreen(){
 
 function playKioskDrawIn(area){
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
- area.querySelectorAll('.k-stage').forEach((stage,i)=>{
-  if(reduced)return;
-  stage.style.setProperty('--reveal-delay',(i*65)+'ms');stage.classList.add('kiosk-soft-reveal');
-  setTimeout(()=>stage.classList.remove('kiosk-soft-reveal'),850+i*65);
+ area.querySelectorAll('.k-stage').forEach((stage,index)=>{
+  const original=stage.querySelector(':scope > svg');if(reduced||!original)return;
+  const outline=original.cloneNode(true);outline.removeAttribute('id');outline.setAttribute('class','kiosk-line-overlay');outline.setAttribute('aria-hidden','true');outline.setAttribute('focusable','false');outline.removeAttribute('role');outline.removeAttribute('style');
+  outline.querySelectorAll('defs,text,image,foreignObject,title,desc,style,script,animate,animateTransform').forEach(el=>el.remove());
+  outline.querySelectorAll('*').forEach(el=>{for(const attr of ['id','class','style','filter','mask','clip-path','fill','stroke','opacity'])el.removeAttribute(attr);});
+  stage.style.setProperty('--trace-offset',(index*90)+'ms');stage.classList.add('kiosk-line-reveal');original.classList.add('kiosk-line-source');stage.appendChild(outline);
+  const shapes=[...outline.querySelectorAll('path,rect,circle,ellipse,line,polyline,polygon')];
+  shapes.forEach((shape,i)=>{let length=0;try{length=shape.getTotalLength();}catch{}if(!Number.isFinite(length)||length<3){shape.style.display='none';return;}shape.style.setProperty('--trace-length',length);shape.style.setProperty('--trace-delay',(index*90+Math.min(i*12,300))+'ms');shape.classList.add('kiosk-trace-path');});
+  setTimeout(()=>{outline.remove();stage.classList.remove('kiosk-line-reveal');original.classList.remove('kiosk-line-source');},1750+index*90);
  });
- area.querySelectorAll('.hotspot').forEach((h,i)=>{if(reduced)h.classList.add('visible');else setTimeout(()=>{if(h.isConnected)h.classList.add('visible');},140+Math.min(i*25,200));});
+ area.querySelectorAll('.hotspot').forEach((h,i)=>{if(reduced)h.classList.add('visible');else setTimeout(()=>{if(h.isConnected)h.classList.add('visible');},820+Math.min(i*20,180));});
 }
 
 function goToPhotoismTools(){
