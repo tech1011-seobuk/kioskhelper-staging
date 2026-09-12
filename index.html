@@ -3994,6 +3994,11 @@ function renderLoginScreen(){
 function renderHubScreen(){
   const area = document.getElementById('chatArea');
   area.innerHTML = HUB_HTML;
+  if(APP_ENV==='staging'&&currentUser?.role==='admin'){
+    const panel=document.createElement('div');panel.style.cssText='text-align:center;margin:24px auto 8px';
+    const button=document.createElement('button');button.className='code-actions-single';button.textContent='본 서버 적용';button.onclick=()=>openProductionPromotion();
+    panel.appendChild(button);area.appendChild(panel);
+  }
   document.getElementById('breadcrumb').innerHTML = 'PHOTOISM 헬퍼';
   document.getElementById('brandPhotoism').onclick = (e)=>{ addRipple(e.currentTarget, e); petSay('nav'); goToPicker(); };
   document.getElementById('brandSnapism').onclick = (e)=>{ addRipple(e.currentTarget, e); petSay('nav'); goToSnapismPicker(); };
@@ -4795,7 +4800,6 @@ function openDiagram(sid){
   document.getElementById('diagramNewCard').onclick=()=>addStandaloneDiagramCard(sid);
   const undo=document.getElementById('diagramUndoAddition');undo.disabled=diagramAdditionHistory[sid]?.at(-1)?.owner!==currentUser?.id;undo.onclick=()=>undoDiagramAddition(sid);
   document.getElementById('diagramSaveBtn').onclick = ()=>saveDiagram(sid);
-  if(APP_ENV==='staging'){const promote=document.createElement('button');promote.className='code-actions-single';promote.style.width='auto';promote.textContent='운영에 반영';promote.onclick=()=>openProductionPromotion(sid);document.querySelector('.diagram-header').appendChild(promote);}
   document.getElementById('diagramHistoryBtn').onclick=()=>openDiagnosisHistory(sid);
   document.getElementById('diagramReloadBtn').onclick = ()=>reloadDiagramPublished(sid);
   updateDiagramSaveStatus(sid);
@@ -6032,56 +6036,75 @@ function openHandoff(){
 }
 
 
-async function openProductionPromotion(sid){
+async function readPromotionRows(client){
+ const rows=[];for(let offset=0;;offset+=200){const result=await client.from('diagnosis_trees').select('symptom_id,tree,revision').order('symptom_id').range(offset,offset+199);if(result.error)throw result.error;for(const row of result.data||[]){validateDiagnosisTree(row.tree);rows.push(row);}if((result.data||[]).length<200)return rows;}
+}
+function planProductionPromotion(source,target){
+ const targets=new Map(target.map(row=>[row.symptom_id,row]));
+ return source.filter(row=>!sameDiagnosis(row.tree,targets.get(row.symptom_id)?.tree)).map(row=>{
+  const before=targets.get(row.symptom_id);if(!before)throw new Error(row.symptom_id+' 항목이 본 서버에 없습니다. 항목 추가 작업을 먼저 완료해주세요.');
+  return {source:row,target:before};
+ });
+}
+async function applyPromotionPlan(sourceClient,targetClient,plan,userId,onProgress,assertActive){
+ // Check every reviewed version before the first write. Each save also uses compare-and-swap.
+ const freshSource=new Map((await readPromotionRows(sourceClient)).map(r=>[r.symptom_id,r]));
+ const freshTarget=new Map((await readPromotionRows(targetClient)).map(r=>[r.symptom_id,r]));
+ for(const item of plan){if(freshSource.get(item.source.symptom_id)?.revision!==item.source.revision||freshTarget.get(item.source.symptom_id)?.revision!==item.target.revision)throw new Error('확인 후 안내가 변경되었습니다. 변경 내용을 다시 조회해주세요.');}
+ const completed=[],copied=new Map();let uploaded=0;
+ try{for(const {source,target} of plan){assertActive();const candidate=cloneDiagnosis(source.tree);
+  onProgress(source.symptom_id,completed.length,plan.length);
+  for(const node of Object.values(candidate.nodes))for(const media of node.media||[]){if(!media.path)continue;
+   const original=media.path;if(copied.has(original)){media.path=copied.get(original);continue;}
+   const file=await sourceClient.storage.from('diagnosis-media').download(original);if(file.error)throw file.error;
+   const ext=original.split('.').pop(),mime={jpg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',mp4:'video/mp4',webm:'video/webm'}[ext];if(!mime)throw new Error('지원하지 않는 첨부 파일입니다.');
+   assertActive();const dest=userId+'/'+crypto.randomUUID()+'.'+ext;
+   const result=await targetClient.storage.from('diagnosis-media').upload(dest,file.data,{contentType:mime,upsert:false});if(result.error)throw result.error;uploaded++;copied.set(original,dest);media.path=dest;
+  }
+  assertActive();validateDiagnosisTree(candidate);
+  const result=await targetClient.rpc('save_diagnosis_tree',{p_symptom_id:source.symptom_id,p_tree:candidate,p_expected_revision:target.revision});if(result.error)throw result.error;
+  const saved=Array.isArray(result.data)?result.data[0]:result.data;if(saved?.revision!==target.revision+1)throw new Error('저장 결과를 확인하지 못했습니다. 본 서버 이력을 확인해주세요.');
+  completed.push(source.symptom_id);
+ }
+ return {completed,uploaded};
+ }catch(error){error.message+=' (완료된 항목: '+(completed.join(', ')||'없음')+' · 복사된 파일 '+uploaded+'개)';throw error;}
+}
+async function openProductionPromotion(){
  if(APP_ENV!=='staging'||currentUser?.role!=='admin'||diagramSaving||mediaUploading)return;
- const draft=captureDiagramDraft(sid);if(draft.dirty){updateDiagramSaveStatus(sid,'먼저 테스트 안내를 저장하고 적용한 뒤 운영에 반영해주세요.',true);return;}
- const owner=currentUser.id,source=cloneDiagnosis(draft.tree),sourceRevision=draft.revision;
- const {dialog,body}=openHelperDialog('운영에 반영 · '+sid);
- const note=document.createElement('p');note.textContent='저장된 테스트 안내 한 개와 첨부 파일을 운영으로 복사합니다. 운영 관리자 계정으로 확인한 뒤 변경 내용을 검토해주세요.';body.appendChild(note);
- const email=document.createElement('input');email.type='email';email.autocomplete='username';email.placeholder='운영 관리자 이메일';email.setAttribute('aria-label','운영 관리자 이메일');
- const password=document.createElement('input');password.type='password';password.autocomplete='current-password';password.placeholder='운영 관리자 비밀번호';password.setAttribute('aria-label','운영 관리자 비밀번호');
- const verify=document.createElement('button');verify.textContent='비밀번호 확인 및 변경 내용 조회';
+ const owner=currentUser.id,{dialog,body}=openHelperDialog('본 서버 적용');
+ const note=document.createElement('p');note.textContent='① 전체 진단 안내·사진·영상의 변경 내용을 확인하고 적용합니다. ② 화면·디자인·효과·기능 변경은 아래 프로그램 적용에서 진행합니다. 각각 완료 여부를 확인해주세요.';body.appendChild(note);
+ const scope=document.createElement('p');scope.textContent='저장된 수정 사항만 대상입니다. 회원·비밀번호·이용 기록은 복사하지 않습니다. 다이어그램 배치와 저장하지 않은 수정본은 이 기기에 남습니다. DB 구조 변경은 별도 작업이 필요합니다.';body.appendChild(scope);
+ const email=document.createElement('input');email.type='email';email.autocomplete='username';email.placeholder='본 서버 관리자 이메일';email.setAttribute('aria-label','본 서버 관리자 이메일');
+ const password=document.createElement('input');password.type='password';password.autocomplete='current-password';password.placeholder='본 서버 관리자 비밀번호';password.setAttribute('aria-label','본 서버 관리자 비밀번호');
+ const verify=document.createElement('button');verify.textContent='비밀번호 확인 및 전체 변경 조회';
  const status=document.createElement('p');status.setAttribute('role','status');
- const preview=document.createElement('textarea');preview.readOnly=true;preview.rows=14;preview.setAttribute('aria-label','운영 반영 전후 내용');
- const apply=document.createElement('button');apply.textContent='확인한 내용으로 운영에 반영';apply.disabled=true;body.append(email,password,verify,status,preview,apply);
- let client=null,target=null,busy=false,verifiedAt=0;const close=dialog.lastElementChild;
- async function release(){const old=client;client=null;target=null;apply.disabled=true;if(old)try{await old.auth.signOut({scope:'local'});}catch{}}
+ const preview=document.createElement('textarea');preview.readOnly=true;preview.rows=12;preview.setAttribute('aria-label','본 서버 적용 전후 내용');
+ const apply=document.createElement('button');apply.textContent='① 변경된 안내·첨부 자료 적용';apply.disabled=true;
+ const program=document.createElement('a');program.textContent='② 화면·기능 변경 적용 (GitHub)';program.href='https://github.com/tech1011-seobuk/KIOSKHELPER/actions/workflows/apply-production.yml';program.target='_blank';program.rel='noopener';
+ const programHelp=document.createElement('p');programHelp.textContent='GitHub에서 Run workflow → mode: apply → Run workflow를 누르세요. 시작 시점의 테스트 서버 코드를 본 서버용으로 변환하고 검사한 뒤 적용합니다. 초록색 완료 표시까지 확인해주세요. 이 창에서는 프로그램 적용 완료를 자동 판정하지 않습니다.';
+ body.append(email,password,verify,status,preview,apply,program,programHelp);
+ let client=null,plan=null,busy=false,verifiedAt=0,targetUser=null;const close=dialog.lastElementChild;
+ function assertActive(){if(!dialog.isConnected||currentUser?.id!==owner||currentUser?.role!=='admin')throw new Error('테스트 관리자 로그인 상태가 변경되었습니다.');}
+ async function release(){const old=client;client=null;plan=null;targetUser=null;apply.disabled=true;if(old)try{await old.auth.signOut({scope:'local'});}catch{}}
  dialog.addEventListener('cancel',e=>{if(busy)e.preventDefault();});dialog.addEventListener('close',()=>{password.value='';void release();});
- function lock(value){busy=value;close.disabled=value;verify.disabled=value;email.disabled=value;password.disabled=value;apply.disabled=value||!target;}
+ function lock(value){busy=value;close.disabled=value;verify.disabled=value;email.disabled=value;password.disabled=value;apply.disabled=value||!plan?.length;}
  verify.onclick=async()=>{
- if(busy)return;lock(true);await release();const secret=password.value;password.value='';status.textContent='운영 관리자 계정을 확인하는 중...';
- try{
- client=window.supabase.createClient('https://lsetixbyarexggxsihen.supabase.co','sb_publishable_hbv-ismSGLV_QDHffrT-qA_PK3X81XO',{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'promotion-'+crypto.randomUUID()}});
- const {data,error}=await client.auth.signInWithPassword({email:email.value.trim(),password:secret});if(error||!data?.user)throw new Error('운영 관리자 이메일 또는 비밀번호를 확인해주세요.');
- const role=await client.rpc('is_admin');if(role.error||role.data!==true)throw new Error('운영 관리자 권한이 있는 계정만 반영할 수 있습니다.');
- const result=await client.from('diagnosis_trees').select('tree,revision').eq('symptom_id',sid).single();if(result.error)throw result.error;validateDiagnosisTree(result.data.tree);
- if(!dialog.isConnected||currentUser?.id!==owner)throw new Error('테스트 로그인 상태가 변경되었습니다.');
- target={revision:result.data.revision,userId:data.user.id};verifiedAt=Date.now();
- preview.value='[현재 운영 버전 '+target.revision+']\n'+describeDiagnosisVersion(result.data.tree)+'\n\n[반영할 테스트 버전 '+sourceRevision+']\n'+describeDiagnosisVersion(source);
- status.textContent='운영 관리자 확인 완료. 위의 전후 내용을 검토한 후 반영해주세요. 운영의 기존 버전은 복구 이력에 남습니다.';
- }catch(e){status.textContent=e.message||'운영 정보를 확인하지 못했습니다.';await release();}finally{lock(false);}
+  if(busy)return;lock(true);await release();const secret=password.value;password.value='';status.textContent='관리자 확인 및 전체 안내 비교 중...';preview.value='';
+  try{assertActive();if(Object.values(diagramDrafts).some(d=>d.owner===owner&&d.dirty))throw new Error('저장하지 않은 다이어그램 수정본이 있습니다. 먼저 저장하고 적용해주세요.');
+   client=window.supabase.createClient('https://lsetixbyarexggxsihen.supabase.co','sb_publishable_hbv-ismSGLV_QDHffrT-qA_PK3X81XO',{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false,storageKey:'promotion-'+crypto.randomUUID()}});
+   const {data,error}=await client.auth.signInWithPassword({email:email.value.trim(),password:secret});if(error||!data?.user)throw new Error('본 서버 관리자 이메일 또는 비밀번호를 확인해주세요.');
+   const role=await client.rpc('is_admin');if(role.error||role.data!==true)throw new Error('본 서버 관리자 계정만 적용할 수 있습니다.');
+   const [source,target]=await Promise.all([readPromotionRows(sb),readPromotionRows(client)]);assertActive();plan=planProductionPromotion(source,target);targetUser=data.user.id;verifiedAt=Date.now();
+   preview.value=plan.map(({source,target})=>'['+source.symptom_id+' · 현재 본 서버 v'+target.revision+']\n'+describeDiagnosisVersion(target.tree)+'\n[적용할 테스트 v'+source.revision+']\n'+describeDiagnosisVersion(source.tree)).join('\n\n────────────\n\n')||'안내 자료 변경 사항이 없습니다.';
+   status.textContent='전체 '+source.length+'개 중 변경 '+plan.length+'개. 적용 전 내용을 확인해주세요. 기존 안내는 복구 이력에 남습니다.';
+  }catch(e){status.textContent=e.message||'변경 내용을 확인하지 못했습니다.';await release();}finally{lock(false);}
  };
  apply.onclick=async()=>{
- if(busy||!target||!client)return;
- if(Date.now()-verifiedAt>5*60*1000){status.textContent='확인 후 5분이 지났습니다. 비밀번호를 다시 확인해주세요.';await release();return;}
- if(currentUser?.id!==owner||currentUser?.role!=='admin'){status.textContent='테스트 관리자 로그인 상태를 확인해주세요.';await release();return;}
- lock(true);let uploaded=0;
- try{
- const latest=await sb.from('diagnosis_trees').select('revision').eq('symptom_id',sid).single();if(latest.error)throw latest.error;if(latest.data.revision!==sourceRevision)throw new Error('테스트 안내가 변경되었습니다. 창을 닫고 최신 안내를 다시 확인해주세요.');
- const current=await client.from('diagnosis_trees').select('revision').eq('symptom_id',sid).single();if(current.error)throw current.error;if(current.data.revision!==target.revision)throw new Error('운영 안내가 변경되었습니다. 비밀번호 확인으로 변경 내용을 다시 조회해주세요.');
- const candidate=cloneDiagnosis(source),copied=new Map();
- for(const node of Object.values(candidate.nodes))for(const media of node.media||[]){if(!media.path)continue;
- if(copied.has(media.path)){media.path=copied.get(media.path);continue;}
- status.textContent='첨부 파일을 운영으로 복사하는 중... '+(uploaded+1)+'번째';
- const file=await sb.storage.from('diagnosis-media').download(media.path);if(file.error)throw file.error;
- const ext=media.path.split('.').pop(),mime={jpg:'image/jpeg',png:'image/png',webp:'image/webp',gif:'image/gif',mp4:'video/mp4',webm:'video/webm'}[ext];
- const dest=target.userId+'/'+crypto.randomUUID()+'.'+ext;const result=await client.storage.from('diagnosis-media').upload(dest,file.data,{contentType:mime,upsert:false});if(result.error)throw result.error;uploaded++;copied.set(media.path,dest);media.path=dest;
- }
- validateDiagnosisTree(candidate);status.textContent='운영 안내를 반영하는 중...';
- const result=await client.rpc('save_diagnosis_tree',{p_symptom_id:sid,p_tree:candidate,p_expected_revision:target.revision});if(result.error)throw result.error;
- const saved=Array.isArray(result.data)?result.data[0]:result.data;if(!saved||saved.revision!==target.revision+1)throw new Error('반영 결과를 확인하지 못했습니다. 운영 저장 이력을 확인해주세요.');
- status.textContent='운영 반영 완료 · '+sid+' · 운영 버전 '+saved.revision+' · 첨부 '+uploaded+'개 복사';apply.textContent='운영 반영 완료';verify.hidden=true;email.hidden=true;password.hidden=true;await release();
- }catch(e){status.textContent='반영을 완료하지 못했습니다. '+(e.message||'연결을 확인해주세요.')+(uploaded?' 복사된 파일은 보관되어 있습니다.':'');await release();}finally{lock(false);}
+  if(busy||!plan?.length||!client)return;
+  if(Date.now()-verifiedAt>300000){status.textContent='5분이 지났습니다. 비밀번호를 다시 확인해주세요.';await release();return;}
+  lock(true);try{assertActive();const result=await applyPromotionPlan(sb,client,plan,targetUser,(sid,n,total)=>{status.textContent='안내 자료 적용 중 '+(n+1)+'/'+total+' · '+sid;},assertActive);
+   status.textContent='① 안내 자료 적용 완료 · '+result.completed.length+'개 · 첨부 '+result.uploaded+'개. 화면·기능 변경도 있다면 ②를 진행해주세요.';
+  }catch(e){status.textContent='안내 자료 적용 중단: '+(e.message||'연결을 확인해주세요.')+' 전체 작업은 묶음 복구되지 않습니다. 완료 항목과 본 서버 이력을 확인해주세요.';}finally{await release();lock(false);}
  };
 }
 
