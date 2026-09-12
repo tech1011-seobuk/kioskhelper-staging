@@ -5387,14 +5387,22 @@ function playKioskDrawIn(area){
  area.querySelectorAll('.k-stage').forEach((stage,index)=>{
   const original=stage.querySelector(':scope > svg');if(reduced||!original)return;
   const outline=original.cloneNode(true);outline.removeAttribute('id');outline.setAttribute('class','kiosk-line-overlay');outline.setAttribute('aria-hidden','true');outline.setAttribute('focusable','false');outline.removeAttribute('role');outline.removeAttribute('style');
-  outline.querySelectorAll('defs,text,image,foreignObject,title,desc,style,script,animate,animateTransform').forEach(el=>el.remove());
+  outline.querySelectorAll('.lead-line,.anchor-dot,defs,text,image,foreignObject,title,desc,style,script,animate,animateTransform').forEach(el=>el.remove());
   outline.querySelectorAll('*').forEach(el=>{for(const attr of ['id','class','style','filter','mask','clip-path','fill','stroke','opacity'])el.removeAttribute(attr);});
   stage.style.setProperty('--trace-offset',(index*90)+'ms');stage.classList.add('kiosk-line-reveal');original.classList.add('kiosk-line-source');stage.appendChild(outline);
   const shapes=[...outline.querySelectorAll('path,rect,circle,ellipse,line,polyline,polygon')];
   shapes.forEach((shape,i)=>{let length=0;try{length=shape.getTotalLength();}catch{}if(!Number.isFinite(length)||length<3){shape.style.display='none';return;}shape.style.setProperty('--trace-length',length);shape.style.setProperty('--trace-delay',(index*90+Math.min(i*12,300))+'ms');shape.classList.add('kiosk-trace-path');});
   setTimeout(()=>{outline.remove();stage.classList.remove('kiosk-line-reveal');original.classList.remove('kiosk-line-source');},1750+index*90);
  });
- area.querySelectorAll('.hotspot').forEach((h,i)=>{if(reduced)h.classList.add('visible');else setTimeout(()=>{if(h.isConnected)h.classList.add('visible');},820+Math.min(i*20,180));});
+ // Leader lines belong to the labels, never to the device outline animation.
+ const markers=[...area.querySelectorAll('.lead-line,.anchor-dot')];
+ if(!reduced)markers.forEach(el=>el.style.visibility='hidden');
+ const revealLabels=()=>{
+  if(!area.isConnected)return;
+  markers.forEach(el=>el.style.removeProperty('visibility'));
+  area.querySelectorAll('.hotspot').forEach(h=>h.classList.add('visible'));
+ };
+ if(reduced)revealLabels();else setTimeout(revealLabels,900);
 }
 
 function goToPhotoismTools(){
