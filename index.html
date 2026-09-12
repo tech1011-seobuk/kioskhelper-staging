@@ -1066,13 +1066,7 @@
     100%{ opacity:1; filter:blur(0); transform:translateY(0); }
   }
   .chat-area.stage-leave *{ animation-play-state:paused !important; }
-  .chat-area.stage-leave .chip,
-  .chat-area.stage-enter .chip,
-  .chat-area.stage-leave .symptom-card,
-  .chat-area.stage-enter .symptom-card{
-    backdrop-filter:none !important;
-    -webkit-backdrop-filter:none !important;
-  }
+
 
   #reticleLayer{ position:fixed; inset:0; z-index:400; pointer-events:none; }
   .reticle{
@@ -1875,6 +1869,31 @@
 @keyframes kioskPlatform{0%{opacity:0;transform:scale(.5)}30%{opacity:.9;transform:scale(1)}100%{opacity:0;transform:scale(1.08)}}
 @keyframes kioskLock{0%{opacity:0;transform:scale(1.08)}30%{opacity:.85}75%{opacity:.45;transform:scale(1)}100%{opacity:0;transform:scale(1)}}
 @media(prefers-reduced-motion:reduce){.holo-boot>svg,.holo-boot>.photo-stage{animation:none}.holo-scan,.holo-base,.holo-corners{display:none}.hotspot{transition:none}.chat-area.stage-enter,.chat-area.stage-leave{animation:none}}
+
+/* Motion refinement only. Existing geometry, palette and background remain unchanged. */
+:root{--motion-settle:cubic-bezier(.22,1,.36,1);--motion-soft:cubic-bezier(.2,.65,.3,1)}
+.chat-area.stage-leave{animation:softScreenOut 110ms ease-out both;will-change:opacity,transform;pointer-events:none}
+.chat-area.stage-enter{animation:softScreenIn 500ms var(--motion-settle) both;will-change:opacity,transform}
+@keyframes softScreenOut{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(-3px)}}
+@keyframes softScreenIn{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:translateY(0)}}
+.kiosk-soft-reveal>svg,.kiosk-soft-reveal>.photo-stage{animation:softKioskIn 760ms var(--motion-settle) var(--reveal-delay,0ms) both;transform-origin:50% 80%;will-change:opacity,transform}
+@keyframes softKioskIn{from{opacity:0;transform:translateY(16px) scale(.982)}to{opacity:1;transform:translateY(0) scale(1)}}
+.hotspot{transition:opacity 380ms var(--motion-soft)}
+.hotspot .chip{transition:transform 300ms var(--motion-settle),background-color 250ms ease,color 250ms ease,border-color 250ms ease,box-shadow 300ms ease}
+.hotspot:not(.visible) .chip{transform:translateY(5px)}
+.hotspot.visible .chip{transform:translateY(0)}
+.hotspot:hover .chip{transform:translateY(-2px) scale(1.02)}
+.hotspot:active .chip{transform:scale(.985);transition-duration:90ms}
+.brand-panel,.symptom-card,.tool-card,.device-btn,.symptom-btn,.opt-btn,.reset-btn{transition:transform 360ms var(--motion-settle),background-color 240ms ease,border-color 240ms ease,color 240ms ease,box-shadow 360ms ease}
+.brand-panel:active,.symptom-card:active,.tool-card:active,.device-btn:active,.symptom-btn:active,.opt-btn:active,.reset-btn:active{transform:scale(.985);transition-duration:90ms}
+.opt-btn:hover{transform:translateY(-2px)}
+.enter{animation:softItemIn 440ms var(--motion-settle) both}
+.options-wrap.enter .opt-btn{animation:softItemIn 420ms var(--motion-settle) both}
+.end-card{animation:softItemIn 500ms var(--motion-settle) both}
+@keyframes softItemIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+.helper-dialog[open]{animation:softDialogIn 300ms var(--motion-settle) both}
+@keyframes softDialogIn{from{opacity:0;transform:translateY(10px) scale(.985)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.chat-area.stage-enter,.chat-area.stage-leave,.kiosk-soft-reveal>svg,.kiosk-soft-reveal>.photo-stage,.enter,.options-wrap.enter .opt-btn,.end-card,.helper-dialog[open]{animation:none!important}.brand-panel,.symptom-card,.tool-card,.hotspot,.hotspot .chip,.device-btn,.symptom-btn,.opt-btn,.reset-btn{transition:none!important}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -5353,14 +5372,12 @@ function renderSnapismPickerScreen(){
 
 function playKioskDrawIn(area){
  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
- const stages=area.querySelectorAll('.k-stage');
- stages.forEach((stage,i)=>{
+ area.querySelectorAll('.k-stage').forEach((stage,i)=>{
   if(reduced)return;
-  stage.style.setProperty('--boot-delay',(i*80)+'ms');stage.classList.add('holo-boot');
-  for(const kind of ['scan','base','corners']){const layer=document.createElement('span');layer.className='holo-'+kind;layer.setAttribute('aria-hidden','true');stage.appendChild(layer);}
-  setTimeout(()=>{stage.classList.remove('holo-boot');stage.querySelectorAll('.holo-scan,.holo-base,.holo-corners').forEach(el=>el.remove());},1400+i*80);
+  stage.style.setProperty('--reveal-delay',(i*65)+'ms');stage.classList.add('kiosk-soft-reveal');
+  setTimeout(()=>stage.classList.remove('kiosk-soft-reveal'),850+i*65);
  });
- area.querySelectorAll('.hotspot').forEach((h,i)=>{if(reduced)h.classList.add('visible');else setTimeout(()=>{if(h.isConnected)h.classList.add('visible');},260+Math.min(i*35,280));});
+ area.querySelectorAll('.hotspot').forEach((h,i)=>{if(reduced)h.classList.add('visible');else setTimeout(()=>{if(h.isConnected)h.classList.add('visible');},140+Math.min(i*25,200));});
 }
 
 function goToPhotoismTools(){
@@ -5718,9 +5735,13 @@ function updateResetButton(){
   }
 }
 
+let screenSwapTimer=null,screenEnterTimer=null;
 function render(){
   const area = document.getElementById('chatArea');
   const hasContent = area.childNodes.length > 0;
+  const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  clearTimeout(screenSwapTimer);clearTimeout(screenEnterTimer);
+  area.classList.remove('stage-enter');
 
   const doSwap = ()=>{
     area.classList.remove('stage-leave');
@@ -5751,12 +5772,12 @@ function render(){
     else if(appState === 'chat') renderChat();
     updateResetButton();
     area.classList.add('stage-enter');
-    setTimeout(()=> area.classList.remove('stage-enter'), 620);
+    screenEnterTimer=setTimeout(()=>area.classList.remove('stage-enter'),520);
   };
 
-  if(hasContent){
+  if(hasContent&&!reduced){
     area.classList.add('stage-leave');
-    setTimeout(doSwap, 230);
+    screenSwapTimer=setTimeout(doSwap,110);
   } else {
     doSwap();
   }
