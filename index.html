@@ -1906,6 +1906,10 @@
 @keyframes traceOverlayOut{from{opacity:1}to{opacity:0}}
 html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 @media(prefers-reduced-motion:reduce){.k-stage>svg.kiosk-line-overlay{display:none!important}.kiosk-line-source{animation:none!important}}
+/* Vertical diagnosis flow: labels live between cards. */
+.diagram-options{width:max-content;flex-direction:row;align-items:stretch;gap:16px}
+.diagram-options .diagram-option{width:200px;flex:0 0 200px;box-sizing:border-box;justify-content:center;align-items:center;text-align:center;overflow-wrap:anywhere}
+#diagramCanvas [hidden]{display:none!important}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -4420,7 +4424,7 @@ function addStandaloneDiagramCard(sid,nid,index){
   const canvas=document.getElementById('diagramCanvas'),wrap=canvas.parentElement,zoom=Number(canvas.style.zoom||1);
   const positions=diagramWorkspace(sid).positions;
   let x=Math.max(24,(wrap.scrollLeft+wrap.clientWidth/2)/zoom-170),y=Math.max(24,(wrap.scrollTop+80)/zoom);
-  const origin=nid&&document.getElementById('dn_'+nid);if(origin){x=parseFloat(origin.style.left)+820;y=parseFloat(origin.style.top);}
+  const origin=nid&&document.getElementById('dn_'+nid);if(origin){x=parseFloat(origin.style.left);y=parseFloat(origin.style.top)+origin.offsetHeight+250;}
   while(Object.entries(positions).some(([id,p])=>{const box=document.getElementById('dn_'+id);return draft.tree.nodes[id]&&x<p.x+360&&x+360>p.x&&y<p.y+(box?.offsetHeight||450)+40&&y+450>p.y;}))x+=400;
   positions[added.id]={x,y};rememberDiagramWorkspace(sid);
   const history=diagramAdditionHistory[sid] ||= [];history.push({owner:currentUser.id,tree:cloneDiagnosis(draft.tree)});if(history.length>20)history.shift();
@@ -4601,30 +4605,21 @@ async function renderDiagramEditorScreen(){
   });
 }
 
-function computeDiagramLayout(tree){
-  const start = tree.start;
-  const positions = {};
-  const depthCounts = {};
-  const visited = new Set();
-  const queue = [[start, 0]];
-  const order = [];
-  while (queue.length) {
-    const [nid, depth] = queue.shift();
-    if (visited.has(nid) || !tree.nodes[nid]) continue;
-    visited.add(nid);
-    order.push([nid, depth]);
-    (tree.nodes[nid].options || []).forEach(opt=>{
-      if (opt.next && !visited.has(opt.next)) queue.push([opt.next, depth + 1]);
-    });
-  }
-  const colCounters = {};
-  order.forEach(([nid, depth])=>{
-    const col = colCounters[depth] || 0;
-    colCounters[depth] = col + 1;
-    positions[nid] = { x: 40 + depth * 820, y: 90 + col * 400 };
-  });
-  for(const nid of Object.keys(tree.nodes)) if(!positions[nid]) positions[nid]={x:40+(Object.keys(colCounters).length)*820,y:90};
-  return positions;
+function computeDiagramLayout(tree,metrics={}){
+ const levels=[],seen=new Set(),queue=[[tree.start,0]];
+ while(queue.length){const [id,depth]=queue.shift();if(seen.has(id)||!tree.nodes[id])continue;seen.add(id);(levels[depth] ||= []).push(id);for(const opt of tree.nodes[id].options||[])if(opt.next&&!seen.has(opt.next))queue.push([opt.next,depth+1]);}
+ const detached=Object.keys(tree.nodes).filter(id=>!seen.has(id));if(detached.length)levels.push(detached);
+ const span=id=>Math.max(340,metrics[id]?.width||0,(tree.nodes[id].options?.length||1)*216-16);
+ const widths=levels.map(ids=>ids.reduce((sum,id)=>sum+span(id)+80,-80));
+ const widest=Math.max(340,...widths),positions={};let y=90;
+ levels.forEach((ids,depth)=>{let x=40+(widest-widths[depth])/2;let height=0;
+  for(const id of ids){positions[id]={x:x+(span(id)-340)/2,y};x+=span(id)+80;height=Math.max(height,(metrics[id]?.height||300)+(metrics[id]?.optionsHeight||70));}
+  y+=height+200;
+ });return positions;
+}
+function diagramVisibleNodes(tree,collapsed){
+ const walk=fold=>{const seen=new Set(),queue=[tree.start];while(queue.length){const id=queue.shift();if(seen.has(id)||!tree.nodes[id])continue;seen.add(id);if(!fold||!collapsed[id])for(const o of tree.nodes[id].options||[])if(o.next)queue.push(o.next);}return seen;};
+ const all=walk(false),visible=walk(true);for(const id of Object.keys(tree.nodes))if(!all.has(id))visible.add(id);return visible;
 }
 
 let diagramOptState = {};
@@ -4634,41 +4629,44 @@ let diagramOptState = {};
 const diagramWorkspaces = {};
 let diagramConnectFrom = null;
 function diagramWorkspace(sid){
- const key=diagramDraftKey()+':branch-canvas:'+sid;
+ const key=diagramDraftKey()+':vertical-branch-canvas:'+sid;
  if(!diagramWorkspaces[key]){try{diagramWorkspaces[key]=JSON.parse(localStorage.getItem(key))||{};}catch{diagramWorkspaces[key]={};}}
- const state=diagramWorkspaces[key];state.positions ||= {};return state;
+ const state=diagramWorkspaces[key];state.positions ||= {};state.collapsed ||= {};return state;
 }
-function rememberDiagramWorkspace(sid){try{localStorage.setItem(diagramDraftKey()+':branch-canvas:'+sid,JSON.stringify(diagramWorkspace(sid)));}catch{showToast('⚠️','카드 배치를 보관하지 못했습니다.');}}
+function rememberDiagramWorkspace(sid){try{localStorage.setItem(diagramDraftKey()+':vertical-branch-canvas:'+sid,JSON.stringify(diagramWorkspace(sid)));}catch{showToast('⚠️','카드 배치를 보관하지 못했습니다.');}}
 function diagramBounds(sid){
- const boxes=[...document.querySelectorAll('#diagramCanvas .dnode-step, #diagramCanvas .diagram-options')];
+ const boxes=[...document.querySelectorAll('#diagramCanvas .dnode-step, #diagramCanvas .diagram-options')].filter(b=>!b.hidden);
  return {width:Math.max(600,...boxes.map(b=>parseFloat(b.style.left)+b.offsetWidth+100)),height:Math.max(450,...boxes.map(b=>parseFloat(b.style.top)+b.offsetHeight+100))};
 }
 function drawFreeDiagramEdges(sid){
  const canvas=document.getElementById('diagramCanvas'),svg=document.getElementById('diagramSvg');if(!canvas||!svg)return;
+ const tree=getDiagramDraft(sid).tree,state=diagramWorkspace(sid),visible=diagramVisibleNodes(tree,state.collapsed);
+ canvas.querySelectorAll('.dnode-step').forEach(box=>box.hidden=!visible.has(box.id.slice(3)));
+ canvas.querySelectorAll('.diagram-options').forEach(group=>group.hidden=!visible.has(group.dataset.nid)||!!state.collapsed[group.dataset.nid]);
  svg.innerHTML='<defs><marker id="diagramArrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8" fill="context-stroke"/></marker></defs>';
- const lines=[];
+ let right=0;
  function line(d,arrow=false){const path=document.createElementNS('http://www.w3.org/2000/svg','path');path.setAttribute('d',d);path.setAttribute('fill','none');path.setAttribute('stroke','#8794a8');path.setAttribute('stroke-width','2');if(arrow)path.setAttribute('marker-end','url(#diagramArrow)');svg.appendChild(path);return path;}
  for(const [nid,opts] of Object.entries(diagramOptState[sid]||{})){
-  const box=document.getElementById('dn_'+nid),group=canvas.querySelector('.diagram-options[data-nid="'+nid+'"]');if(!box||!group)continue;
-  const x=parseFloat(box.style.left)+box.offsetWidth,y=parseFloat(box.style.top)+box.offsetHeight/2;
-  const gx=x+100,gy=Math.max(24,y-group.offsetHeight/2);group.style.left=gx+'px';group.style.top=gy+'px';
-  const ys=[];
+  const box=document.getElementById('dn_'+nid),group=canvas.querySelector('.diagram-options[data-nid="'+nid+'"]');if(!box||!group||group.hidden)continue;
+  const x=parseFloat(box.style.left)+box.offsetWidth/2,y=parseFloat(box.style.top)+box.offsetHeight;
+  const gx=Math.max(24,x-group.offsetWidth/2),gy=y+80;group.style.left=gx+'px';group.style.top=gy+'px';
   opts.forEach((opt,i)=>{
-   const row=group.querySelector('[data-option="'+i+'"]');if(!row)return;const ry=gy+row.offsetTop+row.offsetHeight/2;ys.push(ry);
-   const paths=[line('M'+(x+48)+','+ry+' H'+gx)];
+   const row=group.querySelector('[data-option="'+i+'"]');if(!row)return;
+   const rx=gx+row.offsetLeft+row.offsetWidth/2,ry=gy+row.offsetTop;
+   const paths=[line('M'+x+','+y+' V'+(y+36)+' H'+rx+' V'+ry)];
    if(opt.type==='next'){
-    const dest=document.getElementById('dn_'+opt.target);if(dest){
-     const x1=gx+row.offsetWidth,x2=parseFloat(dest.style.left),y2=parseFloat(dest.style.top)+40;
-     if(x2>x1+30){const middle=(x1+x2)/2;paths.push(line('M'+x1+','+ry+' C'+middle+','+ry+' '+middle+','+y2+' '+x2+','+y2,true));}
-     else {const bottom=Math.max(gy+group.offsetHeight,parseFloat(box.style.top)+box.offsetHeight,parseFloat(dest.style.top)+dest.offsetHeight)+60+i*24;paths.push(line('M'+x1+','+ry+' H'+(x1+35)+' V'+bottom+' H'+(x2-24)+' V'+y2+' H'+x2,true));lines.push(bottom);}
+    const dest=document.getElementById('dn_'+opt.target);if(dest&&!dest.hidden){
+     const y1=ry+row.offsetHeight,x2=parseFloat(dest.style.left)+dest.offsetWidth/2,y2=parseFloat(dest.style.top);
+     if(y2>y1+30){const middle=(y1+y2)/2;paths.push(line('M'+rx+','+y1+' C'+rx+','+middle+' '+x2+','+middle+' '+x2+','+y2,true));}
+     else{const side=Math.max(gx+group.offsetWidth,parseFloat(box.style.left)+box.offsetWidth,parseFloat(dest.style.left)+dest.offsetWidth)+60+i*24;paths.push(line('M'+rx+','+y1+' V'+(y1+28)+' H'+side+' V'+(y2-24)+' H'+x2+' V'+y2,true));right=Math.max(right,side+40);}
     }
    }
-   row.onmouseenter=()=>paths.forEach(p=>{p.setAttribute('stroke','var(--accent)');p.setAttribute('stroke-width','3');});row.onmouseleave=()=>paths.forEach(p=>{p.setAttribute('stroke','#8794a8');p.setAttribute('stroke-width','2');});
+   const highlight=active=>{paths.forEach(p=>{p.setAttribute('stroke',active?'var(--accent)':'#8794a8');p.setAttribute('stroke-width',active?'3':'2');});};
+   row.onmouseenter=()=>highlight(true);row.onmouseleave=()=>highlight(false);row.onfocus=()=>highlight(true);row.onblur=()=>highlight(false);
   });
-  if(ys.length){line('M'+x+','+y+' H'+(x+48));line('M'+(x+48)+','+Math.min(y,...ys)+' V'+Math.max(y,...ys));}
  }
  const bounds=diagramBounds(sid),wrap=canvas.parentElement,zoom=Number(canvas.style.zoom||1);
- canvas.style.width=Math.max(bounds.width,wrap.clientWidth/zoom+120)+'px';canvas.style.height=Math.max(bounds.height,...lines.map(y=>y+40),wrap.clientHeight/zoom+120)+'px';svg.setAttribute('width',canvas.style.width);svg.setAttribute('height',canvas.style.height);
+ canvas.style.width=Math.max(bounds.width,right,wrap.clientWidth/zoom)+'px';canvas.style.height=Math.max(bounds.height,wrap.clientHeight/zoom)+'px';svg.setAttribute('width',canvas.style.width);svg.setAttribute('height',canvas.style.height);
 }
 function bindFreeDiagramCard(sid,nid,box){
  const handle=box.querySelector('.dnode-tag');handle.tabIndex=0;handle.setAttribute('role','button');handle.setAttribute('aria-label',nid+' 카드 이동');handle.title='끌어서 이동 · 방향키로 이동';
@@ -4689,6 +4687,8 @@ function bindFreeDiagramCard(sid,nid,box){
  },true);
  const tools=document.createElement('div');tools.className='diagram-card-tools';
  const start=document.createElement('button');start.textContent='여기서 시작';start.disabled=getDiagramDraft(sid).tree.start===nid;start.onclick=()=>{if(diagramSaving||mediaUploading)return;const draft=captureDiagramDraft(sid);draft.tree.start=nid;draft.dirty=true;persistDiagramDrafts();openDiagram(sid);};tools.appendChild(start);
+ const fold=document.createElement('button');const updateFold=()=>{const collapsed=!!diagramWorkspace(sid).collapsed[nid];fold.textContent=collapsed?'다음 단계 펼치기':'다음 단계 접기';fold.setAttribute('aria-expanded',String(!collapsed));};updateFold();
+ fold.onclick=()=>{closeEdgePopover();const state=diagramWorkspace(sid);state.collapsed[nid]=!state.collapsed[nid];updateFold();rememberDiagramWorkspace(sid);drawFreeDiagramEdges(sid);};tools.appendChild(fold);
  const remove=document.createElement('button');remove.textContent='카드 삭제';remove.onclick=()=>{
   if(diagramSaving||mediaUploading)return;const draft=captureDiagramDraft(sid);
   if(draft.tree.start===nid){updateDiagramSaveStatus(sid,'시작 카드는 삭제할 수 없습니다. 다른 카드를 시작으로 지정해주세요.',true);return;}
@@ -4735,8 +4735,8 @@ function openDiagram(sid){
       '<button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
     '</div>' +
     '<div id="diagramSaveStatus" role="status" aria-live="polite"></div>' +
-    '<div class="diagram-note" style="margin:0 0 12px;">카드는 안내만 · 선 위의 분기 문구를 눌러 수정·연결 · ＋ 분기 추가로 갈림길 만들기 · 카드와 빈 배경을 끌어 이동</div>' +
-    '<div class="diagram-toolbar"><button id="diagramListToggle">목록 접기 / 펼치기</button><button id="diagramZoomOut" aria-label="다이어그램 축소">−</button><span id="diagramZoomValue">100%</span><button id="diagramZoomIn" aria-label="다이어그램 확대">＋</button><button id="diagramZoomReset">원래 크기</button><button id="diagramNewCard">＋ 새 안내 카드</button><button id="diagramFit">전체 보기</button><button id="diagramAutoLayout">자동 정렬</button><button id="diagramUndoAddition">추가·삭제 되돌리기</button><span>배치는 이 브라우저에 자동 보관됩니다</span></div>' +
+    '<div class="diagram-note" style="margin:0 0 12px;">위에서 아래로 안내를 읽으세요 · 선 위의 선택지를 눌러 수정·연결 · 다음 단계 접기/펼치기 · 카드와 빈 배경을 끌어 이동</div>' +
+    '<div class="diagram-toolbar"><button id="diagramListToggle">목록 접기 / 펼치기</button><button id="diagramZoomOut" aria-label="다이어그램 축소">−</button><span id="diagramZoomValue">100%</span><button id="diagramZoomIn" aria-label="다이어그램 확대">＋</button><button id="diagramZoomReset">원래 크기</button><button id="diagramNewCard">＋ 새 안내 카드</button><button id="diagramFit">전체 보기</button><button id="diagramAutoLayout">세로 자동 정렬</button><button id="diagramUndoAddition">추가·삭제 되돌리기</button><span>배치는 이 브라우저에 자동 보관됩니다</span></div>' +
     '<div class="diagram-canvas-wrap"><div class="diagram-canvas" id="diagramCanvas"><svg class="diagram-svg" id="diagramSvg"></svg></div></div>' +
     '<div class="edge-popover" id="edgePopover" style="display:none;">' +
       '<input type="text" class="edge-pop-label" id="edgePopLabel" placeholder="선택지 문구">' +
@@ -4796,7 +4796,7 @@ function openDiagram(sid){
   if(view){setDiagramZoom(view.zoom);requestAnimationFrame(()=>{const wrap=document.querySelector('.diagram-canvas-wrap');wrap.scrollLeft=view.x;wrap.scrollTop=view.y;});}
   bindDiagramPan(sid);
   document.getElementById('diagramFit').onclick=()=>fitDiagram(sid);
-  document.getElementById('diagramAutoLayout').onclick=()=>{diagramWorkspace(sid).positions={};redrawDiagramLines(sid);rememberDiagramWorkspace(sid);fitDiagram(sid);};
+  document.getElementById('diagramAutoLayout').onclick=()=>{diagramWorkspace(sid).positions={};diagramWorkspace(sid).collapsed={};redrawDiagramLines(sid);rememberDiagramWorkspace(sid);fitDiagram(sid);};
   document.getElementById('diagramNewCard').onclick=()=>addStandaloneDiagramCard(sid);
   const undo=document.getElementById('diagramUndoAddition');undo.disabled=diagramAdditionHistory[sid]?.at(-1)?.owner!==currentUser?.id;undo.onclick=()=>undoDiagramAddition(sid);
   document.getElementById('diagramSaveBtn').onclick = ()=>saveDiagram(sid);
@@ -4889,7 +4889,7 @@ function redrawDiagramLines(sid){
       row.dataset.kind=opt.type;
       const label=document.createElement('span'); label.textContent=opt.label || '(문구 없음)';
       const target=document.createElement('span'); target.className='diagram-result';
-      target.textContent=opt.type==='next' ? '→ '+opt.target : opt.type==='jump' ? '↗ '+opt.jump : labels[opt.type] || opt.type;
+      target.textContent=opt.type==='next' ? '↓ '+opt.target : opt.type==='jump' ? '↗ '+opt.jump : labels[opt.type] || opt.type;
       row.append(label,target); options.appendChild(row);
       if(opt.type==='jump') { row.title='다른 증상으로 이동하는 기존 연결'; row.disabled=true; }
       else row.onclick=e=>{e.stopPropagation();openEdgePopover(sid,nid,i,row);};
@@ -4902,15 +4902,14 @@ function redrawDiagramLines(sid){
       button.onclick=()=>addDiagramItem(sid,nid,kind);actions.appendChild(button);
     }
     box.appendChild(actions);
-    const column=positions[nid].x;
+    const column=positions[nid].y;
     if(!columns.has(column)) columns.set(column,[]);
     columns.get(column).push(nid);
   }
-  const workspace=diagramWorkspace(sid);
-  for(const [x,ids] of [...columns.entries()].sort((a,b)=>a[0]-b[0])){
-   let y=50;
-   for(const nid of ids){const box=document.getElementById('dn_'+nid);const p=workspace.positions[nid] ||= {x,y};box.style.left=p.x+'px';box.style.top=p.y+'px';y+=Math.max(box.offsetHeight,(diagramOptState[sid][nid]?.length||1)*72)+130;}
-  }
+  const workspace=diagramWorkspace(sid),metrics={};
+  for(const nid of Object.keys(tree.nodes)){const box=document.getElementById('dn_'+nid),group=canvas.querySelector('.diagram-options[data-nid="'+nid+'"]');box.hidden=false;metrics[nid]={height:box.offsetHeight,optionsHeight:group.offsetHeight};}
+  const automatic=computeDiagramLayout(tree,metrics);
+  for(const nid of Object.keys(tree.nodes)){const box=document.getElementById('dn_'+nid);const p=workspace.positions[nid]||automatic[nid];box.style.left=p.x+'px';box.style.top=p.y+'px';}
   const start=document.getElementById('dn_START');if(start)start.style.display='none';
   rememberDiagramWorkspace(sid);drawFreeDiagramEdges(sid);
 }
