@@ -4735,7 +4735,7 @@ function openDiagram(sid){
       '<button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
     '</div>' +
     '<div id="diagramSaveStatus" role="status" aria-live="polite"></div>' +
-    '<div class="diagram-note" style="margin:0 0 12px;">위에서 아래로 안내를 읽으세요 · 선 위의 선택지를 눌러 수정·연결 · 다음 단계 접기/펼치기 · 카드와 빈 배경을 끌어 이동</div>' +
+    '<div class="diagram-note" style="margin:0 0 12px;">위에서 아래로 안내를 읽으세요 · 선택지(동일합니다 / 해결되었습니다 등)를 눌러 문구와 다음 단계를 수정 · 다음 단계 접기/펼치기 · 카드와 빈 배경을 끌어 이동</div>' +
     '<div class="diagram-toolbar"><button id="diagramListToggle">목록 접기 / 펼치기</button><button id="diagramZoomOut" aria-label="다이어그램 축소">−</button><span id="diagramZoomValue">100%</span><button id="diagramZoomIn" aria-label="다이어그램 확대">＋</button><button id="diagramZoomReset">원래 크기</button><button id="diagramNewCard">＋ 새 안내 카드</button><button id="diagramFit">전체 보기</button><button id="diagramAutoLayout">세로 자동 정렬</button><button id="diagramUndoAddition">추가·삭제 되돌리기</button><span>배치는 이 브라우저에 자동 보관됩니다</span></div>' +
     '<div class="diagram-canvas-wrap"><div class="diagram-canvas" id="diagramCanvas"><svg class="diagram-svg" id="diagramSvg"></svg></div></div>' +
     '<div class="edge-popover" id="edgePopover" style="display:none;">' +
@@ -4897,9 +4897,9 @@ function redrawDiagramLines(sid){
     buildDiagramMediaControls(sid,nid,box);
     canvas.appendChild(options);
     const actions=document.createElement('div');actions.className='diagram-add-actions';
-    for(const [kind,label] of [['option','＋ 분기 추가'],['step','＋ 분기와 안내 추가']]){
+    for(const [kind,label] of [['option','＋ 선택지 추가'],['step','＋ 선택지 + 다음 단계 추가']]){
       const button=document.createElement('button');button.type='button';button.textContent=label;button.setAttribute('aria-label',nid+' '+label);button.disabled=diagramSaving;
-      button.onclick=()=>addDiagramItem(sid,nid,kind);actions.appendChild(button);
+      button.title=kind==='step'?'선택지(예: 동일합니다)와 그 뒤에 보여줄 안내 카드를 함께 만듭니다.':'선택지(예: 해결되었습니다)를 추가합니다. 문구와 연결할 단계 또는 결과를 바꿀 수 있습니다.';button.onclick=()=>addDiagramItem(sid,nid,kind);actions.appendChild(button);
     }
     box.appendChild(actions);
     const column=positions[nid].y;
