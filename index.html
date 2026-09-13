@@ -4787,7 +4787,7 @@ function openDiagram(sid){
   canvas.style.width = (maxX + 260) + 'px';
   canvas.style.height = (maxY + 60) + 'px';
 
-  requestAnimationFrame(()=> redrawDiagramLines(sid));
+  requestAnimationFrame(()=> {redrawDiagramLines(sid);if(!view)fitDiagram(sid);});
 
   document.getElementById('diagramListToggle').onclick=()=>document.querySelector('.diagram-editor-screen').classList.toggle('hide-list');
   document.getElementById('diagramZoomOut').onclick=()=>setDiagramZoom(Number(canvas.style.zoom||1)-.1);
