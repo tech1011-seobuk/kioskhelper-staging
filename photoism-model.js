@@ -1,4 +1,5 @@
 import * as T from './three.module.js';
+export {mountCamera} from './camera-models.js';
 // Dimensions in metres. Shell follows the supplied 850 x 500 x 1982 drawing.
 // Internal equipment and unlabelled details are simplified from reference photos.
 export function mount(host,onSelect){
