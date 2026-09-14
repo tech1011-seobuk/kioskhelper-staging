@@ -27,15 +27,30 @@ export function mountCamera(host,id){
  const model=buildCamera(root,id,{add,rounded,cyl,ring,label,tex,mats});const h=-model.bottom*2;
  const shadow=tex(256,128,(c,W,H)=>{const g=c.createRadialGradient(W/2,H/2,2,W/2,H/2,W/2);g.addColorStop(0,'rgba(0,0,0,.6)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,W,H);});
  const floor=add(new T.PlaneGeometry(190,100),new T.MeshBasicMaterial({map:shadow,transparent:true,depthWrite:false}),0,-h/2-8,0);floor.rotation.x=-Math.PI/2;
- let frame=0,disposed=false,yaw=0,targetYaw=0,pitch=0,targetPitch=0;
- const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
- function draw(){frame=0;if(disposed)return;yaw+=(targetYaw-yaw)*(reduced?1:.1);pitch+=(targetPitch-pitch)*(reduced?1:.1);root.rotation.y=yaw;root.rotation.x=pitch;renderer.render(scene,camera);if(Math.abs(targetYaw-yaw)+Math.abs(targetPitch-pitch)>.001)frame=requestAnimationFrame(draw);}
- function request(){if(!disposed&&!frame)frame=requestAnimationFrame(draw);}
+ // The shadow stays grounded while the body gently floats.
+ root.remove(floor);scene.add(floor);
+ let frame=0,disposed=false,yaw=0,targetYaw=0,pitch=0,targetPitch=0,visible=true,lastTime=0,elapsed=0;
+ const motion=matchMedia('(prefers-reduced-motion: reduce)');let reduced=motion.matches;
+ const phase={m50:0,'850d':.65,r10:1.3}[id];
+ function draw(now){frame=0;if(disposed)return;
+  const dt=lastTime?Math.min((now-lastTime)/1000,.05):0;lastTime=now;
+  const animate=!reduced&&visible&&!document.hidden;if(animate)elapsed+=dt;
+  const ease=reduced?1:1-Math.exp(-dt*7);yaw+=(targetYaw-yaw)*ease;pitch+=(targetPitch-pitch)*ease;
+  root.rotation.y=reduced?0:yaw+Math.sin(elapsed*Math.PI/12+phase)*.23;
+  root.rotation.x=reduced?0:pitch+Math.sin(elapsed*Math.PI/16+phase)*.025;
+  root.position.y=reduced?0:Math.sin(elapsed*Math.PI/4+phase)*2;
+  renderer.render(scene,camera);if(animate)frame=requestAnimationFrame(draw);
+ }
+ function request(){if(!disposed&&!frame){lastTime=0;frame=requestAnimationFrame(draw);}}
+ function pause(){cancelAnimationFrame(frame);frame=0;lastTime=0;}
+ const visibility=()=>{if(document.hidden)pause();else if(visible)request();};document.addEventListener('visibilitychange',visibility);
+ const motionChange=()=>{reduced=motion.matches;request();};motion.addEventListener('change',motionChange);
+ const intersection=new IntersectionObserver(entries=>{visible=entries[0].isIntersecting;if(visible)request();else pause();});intersection.observe(host);
  const resize=new ResizeObserver(()=>{const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();request();});resize.observe(host);
  const card=host.closest('.camera-card');
  const move=e=>{if(e.pointerType!=='mouse'||reduced)return;const b=host.getBoundingClientRect();targetYaw=(e.clientX-b.left)/b.width*.28-.14;targetPitch=((e.clientY-b.top)/b.height-.5)*.1;request();};
  const leave=()=>{targetYaw=0;targetPitch=0;request();};card?.addEventListener('pointermove',move);card?.addEventListener('pointerleave',leave);
- function dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();card?.removeEventListener('pointermove',move);card?.removeEventListener('pointerleave',leave);const gs=new Set(),ms=new Set();scene.traverse(o=>{if(o.geometry)gs.add(o.geometry);if(o.material)ms.add(o.material);});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());envTarget.dispose();renderer.dispose();renderer.forceContextLoss();canvas.remove();}
+ function dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();intersection.disconnect();document.removeEventListener('visibilitychange',visibility);motion.removeEventListener('change',motionChange);card?.removeEventListener('pointermove',move);card?.removeEventListener('pointerleave',leave);const gs=new Set(),ms=new Set();scene.traverse(o=>{if(o.geometry)gs.add(o.geometry);if(o.material)ms.add(o.material);});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());textures.forEach(t=>t.dispose());envTarget.dispose();renderer.dispose();renderer.forceContextLoss();canvas.remove();}
  const observer=new MutationObserver(()=>{if(!host.isConnected)dispose();});observer.observe(document.body,{childList:true,subtree:true});
  canvas.addEventListener('webglcontextlost',()=>{if(!disposed){host.classList.add('camera-render-failed');canvas.style.display='none';}});
  request();return {dispose};
