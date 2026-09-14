@@ -1935,7 +1935,7 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 /* Readable list editing alongside the existing flow canvas. */
 .editing-as-list .diagram-canvas-wrap,.editing-as-list #edgePopover{display:none!important}.editing-as-list .photo-library-list{max-height:none;overflow:visible;grid-template-columns:minmax(0,1fr)}.editing-as-list .photo-library{max-width:1050px;margin:16px auto}.photo-library-row{padding:22px}.photo-library-row>label,.photo-library-row h5{display:block;font-size:12px;color:var(--muted);margin:20px 0 8px}.photo-library-row>h4{font-size:16px}.photo-library-row textarea{display:block;box-sizing:border-box;width:100%;min-height:120px;resize:vertical;padding:14px;background:var(--panel);color:var(--text);border:1px solid var(--border);border-radius:9px;font:inherit;font-size:14px;line-height:1.7}.list-choice-line{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.3fr);gap:10px;margin:8px 0}.list-choice-line input,.list-choice-line select{width:100%;box-sizing:border-box;min-width:0;padding:12px;border-radius:8px;border:1px solid var(--border);color:var(--text);background:var(--panel);font:inherit;font-size:13px}.list-edit-actions,.list-editor-heading{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap}.list-editor-heading button,#diagramEditListBtn[aria-pressed=true]{background:var(--accent);color:#181a20;font-weight:bold}.list-editor-heading p{font-size:12px;color:var(--muted)}.photo-library-row :is(textarea,input,select):focus-visible{outline:2px solid var(--accent);outline-offset:2px}.photo-library-controls button,.list-editor-heading button{padding:10px;border:1px solid var(--border);border-radius:8px;cursor:pointer}.list-editor-heading h3{margin:0}.photo-library-list{grid-template-columns:minmax(0,1fr)}@media(max-width:600px){.list-choice-line{grid-template-columns:minmax(0,1fr)}.photo-library-row{padding:14px}}
 
-.hot-topic-tabs{display:flex;gap:6px;flex-wrap:wrap}.hot-topic-tabs .btn{flex:1;white-space:nowrap}.hot-topic-tabs [aria-pressed="true"]{outline:2px solid var(--accent,#d9ed20)}.hot-topic-home{padding:24px;overflow:auto;min-width:0}.hot-topic-home p{line-height:1.7;opacity:.8}.hot-topic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}.hot-topic-card{display:flex;flex-direction:column;gap:12px;text-align:left;padding:20px;border:1px solid #7775;border-radius:14px;background:var(--panel,#292a30);color:inherit;cursor:pointer;transition:transform .18s,border-color .18s}.hot-topic-card:hover{transform:translateY(-2px);border-color:#cedd35}.hot-topic-card span{color:#a7ad65}.hot-topic-card strong{font-size:17px;overflow-wrap:anywhere}.hot-topic-card small{opacity:.7}.hot-topic-context{padding:10px 16px;font-size:13px;background:#b8c93015;flex-shrink:0}.side-link[hidden],.side-group[hidden]{display:none!important}@media(max-width:600px){.hot-topic-home{padding:14px}.hot-topic-grid{grid-template-columns:1fr}.hot-topic-context{line-height:1.6}}
+.hot-topic-tabs{display:flex;gap:6px;flex-wrap:wrap}.hot-topic-tabs .btn{flex:1;white-space:nowrap;border:1px solid #7775;border-radius:8px;background:transparent;color:inherit;padding:9px 5px;cursor:pointer}.hot-topic-tabs [aria-pressed="true"]{outline:2px solid var(--accent,#d9ed20)}.hot-topic-home{padding:24px;overflow:auto;min-width:0}.hot-topic-home p{line-height:1.7;opacity:.8}.hot-topic-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:12px}.hot-topic-card{display:flex;flex-direction:column;gap:12px;text-align:left;padding:20px;border:1px solid #7775;border-radius:14px;background:var(--panel,#292a30);color:inherit;cursor:pointer;transition:transform .18s,border-color .18s}.hot-topic-card:hover{transform:translateY(-2px);border-color:#cedd35}.hot-topic-card span{color:#a7ad65}.hot-topic-card strong{font-size:17px;overflow-wrap:anywhere}.hot-topic-card small{opacity:.7}.hot-topic-context{padding:10px 16px;font-size:13px;background:#b8c93015;flex-shrink:0}.side-link[hidden],.side-group[hidden]{display:none!important}@media(max-width:600px){.hot-topic-home{padding:14px}.hot-topic-grid{grid-template-columns:1fr}.hot-topic-context{line-height:1.6}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -6501,6 +6501,7 @@ function addRipple(el, evt){
 /* ============================= FLOW LOGIC ============================= */
 
 async function startSymptom(symptomId){
+  if(!isHotTopic(symptomId)){showToast("이 증상은 안내를 준비하고 있어요.");return;}
   const owner=currentUser?.id, previousState=appState;
   await loadPublishedDiagnosis();
   if (!currentUser || currentUser.id !== owner || appState !== previousState) return;
@@ -7856,7 +7857,7 @@ async function loadRecentSymptoms(brand){
     for (const e of data) {
       let key;
       if (e.event_type === 'symptom_click') {
-        if (!e.symptom_id) continue;
+        if (!e.symptom_id || !isHotTopic(e.symptom_id)) continue;
         key = 'symptom:'+e.symptom_id;
       } else {
         if (!e.device || !e.detail) continue; // 세부항목 없는 단순 부위 클릭은 표시 안 함
@@ -8445,17 +8446,49 @@ async function goToDiagramEditor(){
   appState='diagramEditor'; render();
 }
 const DIAGRAM_HOT_TOPICS = [
- {label:'카메라 통신오류',sid:'CAM-3'},
- {label:'카드결제실패',sid:'CR-1'},
- {label:'프린터전원차단',sid:'PRT-3'},
- {label:'프린터연결불가',sid:'PRT-3',shared:true},
- {label:'모니터꺼짐',sid:'MON-1'},
- {label:'카메라에러',sid:'CAM-2'},
- {label:'카메라에러코드발생',sid:'CAM-1'},
- {label:'카메라색감이상',sid:'CAM-8'},
- {label:'모니터터치불가',sid:'MON-2'},
- {label:'카메라초점오류',sid:'CAM-7'}
+  {
+    "label": "카메라 통신오류",
+    "sid": "CAM-3"
+  },
+  {
+    "label": "카메라 에러",
+    "sid": "CAM-2"
+  },
+  {
+    "label": "카메라 에러코드 발생",
+    "sid": "CAM-1"
+  },
+  {
+    "label": "카메라 초점이상",
+    "sid": "CAM-7"
+  },
+  {
+    "label": "프린터 얼룩, 줄 발생",
+    "sid": "PRT-5"
+  },
+  {
+    "label": "프린터 전원차단",
+    "sid": "PRT-3"
+  },
+  {
+    "label": "프린터 리본오류",
+    "sid": "PRT-1"
+  },
+  {
+    "label": "모니터 터치불가",
+    "sid": "MON-2"
+  },
+  {
+    "label": "모니터 꺼짐",
+    "sid": "MON-1"
+  },
+  {
+    "label": "지폐인식불가",
+    "sid": "BILL-3"
+  }
 ];
+function isHotTopic(sid){return DIAGRAM_HOT_TOPICS.some(t=>t.sid===sid);}
+function hotTopicLabel(sid){return DIAGRAM_HOT_TOPICS.find(t=>t.sid===sid)?.label || SYMPTOM_LABEL[sid] || sid;}
 async function renderDiagramEditorScreen(){
  const area=document.getElementById('chatArea');
  document.getElementById('breadcrumb').textContent='진단 다이어그램 · '+(APP_ENV==='staging'?'테스트':'운영');
@@ -8472,7 +8505,7 @@ async function renderDiagramEditorScreen(){
   openDiagram(sid);
   sideList.querySelectorAll('.side-link').forEach(l=>l.classList.toggle('active',topic==null?l.dataset.sid===sid:l.dataset.topic===String(topic)));
   const item=topic==null?null:DIAGRAM_HOT_TOPICS[topic];
-  if(item){const note=document.createElement('div');note.className='hot-topic-context';note.textContent='🔥 핫토픽 · '+item.label+(['PRT-3'].includes(sid)?' — 전원차단·연결불가는 현재 같은 안내를 편집합니다.':'');main.prepend(note);}
+  if(item){const note=document.createElement('div');note.className='hot-topic-context';note.textContent='🔥 핫토픽 · '+item.label;main.prepend(note);}
  }
  function renderList(){
   let markup='';
@@ -8486,7 +8519,7 @@ async function renderDiagramEditorScreen(){
  function tab(value){hot=value;document.getElementById('hotTopicTab').setAttribute('aria-pressed',String(hot));document.getElementById('allTopicTab').setAttribute('aria-pressed',String(!hot));document.getElementById('diagramSideHint').textContent=hot?'먼저 보완할 10개 증상':'기기별 모든 증상';search.value='';renderList();}
  document.getElementById('hotTopicTab').onclick=()=>tab(true);
  document.getElementById('allTopicTab').onclick=()=>tab(false);search.oninput=filter;
- main.innerHTML='<section class="hot-topic-home"><h2>🔥 핫토픽 작업란</h2><p>우선 보완할 10개 증상을 모았습니다. 항목을 누르면 안내·선택지·사진을 한 화면에서 편집할 수 있어요.</p><div class="hot-topic-grid">'+DIAGRAM_HOT_TOPICS.map((t,i)=>'<button type="button" class="hot-topic-card" data-topic="'+i+'"><span>'+String(i+1).padStart(2,'0')+'</span><strong>'+escapeHtml(t.label)+'</strong><small>'+((t.sid==='PRT-3')?'전원·연결 공통 안내':'안내 내용 편집')+' →</small></button>').join('')+'</div><p class="hub-sub">수정한 내용은 ‘저장하고 적용’을 눌러 반영합니다. 상담 데이터 분석을 통한 내용 보완은 별도 작업입니다.</p></section>';
+ main.innerHTML='<section class="hot-topic-home"><h2>🔥 핫토픽 작업란</h2><p>우선 보완할 10개 증상을 모았습니다. 항목을 누르면 안내·선택지·사진을 한 화면에서 편집할 수 있어요.</p><div class="hot-topic-grid">'+DIAGRAM_HOT_TOPICS.map((t,i)=>'<button type="button" class="hot-topic-card" data-topic="'+i+'"><span>'+String(i+1).padStart(2,'0')+'</span><strong>'+escapeHtml(t.label)+'</strong><small>'+'안내 내용 편집'+' →</small></button>').join('')+'</div><p class="hub-sub">수정한 내용은 ‘저장하고 적용’을 눌러 반영합니다. 상담 데이터 분석을 통한 내용 보완은 별도 작업입니다.</p></section>';
  main.querySelectorAll('[data-topic]').forEach(btn=>btn.onclick=()=>choose(DIAGRAM_HOT_TOPICS[Number(btn.dataset.topic)].sid,btn.dataset.topic));
  renderList();
 }
@@ -9583,15 +9616,19 @@ function renderSymptomsScreen(){
   area.appendChild(wrap);
 
   const grid = document.getElementById('symptomsGrid');
-  dev.symptoms.forEach((sid, i)=>{
+  dev.symptoms.filter(isHotTopic).forEach((sid, i)=>{
     const card = document.createElement('button');
     card.className = 'symptom-card';
     card.style.animationDelay = (i*0.05)+'s';
-    card.innerHTML = '<span class="symptom-id mono">'+sid+'</span><span>'+SYMPTOM_LABEL[sid]+'</span>';
+    card.innerHTML = '<span class="symptom-id mono">'+sid+'</span><span>'+escapeHtml(hotTopicLabel(sid))+'</span>';
     card.onclick = (e)=>{ addRipple(card, e); startSymptom(sid); };
     grid.appendChild(card);
   });
 
+  const support=document.createElement('div');
+  support.className='hub-sub';support.style.padding='20px';
+  support.innerHTML=(dev.symptoms.some(isHotTopic)?'찾는 증상이 없나요?':'이 부품의 고장 안내는 준비 중입니다.')+' <a href="https://cms.seobuk.kr/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">다른 증상으로 문의하기 ↗</a>';
+  wrap.appendChild(support);
   document.getElementById('breadcrumb').innerHTML = '<b>'+dev.name+'</b><span class="sep">·</span>증상을 선택해주세요';
   add3DTilt(grid, '.symptom-card', 5);
 }
