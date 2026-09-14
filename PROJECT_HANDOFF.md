@@ -46,3 +46,7 @@
 ### 인수인계 준비 검증 완료
 별도 새 폴더에서 npm ci 성공, npm run build 결과 기존 index.html과 동일(변경 없음), npm test 30개 통과. 반복 빌드 시 캐시 버전이 불필요하게 증가하지 않음. 인수인계 통합 캐시는 v29.
 
+
+## 사진 필요한 항목 목록 (staging v30)
+다이어그램 툴바에 사진 필요한 항목 추가. 현재 증상의 모든 안내 카드(연결 안 된 카드 포함)를 사진 없음/전체, 문구 검색으로 표시. 기존 업로드/초안 경로 재사용. 업로드 후 카드 즉시 표시, 공개는 저장하고 적용. 사진 없는 항목이 반드시 사진을 필요로 한다는 뜻은 아님. 다른 증상은 왼쪽 목록에서 선택. 원본은 index.html 내 diagramPhotoEntries/refreshDiagramPhotoLibrary/bindDiagramPhotoLibrary.
+

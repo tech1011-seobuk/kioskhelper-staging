@@ -65,3 +65,13 @@ test('new large card can replace an existing option destination without adding c
 test('media validation accepts HTTPS and private file references but rejects unsafe URLs',()=>{const c=harness();vm.runInContext("validateDiagnosisMedia([{kind:'image',url:'https://example.com/a.jpg',name:'사진'}]);",c);assert.throws(()=>vm.runInContext("validateDiagnosisMedia([{kind:'link',url:'javascript:alert(1)',name:'bad'}]);",c));assert.throws(()=>vm.runInContext("validateDiagnosisMedia([{kind:'image',path:'../secret',name:'bad'}]);",c));});
 
 test('standalone cards remain unconnected and do not change existing routes',()=>{const c=harness();c.tree=c.api.TREES['CAM-1'];const before=JSON.stringify(c.tree);vm.runInContext('globalThis.card=createDiagnosisCard(tree);',c);assert.equal(JSON.stringify(c.tree),before);for(const [id,node] of Object.entries(c.tree.nodes))assert.equal(JSON.stringify(c.card.tree.nodes[id]),JSON.stringify(node));assert.equal(c.card.tree.start,c.tree.start);assert.ok(!Object.values(c.card.tree.nodes).some(n=>n.options.some(o=>o.next===c.card.id)));c.api.validateDiagnosisTree(c.card.tree);});
+
+test('photo checklist distinguishes photos from videos and includes disconnected cards',()=>{
+ const begin=html.indexOf('function diagramPhotoEntries('),end=html.indexOf('function refreshDiagramPhotoLibrary(',begin);
+ const select=vm.runInNewContext(html.slice(begin,end)+'\ndiagramPhotoEntries');
+ const tree={nodes:{n1:{text:'전원 확인'},n2:{text:'카메라 케이블',media:[{kind:'video'}]},n3:{text:'모니터',media:[{kind:'image'}]},loose:{text:'새 단계'}}};
+ assert.deepEqual(Array.from(select(tree,'missing',''),e=>e[0]),['n1','n2','loose']);
+ assert.deepEqual(Array.from(select(tree,'all','모니터'),e=>e[0]),['n3']);
+ assert.deepEqual(Array.from(select(tree,'missing','n3'),e=>e[0]),[]);
+ assert.equal(select(tree,'all','').length,4);
+});

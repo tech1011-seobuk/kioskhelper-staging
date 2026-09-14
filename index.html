@@ -1929,6 +1929,8 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 @media(max-width:600px){.model-callout-stage .model-host{height:490px}.model-callout-stage .model-callout{font-size:11px;width:clamp(72px,23%,104px);padding:3px}.model-callout-fallback .model-host{height:130px}}
 @media(prefers-reduced-motion:reduce){.model-callout-stage .model-callout,.model-leaders path,.model-leaders circle{animation:none}}
 /* PHOTOISM_CALLOUTS_END */
+
+.photo-library{border:1px solid var(--border);border-radius:14px;padding:18px;margin:12px 0 18px;background:var(--panel)}.photo-library[hidden]{display:none}.photo-library>p{font-size:12px;color:var(--muted);margin:6px 0}.photo-library-controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:16px 0}.photo-library-controls input,.photo-library-controls select{padding:9px;border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:8px;max-width:100%}.photo-library-summary{font-size:12px;color:var(--muted)}.photo-library-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;max-height:540px;overflow-y:auto;align-items:start;padding:2px}.photo-library-row{border:1px solid var(--border);border-radius:10px;padding:14px;min-width:0;background:var(--panel2)}.photo-library-row h4{margin:0 0 6px}.photo-library-row small{color:var(--muted);font-size:11px}.photo-library-text{white-space:pre-wrap;font-size:13px;line-height:1.6;overflow-wrap:anywhere}.photo-library-row button{padding:9px 12px;min-height:40px;border-radius:8px;cursor:pointer;background:var(--panel);color:var(--text);border:1px solid var(--border)}.photo-library-row .diagnosis-media img{max-height:140px;object-fit:contain}.photo-library-row .media-file-row{flex-wrap:wrap}.photo-library-row .media-file-row span{overflow-wrap:anywhere;min-width:0}.photo-library-row .diagnosis-media{margin:8px 0}.photo-library-row .diagram-media-editor{margin:10px 0}@media(max-width:600px){.photo-library{padding:12px}.photo-library-list{grid-template-columns:minmax(0,1fr);max-height:480px}}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -8353,6 +8355,49 @@ async function hydrateDiagnosisMedia(){
     }
   }
 }
+
+// Photo checklist uses the same draft and upload path as the diagram cards.
+let diagramPhotoLibraryOpen=false;
+let diagramPhotoFilter='missing',diagramPhotoSearch='';
+function diagramPhotoEntries(tree,filter,query){
+ const needle=(query||'').trim().toLocaleLowerCase();
+ return Object.entries(tree.nodes).filter(([nid,node])=>
+  (filter!=='missing'||!(node.media||[]).some(m=>m.kind==='image'))&&
+  (!needle||(nid+' '+node.text).toLocaleLowerCase().includes(needle)));
+}
+function refreshDiagramPhotoLibrary(sid){
+ const panel=document.getElementById('diagramPhotoLibrary');if(!panel||diagramSelectedSid!==sid)return;
+ panel.hidden=!diagramPhotoLibraryOpen;
+ const toggle=document.getElementById('diagramPhotoLibraryBtn');if(toggle)toggle.setAttribute('aria-expanded',String(diagramPhotoLibraryOpen));
+ if(!diagramPhotoLibraryOpen)return;
+ const tree=getDiagramDraft(sid).tree,all=Object.keys(tree.nodes).length,missing=diagramPhotoEntries(tree,'missing','').length;
+ panel.querySelector('.photo-library-summary').textContent='현재 다이어그램 · 전체 '+all+'개 / 사진 없는 항목 '+missing+'개';
+ const list=panel.querySelector('.photo-library-list'),scroll=list.scrollTop;list.replaceChildren();
+ const entries=diagramPhotoEntries(tree,diagramPhotoFilter,diagramPhotoSearch);
+ if(!entries.length){const empty=document.createElement('p');empty.textContent=diagramPhotoSearch?'검색 결과가 없습니다.':diagramPhotoFilter==='missing'?'모든 항목에 사진이 있습니다. 전체 항목에서 확인하세요.':'안내 항목이 없습니다.';list.appendChild(empty);}
+ for(const [nid,node] of entries){
+  const row=document.createElement('article');row.className='photo-library-row';row.dataset.photoNode=nid;
+  const title=document.createElement('h4');title.textContent='STEP '+nid+(nid===tree.start?' · 시작':'');
+  const text=document.createElement('p');text.className='photo-library-text';text.textContent=node.text||'(안내 문구 없음)';
+  const status=document.createElement('small');status.textContent=(node.media||[]).some(m=>m.kind==='image')?'사진 등록됨':'사진 없음';
+  row.append(title,status,text);buildDiagramMediaControls(sid,nid,row);
+  const preview=row.querySelector('.diagnosis-media');if(preview)preview.style.minHeight='0';
+  const upload=row.querySelector('.media-file-row button[aria-label]');if(upload){upload.textContent='＋ 사진 추가';upload.setAttribute('aria-label','목록 '+nid+' 사진 추가');}
+  const input=row.querySelector('input[type=file]');if(input)input.accept='image/jpeg,image/png,image/webp,image/gif';
+  const go=document.createElement('button');go.type='button';go.textContent='다이어그램에서 보기';go.disabled=mediaUploading||diagramSaving;
+  go.onclick=()=>{captureDiagramDraft(sid);diagramWorkspace(sid).collapsed={};redrawDiagramLines(sid);const card=document.getElementById('dn_'+nid);card?.scrollIntoView({block:'center',inline:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});const field=card?.querySelector('.dnode-text');field?.focus({preventScroll:true});};row.appendChild(go);list.appendChild(row);
+ }
+ list.scrollTop=scroll;
+}
+function bindDiagramPhotoLibrary(sid){
+ const panel=document.getElementById('diagramPhotoLibrary'),select=panel.querySelector('select'),search=panel.querySelector('input[type=search]');
+ select.value=diagramPhotoFilter;search.value=diagramPhotoSearch;
+ select.onchange=()=>{diagramPhotoFilter=select.value;refreshDiagramPhotoLibrary(sid);};
+ search.oninput=()=>{diagramPhotoSearch=search.value;refreshDiagramPhotoLibrary(sid);};
+ document.getElementById('diagramPhotoLibraryBtn').onclick=()=>{captureDiagramDraft(sid);diagramPhotoLibraryOpen=!diagramPhotoLibraryOpen;refreshDiagramPhotoLibrary(sid);};
+ refreshDiagramPhotoLibrary(sid);
+}
+
 function finishDiagramMediaChange(sid){
   const draft=getDiagramDraft(sid);draft.dirty=!sameDiagnosis(draft.tree,diagnosisStore.rows[sid]?.tree||BUILTIN_TREES[sid]);
   persistDiagramDrafts();if(diagramSelectedSid===sid){redrawDiagramLines(sid);updateDiagramSaveStatus(sid,'첨부 자료를 수정했습니다. 저장하고 적용을 눌러 반영해주세요.');}
@@ -8398,7 +8443,7 @@ async function uploadDiagramMedia(sid,nid,file){
   if(!ext||!file.size||file.size>(kind==='image'?10:50)*1024*1024){updateDiagramSaveStatus(sid,'JPG·PNG·WebP·GIF 사진(10MB) 또는 MP4·WebM 영상(50MB)을 선택해주세요.',true);return;}
   if((draft.tree.nodes[nid].media||[]).length>=6){updateDiagramSaveStatus(sid,'카드당 최대 6개까지 첨부할 수 있습니다.',true);return;}
   if(!navigator.onLine){updateDiagramSaveStatus(sid,'파일 업로드에는 인터넷 연결이 필요합니다.',true);return;}
-  mediaUploading=true;updateDiagramSaveStatus(sid,'파일 업로드 중...');
+  mediaUploading=true;updateDiagramSaveStatus(sid,'파일 업로드 중...');refreshDiagramPhotoLibrary(sid);
   try{
     const path=owner+'/'+crypto.randomUUID()+'.'+ext;
     const {error}=await sb.storage.from('diagnosis-media').upload(path,file,{contentType:file.type,upsert:false});if(error)throw error;
@@ -8550,7 +8595,7 @@ function bindFreeDiagramCard(sid,nid,box){
  const tools=document.createElement('div');tools.className='diagram-card-tools';
  const start=document.createElement('button');start.textContent='여기서 시작';start.disabled=getDiagramDraft(sid).tree.start===nid;start.onclick=()=>{if(diagramSaving||mediaUploading)return;const draft=captureDiagramDraft(sid);draft.tree.start=nid;draft.dirty=true;persistDiagramDrafts();openDiagram(sid);};tools.appendChild(start);
  const fold=document.createElement('button');const updateFold=()=>{const collapsed=!!diagramWorkspace(sid).collapsed[nid];fold.textContent=collapsed?'다음 단계 펼치기':'다음 단계 접기';fold.setAttribute('aria-expanded',String(!collapsed));};updateFold();
- fold.onclick=()=>{closeEdgePopover();const state=diagramWorkspace(sid);state.collapsed[nid]=!state.collapsed[nid];updateFold();rememberDiagramWorkspace(sid);drawFreeDiagramEdges(sid);};tools.appendChild(fold);
+ fold.onclick=()=>{closeEdgePopover();const state=diagramWorkspace(sid);state.collapsed[nid]=!state.collapsed[nid];updateFold();rememberDiagramWorkspace(sid);drawFreeDiagramEdges(sid);refreshDiagramPhotoLibrary(sid);};tools.appendChild(fold);
  const remove=document.createElement('button');remove.textContent='카드 삭제';remove.onclick=()=>{
   if(diagramSaving||mediaUploading)return;const draft=captureDiagramDraft(sid);
   if(draft.tree.start===nid){updateDiagramSaveStatus(sid,'시작 카드는 삭제할 수 없습니다. 다른 카드를 시작으로 지정해주세요.',true);return;}
@@ -8598,7 +8643,8 @@ function openDiagram(sid){
     '</div>' +
     '<div id="diagramSaveStatus" role="status" aria-live="polite"></div>' +
     '<div class="diagram-note" style="margin:0 0 12px;">위에서 아래로 안내를 읽으세요 · 선택지(동일합니다 / 해결되었습니다 등)를 눌러 문구와 다음 단계를 수정 · 다음 단계 접기/펼치기 · 카드와 빈 배경을 끌어 이동</div>' +
-    '<div class="diagram-toolbar"><button id="diagramListToggle">목록 접기 / 펼치기</button><button id="diagramZoomOut" aria-label="다이어그램 축소">−</button><span id="diagramZoomValue">100%</span><button id="diagramZoomIn" aria-label="다이어그램 확대">＋</button><button id="diagramZoomReset">원래 크기</button><button id="diagramNewCard">＋ 새 안내 카드</button><button id="diagramFit">전체 보기</button><button id="diagramAutoLayout">세로 자동 정렬</button><button id="diagramUndoAddition">추가·삭제 되돌리기</button><span>배치는 이 브라우저에 자동 보관됩니다</span></div>' +
+    '<div class="diagram-toolbar"><button id="diagramListToggle">목록 접기 / 펼치기</button><button id="diagramZoomOut" aria-label="다이어그램 축소">−</button><span id="diagramZoomValue">100%</span><button id="diagramZoomIn" aria-label="다이어그램 확대">＋</button><button id="diagramZoomReset">원래 크기</button><button id="diagramPhotoLibraryBtn" aria-expanded="false" aria-controls="diagramPhotoLibrary">📷 사진 필요한 항목</button><button id="diagramNewCard">＋ 새 안내 카드</button><button id="diagramFit">전체 보기</button><button id="diagramAutoLayout">세로 자동 정렬</button><button id="diagramUndoAddition">추가·삭제 되돌리기</button><span>배치는 이 브라우저에 자동 보관됩니다</span></div>' +
+    '<section id="diagramPhotoLibrary" class="photo-library" hidden><h3>사진 필요한 항목</h3><p>현재 선택한 증상의 안내 단계를 모았습니다. 사진이 없는 항목도 사진이 꼭 필요한 것은 아닙니다.</p><p>사진을 추가하면 아래 카드에 바로 표시됩니다. 다른 사용자에게 반영하려면 <strong>저장하고 적용</strong>을 누르세요.</p><div class="photo-library-controls"><label>표시 <select aria-label="사진 항목 표시"><option value="missing">사진 없는 항목만</option><option value="all">전체 항목</option></select></label><input type="search" aria-label="사진 항목 검색" placeholder="안내 문구 또는 단계 검색"><span class="photo-library-summary" role="status"></span></div><div class="photo-library-list"></div></section>' +
     '<div class="diagram-canvas-wrap"><div class="diagram-canvas" id="diagramCanvas"><svg class="diagram-svg" id="diagramSvg"></svg></div></div>' +
     '<div class="edge-popover" id="edgePopover" style="display:none;">' +
       '<input type="text" class="edge-pop-label" id="edgePopLabel" placeholder="선택지 문구">' +
@@ -8661,6 +8707,7 @@ function openDiagram(sid){
   document.getElementById('diagramAutoLayout').onclick=()=>{diagramWorkspace(sid).positions={};diagramWorkspace(sid).collapsed={};redrawDiagramLines(sid);rememberDiagramWorkspace(sid);fitDiagram(sid);};
   document.getElementById('diagramNewCard').onclick=()=>addStandaloneDiagramCard(sid);
   const undo=document.getElementById('diagramUndoAddition');undo.disabled=diagramAdditionHistory[sid]?.at(-1)?.owner!==currentUser?.id;undo.onclick=()=>undoDiagramAddition(sid);
+  bindDiagramPhotoLibrary(sid);
   document.getElementById('diagramSaveBtn').onclick = ()=>saveDiagram(sid);
   document.getElementById('diagramHistoryBtn').onclick=()=>openDiagnosisHistory(sid);
   document.getElementById('diagramReloadBtn').onclick = ()=>reloadDiagramPublished(sid);
