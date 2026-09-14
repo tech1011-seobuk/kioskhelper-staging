@@ -1966,58 +1966,6 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
   </div>
 </div>
 
-<div id="petWrap">
-  <div id="petBubble"></div>
-  <svg id="petSvg" viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg">
-    <defs>
-      <linearGradient id="petBodyGrad" x1="0" y1="0" x2="0" y2="1">
-        <stop offset="0" stop-color="#42454f"/><stop offset="1" stop-color="#1c1e24"/>
-      </linearGradient>
-      <pattern id="petTreadPattern" width="10" height="20" patternUnits="userSpaceOnUse">
-        <rect width="10" height="20" fill="#4a4d57"/>
-        <rect x="1.5" width="4" height="20" fill="#111214"/>
-      </pattern>
-    </defs>
-
-    <!-- ground contact shadow -->
-    <ellipse id="petShadow" cx="44" cy="118" rx="42" ry="6" fill="#000" opacity="0.32"/>
-
-    <!-- caterpillar tread base -->
-    <rect x="4" y="96" width="80" height="22" rx="11" fill="url(#petTreadPattern)" stroke="#0a0a0c" stroke-width="2"/>
-    <rect x="4" y="96" width="80" height="6" rx="3" fill="#fff" opacity="0.08"/>
-
-    <!-- body (leans slightly with motion) -->
-    <g id="petBody">
-      <!-- neck -->
-      <rect x="24" y="82" width="42" height="20" rx="10" fill="url(#petBodyGrad)" stroke="#4a4d57" stroke-width="1.5"/>
-
-      <!-- P letterform (the mascot's whole upper body) -->
-      <text x="8" y="90" font-family="Arial, Helvetica, sans-serif" font-weight="900" font-size="95" fill="url(#petBodyGrad)" stroke="#4a4d57" stroke-width="2.5" stroke-linejoin="round">P</text>
-
-      <!-- eye stalks -->
-      <path d="M40,26 Q35,14 33,8" stroke="#2c2f38" stroke-width="3.4" fill="none" stroke-linecap="round"/>
-      <path d="M63,20 Q66,10 66,6" stroke="#2c2f38" stroke-width="3.4" fill="none" stroke-linecap="round"/>
-      <g class="pet-eye">
-        <ellipse cx="32" cy="7" rx="5.2" ry="7.4" transform="rotate(-12 32 7)" fill="#f2ead9"/>
-        <circle cx="32.6" cy="6" r="2.3" fill="#1c1e24"/>
-        <circle cx="33.6" cy="4.8" r="0.9" fill="#fff"/>
-      </g>
-      <g class="pet-eye">
-        <ellipse cx="66" cy="5" rx="5.2" ry="7.4" transform="rotate(10 66 5)" fill="#f2ead9"/>
-        <circle cx="66.6" cy="4" r="2.3" fill="#1c1e24"/>
-        <circle cx="67.6" cy="2.8" r="0.9" fill="#fff"/>
-      </g>
-
-      <!-- blush on the neck -->
-      <ellipse cx="31" cy="93" rx="3.6" ry="2.4" fill="#d7e632" opacity="0.5"/>
-      <ellipse cx="59" cy="93" rx="3.6" ry="2.4" fill="#d7e632" opacity="0.5"/>
-
-      <!-- mouth on the neck -->
-      <path id="petMouth" d="M39,95 Q45,99 51,95" stroke="#f2ead9" stroke-width="2" fill="none" stroke-linecap="round"/>
-    </g>
-  </svg>
-</div>
-
 <div id="stagingBanner">🧪 테스트 서버입니다 — 로그인·이용 기록·진단 안내가 운영 사이트와 분리됩니다</div>
 <div class="app">
   <main class="main">
@@ -5975,7 +5923,7 @@ async function initAuth(){
     authNotice = { type:'error', text:'로그인 기능을 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해주세요.' };
     updateUserInfoBar();
     render();
-    petBotInit();
+    
     return;
   }
   try{
@@ -5992,7 +5940,7 @@ async function initAuth(){
   }
   updateUserInfoBar();
   render();
-  petBotInit();
+  
 }
 
 const REMEMBERED_EMAIL_KEY = 'kioskHelperLastEmail';
@@ -6111,13 +6059,13 @@ document.getElementById('logoutBtn').addEventListener('click', (e)=>{
 
 document.getElementById('adminDashBtn').addEventListener('click', (e)=>{
   addRipple(e.currentTarget, e);
-  petSay('nav');
+  
   goToAdminDashboard();
 });
 
 document.getElementById('diagramEditorBtn').addEventListener('click', (e)=>{
   addRipple(e.currentTarget, e);
-  petSay('nav');
+  
   goToDiagramEditor();
 });
 
@@ -6556,7 +6504,7 @@ async function startSymptom(symptomId){
   if (!currentUser || currentUser.id !== owner || appState !== previousState) return;
   const tree = TREES[symptomId];
   if(!tree){ return; }
-  petSay('symptom');
+  
   path = [{symptomId, nodeId: tree.start, chosen:null}];
   appState = 'chat';
   logEvent('symptom_click', { brand: symptomSource, device: selectedDevice, symptomId });
@@ -6569,7 +6517,7 @@ function resetAll(){
 }
 
 function chooseOption(stepIndex, option){
-  petSay('option');
+  
   path[stepIndex].chosen = option.label;
   path = path.slice(0, stepIndex+1);
 
@@ -7535,7 +7483,7 @@ function goToPicker(){
 
 function selectDeviceFromPicker(rawName){
   const mapped = HOTSPOT_DEVICE_MAP[rawName] || rawName;
-  petSay('device');
+  
   selectedDevice = mapped;
   symptomSource = 'photoism';
   logEvent('device_click', { brand: 'photoism', device: mapped });
@@ -7583,7 +7531,7 @@ function renderDeviceActionsScreen(){
   document.getElementById('breadcrumb').innerHTML = selectedDevice;
   area.querySelectorAll('.tool-card[data-action]').forEach(btn=>{
     btn.onclick = (e)=>{
-      addRipple(e.currentTarget, e); petSay('nav');
+      addRipple(e.currentTarget, e); 
       const action = btn.dataset.action;
       if (action === 'repair') { appState = 'symptoms'; render(); }
       else if (action === 'color') { pendingCameraAction = 'color'; goToColorModel(); }
@@ -7616,7 +7564,7 @@ function renderCameraBasicCheckScreen(){
   document.getElementById('breadcrumb').innerHTML = '<b>'+(model ? model.sub : '카메라')+'</b><span class="sep">·</span>색감 조정';
   area.querySelectorAll('.tool-card[data-check]').forEach(btn=>{
     btn.onclick = (e)=>{
-      addRipple(e.currentTarget, e); petSay('nav');
+      addRipple(e.currentTarget, e); 
       if (btn.dataset.check === 'done') { goToCameraColorGuideContent(); }
       else { goToCameraBasicSetup(); }
     };
@@ -7648,7 +7596,7 @@ function renderCameraBasicSetupScreen(){
   area.appendChild(wrap);
   document.getElementById('breadcrumb').innerHTML = '<b>'+(model ? model.sub : '카메라')+'</b><span class="sep">·</span>기본세팅';
   document.getElementById('basicNextBtn').onclick = (e)=>{
-    addRipple(e.currentTarget, e); petSay('option');
+    addRipple(e.currentTarget, e); 
     goToCameraColorGuideContent();
   };
 }
@@ -7871,8 +7819,8 @@ function renderHubScreen(){
     panel.appendChild(button);area.appendChild(panel);
   }
   document.getElementById('breadcrumb').innerHTML = 'PHOTOISM 헬퍼';
-  document.getElementById('brandPhotoism').onclick = (e)=>{ addRipple(e.currentTarget, e); petSay('nav'); goToPicker(); };
-  document.getElementById('brandSnapism').onclick = (e)=>{ addRipple(e.currentTarget, e); petSay('nav'); goToSnapismPicker(); };
+  document.getElementById('brandPhotoism').onclick = (e)=>{ addRipple(e.currentTarget, e);  goToPicker(); };
+  document.getElementById('brandSnapism').onclick = (e)=>{ addRipple(e.currentTarget, e);  goToSnapismPicker(); };
   typeTagline('세상에 나쁜 키오스크는 없다!');
 }
 
@@ -7941,7 +7889,7 @@ async function loadRecentSymptoms(brand){
     list.querySelectorAll('.recent-symptom-chip').forEach(chip=>{
       chip.onclick = (e)=>{
         addRipple(chip, e);
-        petSay('nav');
+        
         const item = recent[parseInt(chip.dataset.idx,10)];
         const brand = item.brand === 'snapism' ? 'snapism' : 'photoism';
         symptomSource = brand;
@@ -9308,7 +9256,7 @@ function renderSnapismPickerScreen(){
   const READY_DEVICES = ['모니터', '카드리더기', 'PC', '서비스코인', 'CMS'];
   area.querySelectorAll('.hotspot[data-device]').forEach(h=>{
     h.addEventListener('click', ()=>{
-      petSay('device');
+      
       const name = h.dataset.device;
       if (READY_DEVICES.includes(name)) {
         selectedDevice = name;
@@ -9357,9 +9305,9 @@ function renderPhotoismToolsScreen(){
   const area = document.getElementById('chatArea');
   area.innerHTML = PHOTOISM_TOOLS_HTML;
   document.getElementById('breadcrumb').innerHTML = 'PHOTOISM · 도구 선택';
-  document.getElementById('toolKiosk').onclick = (e)=>{ addRipple(e.currentTarget, e); petSay('nav'); goToWelcome(); };
-  document.getElementById('toolColor').onclick = (e)=>{ addRipple(e.currentTarget, e); petSay('nav'); goToColorModel(); };
-  document.getElementById('toolReplace').onclick = (e)=>{ addRipple(e.currentTarget, e); petSay('nav'); goToEquipReplace(); };
+  document.getElementById('toolKiosk').onclick = (e)=>{ addRipple(e.currentTarget, e);  goToWelcome(); };
+  document.getElementById('toolColor').onclick = (e)=>{ addRipple(e.currentTarget, e);  goToColorModel(); };
+  document.getElementById('toolReplace').onclick = (e)=>{ addRipple(e.currentTarget, e);  goToEquipReplace(); };
   add3DTilt(area, '.tool-card:not(.disabled)', 4);
 }
 
@@ -9387,7 +9335,7 @@ function renderEquipReplaceScreen(){
   area.appendChild(wrap);
   document.getElementById('breadcrumb').innerHTML = '장비 교체 방법';
   area.querySelectorAll('.tool-card[data-equip]').forEach(btn=>{
-    btn.onclick = (e)=>{ addRipple(e.currentTarget, e); petSay('nav'); selectedEquipReplaceDevice = btn.dataset.equip; appState='equipReplaceDetail'; render(); };
+    btn.onclick = (e)=>{ addRipple(e.currentTarget, e);  selectedEquipReplaceDevice = btn.dataset.equip; appState='equipReplaceDetail'; render(); };
   });
   add3DTilt(area, '.tool-card', 4);
 }
@@ -9412,7 +9360,7 @@ function goToColorModel(){
 }
 
 function flipAndExpandCard(cardEl, modelId){
-  petSay('camera');
+  
   const rect = cardEl.getBoundingClientRect();
   const others = [...document.querySelectorAll('.camera-card')].filter(c => c!==cardEl);
   others.forEach(c=> c.classList.add('shrink-out'));
@@ -9528,7 +9476,7 @@ function renderCameraModelActionsScreen(){
   document.getElementById('breadcrumb').innerHTML = '<b>'+(model ? model.sub : '카메라')+'</b><span class="sep">·</span>안내 선택';
   area.querySelectorAll('.tool-card[data-action]').forEach(btn=>{
     btn.onclick = (e)=>{
-      addRipple(e.currentTarget, e); petSay('nav');
+      addRipple(e.currentTarget, e); 
       const action = btn.dataset.action;
       selectedDevice = '카메라';
       if (action === 'color') { goToCameraColorGuide(); }
@@ -9539,7 +9487,7 @@ function renderCameraModelActionsScreen(){
 }
 
 function goToColorSection(sectionId){
-  petSay('section');
+  
   appState = 'colorSection';
   selectedColorSection = sectionId;
   render();
@@ -9849,7 +9797,7 @@ function renderChat(){
         } else if(step.endType==='as'){
           card.classList.add('react-bounce');
         }
-        if(typeof petBotReact === 'function') petBotReact(step.endType);
+        
         handleAchievements(step.symptomId);
       }
       return;
@@ -10158,269 +10106,6 @@ function confettiBurst(){
     document.body.appendChild(p);
     setTimeout(()=> p.remove(), duration+150);
   }
-}
-
-/* ============================= P ROBOT PET ============================= */
-/* A small caterpillar-tread mascot that wanders along the bottom of the
-   viewport, present on every screen from the welcome page onward.
-   Can be dragged and thrown; bounces with simple gravity/friction. */
-
-const PetBot = {
-  el:null, body:null, treadPattern:null, bubble:null,
-  mouthNormal:null, mouthHappy:null, mouthSad:null,
-  x:0, y:0, w:68, h:82,
-  vx:0, vy:0, rot:0,
-  target:null, pauseUntil:0,
-  mode:'idle',        // idle | rolling | dragging | thrown | dizzy
-  treadOffset:0,
-  dragOffset:{x:0,y:0}, dragSamples:[], pointerDownInfo:null,
-  lastTs:0
-};
-
-const PET_IDLE_LINES = ['안녕하세요! 🙂','도움이 필요하면 불러주세요','오늘도 화이팅!','포토이즘 파이팅 💪','심심해요~'];
-const PET_SOLVED_LINES = ['해결됐다! 🎉','역시 척척박사!','오예~ 성공!'];
-const PET_ESCALATE_LINES = ['TX팀이 필요해요','제 힘으론 역부족이에요 😥'];
-const PET_AS_LINES = ['부품 문제인 것 같아요','A/S가 필요해요 🩹'];
-const PET_THROW_LINES = ['으아아악!! 🙀','날아간다아~!','꺄악~!'];
-const PET_LAND_LINES = ['어질어질... 😵💫','아이쿠!'];
-
-const PET_CLICK_LINES = {
-  device: ['오, 거기군요!','어디 볼까요~ 🔍','잘 찾으셨어요!','흠, 그 부위군요'],
-  symptom: ['그 증상이었구나!','확인해볼게요 📋','알겠어요, 잠시만요','오케이, 그거군요!'],
-  option: ['좋아요, 다음으로!','오케이~ 👍','그렇게 해봐요','흠흠, 계속 가볼까요'],
-  camera: ['오, 이 카메라!','멋진 선택이에요 📷','불러오는 중...','좋아요!'],
-  section: ['거기부터 볼까요?','좋은 선택이에요!','준비할게요~','오케이!'],
-  nav: ['다시 가볼까요~','좋아요, 이동!','넵!']
-};
-
-function petSay(category){
-  const pool = PET_CLICK_LINES[category];
-  if(!pool || !pool.length) return;
-  showPetBotBubble(pool[Math.floor(Math.random()*pool.length)], 1600);
-}
-
-function petBotFloorY(){ return window.innerHeight - PetBot.h - 14; }
-function petBotMaxX(){ return window.innerWidth - PetBot.w - 10; }
-
-function showPetBotBubble(text, duration){
-  if(!PetBot.bubble) return;
-  PetBot.bubble.textContent = text;
-  PetBot.bubble.classList.add('show');
-  clearTimeout(PetBot._bubbleTimer);
-  PetBot._bubbleTimer = setTimeout(()=> PetBot.bubble.classList.remove('show'), duration||2200);
-}
-
-function petBotSetMouth(kind){
-  if(!PetBot.mouthNormal) return;
-  PetBot.mouthNormal.style.display = kind==='normal' ? '' : 'none';
-  PetBot.mouthHappy.style.display = kind==='happy' ? '' : 'none';
-  PetBot.mouthSad.style.display = kind==='sad' ? '' : 'none';
-}
-
-function petBotReact(endType){
-  if(!PetBot.el) return;
-  PetBot.el.classList.remove('happy','sad');
-  if(endType==='solved' || endType==='info'){
-    PetBot.el.classList.add('happy');
-    petBotSetMouth('happy');
-    showPetBotBubble(PET_SOLVED_LINES[Math.floor(Math.random()*PET_SOLVED_LINES.length)], 2600);
-  } else if(endType==='escalate'){
-    PetBot.el.classList.add('sad');
-    petBotSetMouth('sad');
-    showPetBotBubble(PET_ESCALATE_LINES[Math.floor(Math.random()*PET_ESCALATE_LINES.length)], 2600);
-  } else if(endType==='as'){
-    PetBot.el.classList.add('sad');
-    petBotSetMouth('sad');
-    showPetBotBubble(PET_AS_LINES[Math.floor(Math.random()*PET_AS_LINES.length)], 2600);
-  }
-  setTimeout(()=>{
-    PetBot.el.classList.remove('happy','sad');
-    petBotSetMouth('normal');
-  }, 1450);
-}
-
-function petBotTap(){
-  showPetBotBubble(PET_IDLE_LINES[Math.floor(Math.random()*PET_IDLE_LINES.length)]);
-  PetBot.el.classList.remove('happy'); void PetBot.el.offsetWidth; PetBot.el.classList.add('happy');
-  petBotSetMouth('happy');
-  setTimeout(()=>{ PetBot.el.classList.remove('happy'); petBotSetMouth('normal'); }, 550);
-}
-
-function petBotApplyPose(rotationDeg){
-  PetBot.el.style.transform = `rotate(${rotationDeg||0}deg)`;
-}
-
-const PET_GRAVITY = 1500;
-
-function petBotTick(ts){
-  if(!PetBot.lastTs) PetBot.lastTs = ts;
-  let dt = ts - PetBot.lastTs;
-  if(dt>60) dt=60;
-  PetBot.lastTs = ts;
-  const dtS = dt/1000;
-
-  if(PetBot.mode==='idle' || PetBot.mode==='rolling'){
-    PetBot.y = petBotFloorY();
-    if(!PetBot.target){
-      const goingSomewhere = Math.random() < 0.6;
-      if(goingSomewhere){
-        PetBot.target = { x: 10 + Math.random()*(petBotMaxX()-10), speed: 34 + Math.random()*30 };
-        PetBot.mode = 'rolling';
-        PetBot.el.classList.remove('idle');
-      } else {
-        PetBot.target = null;
-        PetBot.mode = 'idle';
-        PetBot.el.classList.add('idle');
-        PetBot.pauseUntil = ts + (1400 + Math.random()*2200);
-      }
-    }
-    if(PetBot.mode==='rolling' && PetBot.target){
-      const dir = Math.sign(PetBot.target.x - PetBot.x);
-      const dist = dir * PetBot.target.speed * dtS;
-      PetBot.x += dist;
-      PetBot.treadOffset = ((PetBot.treadOffset + dist) % 10 + 10) % 10;
-      if(dir!==0) PetBot.facing = dir;
-      const lean = Math.max(-9, Math.min(9, -dir*6));
-      PetBot.body.style.transform = `rotate(${lean}deg) scaleX(${PetBot.facing||1})`;
-      if(Math.abs(PetBot.target.x - PetBot.x) < 3){
-        PetBot.x = PetBot.target.x;
-        PetBot.target = null;
-        PetBot.mode = 'idle';
-        PetBot.el.classList.add('idle');
-        PetBot.body.style.transform = `scaleX(${PetBot.facing||1})`;
-        PetBot.pauseUntil = ts + (1200 + Math.random()*2000);
-      }
-    } else if(PetBot.mode==='idle'){
-      if(ts >= (PetBot.pauseUntil||0)) PetBot.target = null;
-    }
-    petBotApplyPose(0);
-  } else if(PetBot.mode==='thrown'){
-    PetBot.vy += PET_GRAVITY*dtS;
-    PetBot.x += PetBot.vx*dtS;
-    PetBot.y += PetBot.vy*dtS;
-    PetBot.rot += PetBot.vx*dtS*0.5;
-    const floor = petBotFloorY();
-    if(PetBot.y >= floor){
-      PetBot.y = floor;
-      if(Math.abs(PetBot.vy) > 70){
-        PetBot.vy = -PetBot.vy*0.42;
-        PetBot.vx *= 0.72;
-      } else {
-        PetBot.vy = 0; PetBot.vx *= 0.5;
-        if(Math.abs(PetBot.vx) < 18){
-          PetBot.mode = 'dizzy';
-          PetBot.el.classList.remove('thrown');
-          PetBot.el.classList.add('dizzy');
-          PetBot.rot = 0;
-          PetBot.pauseUntil = ts + 850;
-          showPetBotBubble(PET_LAND_LINES[Math.floor(Math.random()*PET_LAND_LINES.length)], 1100);
-        }
-      }
-    }
-    if(PetBot.x < 6){ PetBot.x=6; PetBot.vx=-PetBot.vx*0.55; }
-    if(PetBot.x > petBotMaxX()){ PetBot.x=petBotMaxX(); PetBot.vx=-PetBot.vx*0.55; }
-    petBotApplyPose(PetBot.rot);
-  } else if(PetBot.mode==='dizzy'){
-    PetBot.y = petBotFloorY();
-    petBotApplyPose(0);
-    if(ts >= PetBot.pauseUntil){
-      PetBot.mode = 'idle';
-      PetBot.el.classList.remove('dizzy');
-      PetBot.el.classList.add('idle');
-      PetBot.target = null;
-    }
-  }
-  // dragging: position set directly by pointer handlers
-
-  PetBot.treadPattern.setAttribute('patternTransform', `translate(${-PetBot.treadOffset.toFixed(2)},0)`);
-  PetBot.el.style.left = PetBot.x+'px';
-  PetBot.el.style.top = PetBot.y+'px';
-
-  requestAnimationFrame(petBotTick);
-}
-
-function petBotPointerDown(e){
-  e.preventDefault();
-  PetBot.mode = 'dragging';
-  PetBot.el.classList.remove('idle','dizzy');
-  PetBot.el.classList.add('dragging');
-  PetBot.el.setPointerCapture(e.pointerId);
-  PetBot.dragOffset = { x:e.clientX-PetBot.x, y:e.clientY-PetBot.y };
-  PetBot.dragSamples = [{ t:performance.now(), x:e.clientX, y:e.clientY }];
-  PetBot.pointerDownInfo = { t:performance.now(), x:e.clientX, y:e.clientY };
-}
-
-function petBotPointerMove(e){
-  if(PetBot.mode!=='dragging') return;
-  PetBot.x = e.clientX - PetBot.dragOffset.x;
-  PetBot.y = e.clientY - PetBot.dragOffset.y;
-  const s = PetBot.dragSamples;
-  s.push({ t:performance.now(), x:e.clientX, y:e.clientY });
-  if(s.length>6) s.shift();
-}
-
-function petBotPointerUp(e){
-  if(PetBot.mode!=='dragging') return;
-  PetBot.el.classList.remove('dragging');
-  const info = PetBot.pointerDownInfo;
-  const dist = Math.hypot(e.clientX-info.x, e.clientY-info.y);
-  const dur = performance.now()-info.t;
-
-  if(dist<6 && dur<400){
-    PetBot.mode = 'idle'; PetBot.target=null;
-    petBotTap();
-  } else {
-    const s = PetBot.dragSamples;
-    const a = s[0], b = s[s.length-1];
-    const tdiff = Math.max(16, b.t-a.t);
-    let vx = (b.x-a.x)/tdiff*1000*0.9;
-    let vy = (b.y-a.y)/tdiff*1000*0.9;
-    vx = Math.max(-1400, Math.min(1400, vx));
-    vy = Math.max(-1600, Math.min(500, vy));
-    PetBot.vx = vx; PetBot.vy = vy;
-    PetBot.mode = 'thrown';
-    PetBot.el.classList.add('thrown');
-    showPetBotBubble(PET_THROW_LINES[Math.floor(Math.random()*PET_THROW_LINES.length)], 1100);
-  }
-}
-
-function petBotInit(){
-  PetBot.el = document.getElementById('petWrap');
-  PetBot.body = document.getElementById('petBody');
-  PetBot.treadPattern = document.getElementById('petTreadPattern');
-  PetBot.bubble = document.getElementById('petBubble');
-  PetBot.mouthNormal = document.getElementById('petMouth');
-
-  const happy = PetBot.mouthNormal.cloneNode();
-  happy.id = 'petMouthHappy';
-  happy.setAttribute('d', 'M38,94 Q45,102 52,94');
-  happy.style.display = 'none';
-  PetBot.mouthNormal.parentNode.appendChild(happy);
-  PetBot.mouthHappy = happy;
-
-  const sad = PetBot.mouthNormal.cloneNode();
-  sad.id = 'petMouthSad';
-  sad.setAttribute('d', 'M39,98 Q45,93 51,98');
-  sad.style.display = 'none';
-  PetBot.mouthNormal.parentNode.appendChild(sad);
-  PetBot.mouthSad = sad;
-
-  PetBot.x = window.innerWidth - PetBot.w - 60;
-  PetBot.y = petBotFloorY();
-  PetBot.el.style.left = PetBot.x+'px';
-  PetBot.el.style.top = PetBot.y+'px';
-  PetBot.el.classList.add('idle');
-
-  PetBot.el.addEventListener('pointerdown', petBotPointerDown);
-  PetBot.el.addEventListener('pointermove', petBotPointerMove);
-  PetBot.el.addEventListener('pointerup', petBotPointerUp);
-  PetBot.el.addEventListener('pointercancel', petBotPointerUp);
-
-  window.addEventListener('resize', ()=>{
-    PetBot.x = Math.max(10, Math.min(petBotMaxX(), PetBot.x));
-  });
-
-  requestAnimationFrame(petBotTick);
 }
 
 /* init */
