@@ -8851,7 +8851,7 @@ function redrawDiagramLines(sid){
   const automatic=computeDiagramLayout(tree,metrics);
   for(const nid of Object.keys(tree.nodes)){const box=document.getElementById('dn_'+nid);const p=workspace.positions[nid]||automatic[nid];box.style.left=p.x+'px';box.style.top=p.y+'px';}
   const start=document.getElementById('dn_START');if(start)start.style.display='none';
-  rememberDiagramWorkspace(sid);drawFreeDiagramEdges(sid);
+  rememberDiagramWorkspace(sid);drawFreeDiagramEdges(sid);refreshDiagramPhotoLibrary(sid);
 }
 
 function setDiagramZoom(value){
