@@ -75,3 +75,12 @@ M50 Mark II/850D/R10의 경량 실시간 3D 본체 선택 카드. 신규 camera-
 
 ## 카메라 부유 모션 (staging v42)
 카메라가 24초 주기로 작게 좌우 회전하고 8초 주기로 살짝 떠오르도록 변경. 그림자는 바닥에 유지. 화면 밖/숨긴 탭에서는 반복 렌더링 정지, 동작 줄이기 설정에서는 정지. 31개 검사 통과, 데스크톱 및 390px 모바일 미리보기 확인(실제 휴대폰 미검사). 실사 수준 모델 확보는 별도 미완료 과제.
+
+## Blender 카메라 3종 (2026-09-15)
+M50 Mark II, 850D, R10을 Blender로 생성하고 assets/camera-*.glb로 내보냄. 모델별 몸체/그립/상단/조작부를 구분. 850D는 미러, R10은 AF/MF 스위치와 후면 조이스틱 포함. 정밀 CAD/실사 스캔은 아닌 시각화 모델.
+
+camera-blender-base.py는 공통 부품/M50 기반, camera-blender-build.py는 모델별 형상과 glTF용 질감 및 메시 병합. 실행: Blender --background --python camera-blender-build.py -- r10 OUTPUT_DIRECTORY (--no-render 옵션 가능). 생성된 camera-r10.glb 등을 assets에 복사한 뒤 node build-3d.cjs. 로컬 .blend는 outputs/blender-cameras/{m50,850d,r10}에 보관.
+
+camera-models.js는 GLTFLoader로 불러오며 48초당 1회 회전, 8초 주기 부유. 마우스 올림/키보드 포커스 동안 정지. 화면 밖/숨긴 탭/동작 줄이기 설정에서 반복 렌더링 정지. 로딩 실패 시에도 기종명 버튼은 사용 가능. GLB는 선택 캐시 대상이며 실패해도 기본 오프라인 앱 설치를 막지 않음. assets 경로는 기존 본 서버 적용 변환의 복사 대상에 포함됨. 실제 본 서버 적용은 수행하지 않음.
+
+검증: Blender 3종 생성 성공, glTF 로딩 3종 성공, 데스크톱/390px 모바일 가로 넘침 없음, 자동 검사 31개 통과. 실제 휴대폰 검사는 미실시. Three.js r180의 GLTFLoader 및 BufferGeometryUtils를 같은 버전으로 보관(THREE-LICENSE.txt).

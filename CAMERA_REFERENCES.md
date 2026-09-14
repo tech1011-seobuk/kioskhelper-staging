@@ -19,3 +19,10 @@ Google 이미지 검색으로 공식 Canon 제품 갤러리를 찾고, 위 3개 
 camera-geometry.js에서 모델별 외곽 곡선과 그립 단면을 별도로 작성했다. M50의 얇은 몸체, 850D의 높은 둥근 상단과 깊은 그립/미러, R10의 큰 마운트 비율과 AF/MF 스위치/상단 다이얼 배치를 구분했다. 실제 제품과 완전히 일치하는 스캔 모델은 아니며 로고와 미세 부품도 근사 표현이다.
 
 현재 수정 경로: camera-geometry.js(형상) + camera-models.js(렌더링) → photoism-model.js export → npm run build. 공식 사진 출처는 위 갤러리 링크를 사용한다.
+
+## Blender 모델 사용
+현재 앱은 assets/camera-m50.glb, camera-850d.glb, camera-r10.glb를 사용한다. camera-geometry.js는 이전 근사 모델의 보관 소스이며 현재 렌더링 진입점에서는 사용하지 않는다. 기종별 Blender 생성 소스 및 재생성 절차는 PROJECT_HANDOFF.md 참조. 공식 사진은 형상 참고용이며 파일 안에 포함하지 않았다.
+
+웹 로더: Three.js r180 공식 GLTFLoader.js 및 BufferGeometryUtils.js (MIT, THREE-LICENSE.txt). import 경로만 로컬 파일로 변경했다.
+- https://github.com/mrdoob/three.js/blob/r180/examples/jsm/loaders/GLTFLoader.js
+- https://github.com/mrdoob/three.js/blob/r180/examples/jsm/utils/BufferGeometryUtils.js
