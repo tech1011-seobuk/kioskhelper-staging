@@ -1913,6 +1913,7 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 .photoism3d{width:100%;max-width:1100px;margin:0 auto}.model-heading{display:flex;align-items:center;justify-content:space-between;gap:14px}.model-heading h2{font-size:23px;letter-spacing:.09em;margin:4px 0}.model-heading h2 span{font-size:11px;vertical-align:middle;color:var(--accent);border:1px solid var(--border);padding:4px 7px;border-radius:6px}.model-heading p,.model-help,.model-caption{font-size:12px;color:var(--muted);line-height:1.7}.photoism3d button{font:inherit;font-size:12px;color:var(--text);background:var(--panel2);border:1px solid var(--border);border-radius:10px;min-height:40px;padding:8px 14px;cursor:pointer}.photoism3d button:hover,.photoism3d button[aria-pressed=true]{border-color:var(--accent);color:var(--accent)}.model-toolbar{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin:10px 0 0}.model-host{height:clamp(430px,62vh,680px);width:100%;position:relative}.model-host canvas{display:block;width:100%;height:100%;border-radius:16px;outline-offset:-4px}.model-help,.model-caption{text-align:center;margin:5px 0 14px}.model-parts{display:flex;justify-content:center;flex-wrap:wrap;gap:8px}.model-caption{opacity:.65;font-size:11px;margin-top:14px}.model-unavailable{padding:100px 20px;text-align:center;line-height:2}@media(max-width:600px){.model-host{height:460px}.model-heading h2{font-size:18px}.model-heading p{max-width:200px}.model-toolbar{gap:5px}.photoism3d button{padding:8px 10px}.model-parts button{min-height:44px}}
 /* Fixed views: scroll always belongs to the page. */
 .model-stage{display:grid;grid-template-columns:minmax(0,1fr) 240px;align-items:center;gap:24px}.model-host{height:clamp(380px,58vh,600px);touch-action:auto}.model-host canvas{pointer-events:none!important;touch-action:auto!important}.model-parts{display:grid;grid-template-columns:1fr 1fr;min-height:110px;gap:10px;align-content:start}.model-parts button{min-height:48px}.model-part-panel h3{font-size:14px;color:var(--muted);margin:0 0 16px}.model-toolbar button{min-width:100px}.model-common{display:flex;justify-content:center;gap:10px;margin:12px 0}.model-part-enter{animation:modelPartIn .32s cubic-bezier(.22,1,.36,1) var(--part-delay) both}@keyframes modelPartIn{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}@media(prefers-reduced-motion:reduce){.model-part-enter{animation:none}}@media(max-width:600px){.model-stage{grid-template-columns:minmax(0,1fr);gap:0}.model-host{height:340px}.model-part-panel h3{text-align:center;margin:6px 0 10px}.model-parts{grid-template-columns:repeat(2,minmax(0,1fr));min-height:110px}.model-heading{align-items:flex-start}.model-heading p{max-width:none}.topbar{flex-wrap:wrap;gap:10px;padding:12px!important}.topbar-right{display:flex;flex-wrap:wrap;min-width:0;max-width:100%;gap:8px!important}.topbar-right button{flex-shrink:0;white-space:nowrap;min-height:40px}#userInfo{flex-basis:100%;order:10;font-size:11px;overflow-wrap:anywhere}.breadcrumb{min-width:0;max-width:100%}.photoism3d{min-width:0}}
+/* PHOTOISM_CALLOUTS_START */
 .model-view-status{text-align:center;font-size:13px;color:var(--muted);font-weight:500;margin:8px 0}
 .model-callout-stage{display:block;position:relative;isolation:isolate;max-width:860px;margin:0 auto}
 .model-callout-stage .model-host{height:clamp(480px,65vh,640px);width:100%}
@@ -1927,7 +1928,7 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 .model-callout-fallback .model-host{height:130px}.model-callout-fallback .model-leaders{display:none}.model-callout-fallback .model-parts{position:static;display:grid;grid-template-columns:1fr 1fr;gap:10px}.model-callout-fallback .model-callout{position:static;width:100%}
 @media(max-width:600px){.model-callout-stage .model-host{height:490px}.model-callout-stage .model-callout{font-size:11px;width:clamp(72px,23%,104px);padding:3px}.model-callout-fallback .model-host{height:130px}}
 @media(prefers-reduced-motion:reduce){.model-callout-stage .model-callout,.model-leaders path,.model-leaders circle{animation:none}}
-
+/* PHOTOISM_CALLOUTS_END */
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -9523,7 +9524,6 @@ function renderPhotoism3DPicker(area){
  try{viewer=PhotoismModel.mount(host);}catch(error){fallback();}
  area.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>change(button.dataset.view));change('front');loadRecentSymptoms('photoism');
 }
-
 function renderPickerScreen(){
   const area = document.getElementById('chatArea');
   if(photoismViewMode==='3d'){renderPhotoism3DPicker(area);return;}

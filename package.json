@@ -1,0 +1,1 @@
+{"name":"photoism-helper-staging","version":"1.0.0","private":true,"scripts":{"build":"node build-3d.cjs","test":"node --test regression.test.mjs diagnosis.test.mjs","preview":"node preview.mjs 4174"},"devDependencies":{"esbuild":"0.25.10"},"engines":{"node":">=22"}}
