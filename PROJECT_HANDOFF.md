@@ -95,3 +95,6 @@ camera-models.js는 GLTFLoader로 불러오며 48초당 1회 회전, 8초 주기
 printer-blender-build.py로 두 기종의 독립 외형 생성. assets/printer-rx1.glb, printer-ask400.glb 및 PRINTER_REFERENCES.md 참조. 편집 가능한 .blend와 검토 PNG는 로컬 outputs/blender-printers에 보관. 정밀 CAD/실사 스캔이 아닌 선택용 근사 모델이며 내부·부속품 일부 생략. camera-models.js 공통 mountProduct가 카메라/프린터 로딩, 36초 회전, 부유, 정지 및 자원 해제를 공유. 기존 카메라 동작 유지. SW 선택 캐시에 프린터 추가.
 
 검증: npm ci 및 빌드 성공, 자동 검사32개 통과(프린터 선택/재선택/잘못된 ID 포함). 로컬 2개 GLB 정상 로딩, 데스크톱·390px 화면 확인, 모바일 가로 넘침 없음·canvas pan-y, 선택 후 기종 제목 및 다시 선택 확인. 실제 휴대폰 검사는 미실시. 본 서버 미반영.
+
+## 지폐투입기 말풍선 위치 (staging v48)
+photoism-picker.js의 앞면 그룹에서 지폐투입기를 왼쪽 모니터 아래·서비스코인 위로 이동. 오른쪽 카드리더기 연결선과 교차하지 않음. 빌드 후 index.html/sw.js 갱신. 데스크톱 및 390px 모바일에서 위치·간격·가로 넘침 없음 확인. 실제 휴대폰 미검사. 본 서버 미반영.
