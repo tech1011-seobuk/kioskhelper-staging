@@ -24,7 +24,7 @@ export function mountCamera(host,id){
   const dt=last?Math.min((now-last)/1000,.1):0;last=now;
   const animate=loaded&&!reduced&&visible&&!document.hidden;
   if(animate&&!hover&&!focused)elapsed+=dt;
-  root.rotation.y=reduced?0:phase+elapsed*Math.PI*2/48;
+  root.rotation.y=reduced?0:phase+elapsed*Math.PI*2/36;
   root.rotation.x=reduced?0:Math.sin(elapsed*Math.PI/16)*.018;
   root.position.y=reduced?0:Math.sin(elapsed*Math.PI/4)*1.8;
   if(!animate||now-lastRender>=1000/30){renderer.render(scene,camera);lastRender=now;}
