@@ -9,6 +9,23 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(process.env.KIOSKHELPER_TEST_ROOT || fileURLToPath(new URL('.', import.meta.url)));
 const html = readFileSync(resolve(root, 'index.html'), 'utf8');
 const swSource = readFileSync(resolve(root, 'sw.js'), 'utf8');
+test('printer replacement remembers the chosen model and clears it when choosing again',()=>{
+  const elements=new Map();
+  const element=()=>({innerHTML:'',textContent:'',classList:{remove(){}},appendChild(child){this.innerHTML+=child.innerHTML;}});
+  const context=vm.createContext({document:{getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);},createElement:element},clearTimeout(){},logEvent(...args){context.events.push(args);},events:[],render(){},updateResetButton(){}});
+  vm.runInContext(section('let selectedEquipReplaceDevice = null;', 'let pendingCameraAction')+"\nlet appState,selectedDevice,screenSwapTimer,screenEnterTimer;const EQUIP_REPLACE_DEVICES=[{name:'프린터',icon:'🖨️'}];\n"+section('function goToPrinterModel(', 'function goToColorModel('),context);
+  for(const [id,label] of [['rx1','DNP RX1'],['ask400','후지필름 ASK-400']]){
+    vm.runInContext("goToPrinterModel('equipReplace')",context);
+    assert.equal(vm.runInContext('selectedPrinterModel',context),null);
+    assert.equal(vm.runInContext('appState',context),'printerModel');
+    vm.runInContext(`selectPrinterModel('${id}')`,context);
+    assert.equal(vm.runInContext('appState',context),'equipReplaceDetail');
+    assert.ok(elements.get('chatArea').innerHTML.includes(label+' 교체 방법'));
+    assert.equal(context.events.at(-1)[1].detail,label+' · 교체 방법');
+  }
+  vm.runInContext("selectPrinterModel('invalid')",context);
+  assert.equal(context.events.length,2);
+});
 function section(from, to) {
   const start = html.indexOf(from), end = html.indexOf(to, start);
   assert.ok(start >= 0 && end > start, `Source markers: ${from}`);
