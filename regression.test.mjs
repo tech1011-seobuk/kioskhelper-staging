@@ -264,3 +264,23 @@ test('HTTP failures do not overwrite an existing offline page', async () => {
   assert.equal(await (await response).text(), 'saved app');
   assert.equal(h.put.length, 0);
 });
+
+test('overlapping media hydration renders each attachment once', async () => {
+  const containers = [0,1,2].map(() => ({ dataset: {media:encodeURIComponent(JSON.stringify([{kind:'image',path:'photo',name:'photo'}]))}, isConnected:true, children:[], appendChild(child){this.children.push(child);} }));
+  const pending=[];
+  const context=vm.createContext({
+    currentUser:{id:'admin'},mediaUrlCache:new Map(),openLightbox(){},validateDiagnosisMedia(){},
+    sb:{storage:{from(){return {createSignedUrl(){return new Promise(resolve=>pending.push(resolve));}};}}},
+    document:{querySelectorAll(){return containers.filter(c=>!c.dataset.loaded);},createElement(){return {isConnected:true,children:[],appendChild(child){this.children.push(child);}};}}
+  });
+  vm.runInContext(section('async function hydrateDiagnosisMedia(){','// Photo checklist'),context);
+  const first=vm.runInContext('hydrateDiagnosisMedia()',context);
+  const second=vm.runInContext('hydrateDiagnosisMedia()',context);
+  const third=vm.runInContext('hydrateDiagnosisMedia()',context);
+  assert.equal(pending.length,3);
+  for(const resolve of pending)resolve({data:{signedUrl:'https://example.test/photo.jpg'}});
+  await Promise.all([first,second,third]);
+  await vm.runInContext('hydrateDiagnosisMedia()',context);
+  assert.deepEqual(containers.map(c=>c.children.length),[1,1,1]);
+  assert.deepEqual(containers.map(c=>c.children[0].children.length),[1,1,1]);
+});

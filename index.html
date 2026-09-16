@@ -8224,6 +8224,8 @@ async function hydrateDiagnosisMedia(){
   if(!currentUser)return;
   const owner=currentUser.id;
   for(const container of document.querySelectorAll('.diagnosis-media:not([data-loaded])')){
+    // Recheck after awaits: another hydration pass may already own this container.
+    if(container.dataset.loaded||!container.isConnected)continue;
     container.dataset.loaded='true';
     let items;try{items=JSON.parse(decodeURIComponent(container.dataset.media));validateDiagnosisMedia(items);}catch{continue;}
     for(const item of items){
