@@ -1980,6 +1980,7 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 .symptom-video-entry{margin:0 0 18px;text-align:left;font-size:14px;max-width:100%}
 .symptom-video-dialog{box-sizing:border-box;width:min(800px,94vw);max-height:90vh;padding:20px;border:1px solid var(--border);border-radius:16px;background:var(--panel);color:var(--text)}
 .symptom-video-dialog::backdrop{background:#000b}.symptom-video-dialog iframe{display:block;width:100%;aspect-ratio:16/9;border:0;margin:14px 0}.symptom-video-dialog a{color:var(--text)}
+.replacement-guide{text-align:left;width:100%;margin-top:24px}.replacement-choices{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}.replacement-choice,.replacement-navigation button{font:inherit;color:inherit;background:var(--panel,#25262c);border:1px solid var(--border,#555);border-radius:12px;padding:12px 18px;cursor:pointer;min-height:44px}.replacement-choice[aria-pressed="true"]{border-color:#d4ec32;background:rgba(212,236,50,.12)}.replacement-step{padding:24px;border:1px solid var(--border,#555);border-radius:18px;background:rgba(128,128,128,.06)}.replacement-progress{font-size:13px;color:var(--muted,#aaa);margin:0 0 14px}.replacement-step h3{font-size:22px;margin:0 0 18px;line-height:1.4}.replacement-step h3:focus-visible{outline:2px solid #d4ec32;outline-offset:4px}.replacement-body{white-space:pre-line;line-height:1.85;font-size:16px;overflow-wrap:anywhere;margin:0;min-height:100px}.replacement-navigation{display:flex;justify-content:space-between;gap:12px;margin-top:26px}.replacement-navigation .replacement-next{background:#d4ec32;color:#16190c;font-weight:700}.replacement-navigation button:disabled{opacity:.35;cursor:default}.replacement-video-note{line-height:1.7;color:var(--muted,#aaa)}@media(max-width:600px){.replacement-step{padding:18px}.replacement-step h3{font-size:20px}.replacement-body{font-size:15px}.replacement-choice{flex:1;min-width:120px}.replacement-navigation button{padding:12px 15px}}
 .replacement-media{text-align:left;margin-top:24px}.replacement-media-card{margin:16px 0;padding:16px;border:1px solid var(--border);border-radius:12px}.replacement-media-card img{display:block;max-width:100%;height:auto;cursor:zoom-in}.replacement-media-card h4{margin:0 0 12px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
@@ -9582,11 +9583,309 @@ const REPLACEMENT_MEDIA = {
     [
       "C 타입 리모컨 교체",
       "4FcBZLfd-Lw"
+    ],
+    [
+      "USB 단자 커넥터 교체",
+      "VW7oddDZRZE"
+    ],
+    [
+      "서비스코인 / 설정 버튼 케이블 교체",
+      "AnTsne7Gthk"
     ]
   ]
 };
-function appendReplacementMedia(host,key){
- const items=REPLACEMENT_MEDIA[key]||[];if(!items.length)return;
+// Replacement procedures: public ChannelTalk equipment replacement manuals, reviewed 2026-09-20.
+// Troubleshooting trees and user-authored diagram content are independent and unchanged.
+const REPLACEMENT_GUIDES = {
+  "카메라:r10": [
+    {
+      "label": "카메라 본체",
+      "preparation": "준비 물품: 십자드라이버\n\n유의 사항\n카메라 각도 조정은 불필요하므로, 브라켓 옆면 각도 조정 피스는 조정하지 말아주세요..!\n\n카메라 교체 후 본사 색감 조정이 필요합니다.",
+      "steps": [
+        [
+          "선 제거",
+          "카메라에 결합된 핫슈, 테더선(테더툴스), 더미 배터리를 분리합니다."
+        ],
+        [
+          "카메라 분리",
+          "카메라 각도 조정 나사 2개를 살짝 풀어 브라켓을 뒤로 당긴 후, 카메라 하부 피스를 풀어 카메라를 분리해줍니다."
+        ],
+        [
+          "카메라 장착",
+          "장착은 분리의 역순으로 진행됩니다. 새로 교체할 카메라의 하부 피스를 먼저 고정한 후, 앞으로 당겨 브라켓에 단단히 고정합니다. 그다음, 제거했던 핫슈, 테더선(테더툴스), 더미 배터리를 다시 장착한 후, 카메라가 정상적으로 작동하는지 테스트합니다."
+        ]
+      ],
+      "after": "본사 색감 조정 요청 방법\n1. CMS 접속 후 우측 하단 채팅 상담 클릭\n2. \"장비 세팅 문의\" → \"카메라 색감 조정 문의\" 선택\n3. 카메라 교체 사실을 알리고 세팅 요청\n\n본사에서 세팅을 완료한 후 정상적인 촬영이 가능한지 확인한 후 운영을 재개해 주시기 바랍니다."
+    }
+  ],
+  "카메라:850d": [
+    {
+      "label": "카메라 본체",
+      "preparation": "준비 물품: 십자드라이버\n\n유의 사항\n카메라 각도 조정은 불필요하므로, 브라켓 옆면 각도 조정 피스는 조정하지 말아주세요..!\n\n카메라 교체 후 본사 색감 조정이 필요합니다.",
+      "steps": [
+        [
+          "선 제거",
+          "카메라에 결합된 핫슈, 테더선(테더툴스), 더미 배터리를 분리합니다."
+        ],
+        [
+          "카메라 분리",
+          "카메라 각도 조정 나사 2개를 살짝 풀어 브라켓을 뒤로 당긴 후, 카메라 하부 피스를 풀어 카메라를 분리해줍니다."
+        ],
+        [
+          "카메라 장착",
+          "장착은 분리의 역순으로 진행됩니다. 새로 교체할 카메라의 하부 피스를 먼저 고정한 후, 앞으로 당겨 브라켓에 단단히 고정합니다. 그다음, 제거했던 핫슈, 테더선(테더툴스), 더미 배터리를 다시 장착한 후, 카메라가 정상적으로 작동하는지 테스트합니다."
+        ]
+      ],
+      "after": "본사 색감 조정 요청 방법\n1. CMS 접속 후 우측 하단 채팅 상담 클릭\n2. \"장비 세팅 문의\" → \"카메라 색감 조정 문의\" 선택\n3. 카메라 교체 사실을 알리고 세팅 요청\n\n본사에서 세팅을 완료한 후 정상적인 촬영이 가능한지 확인한 후 운영을 재개해 주시기 바랍니다."
+    }
+  ],
+  "카메라:m50": [
+    {
+      "label": "카메라 본체",
+      "preparation": "준비 물품: 십자드라이버\n\n유의 사항\n카메라 각도 조정은 불필요하므로, 브라켓 옆면 각도 조정 피스는 조정하지 말아주세요..!\n\n카메라 교체 후 본사 색감 조정이 필요합니다.",
+      "steps": [
+        [
+          "선 제거",
+          "카메라에 결합된 핫슈, 테더선(테더툴스), 더미 배터리를 분리합니다."
+        ],
+        [
+          "카메라 분리",
+          "카메라 각도 조정 나사 2개를 살짝 풀어 브라켓을 뒤로 당긴 후, 카메라 하부 피스를 풀어 카메라를 분리해줍니다."
+        ],
+        [
+          "카메라 장착",
+          "장착은 분리의 역순으로 진행됩니다. 새로 교체할 카메라의 하부 피스를 먼저 고정한 후, 앞으로 당겨 브라켓에 단단히 고정합니다. 그다음, 제거했던 핫슈, 테더선(테더툴스), 더미 배터리를 다시 장착한 후, 카메라가 정상적으로 작동하는지 테스트합니다."
+        ]
+      ],
+      "after": "본사 색감 조정 요청 방법\n1. CMS 접속 후 우측 하단 채팅 상담 클릭\n2. \"장비 세팅 문의\" → \"카메라 색감 조정 문의\" 선택\n3. 카메라 교체 사실을 알리고 세팅 요청\n\n본사에서 세팅을 완료한 후 정상적인 촬영이 가능한지 확인한 후 운영을 재개해 주시기 바랍니다."
+    }
+  ],
+  "프린터:rx1": [
+    {
+      "label": "프린터 본체",
+      "preparation": "준비 물품: 십자드라이버 (주먹 드라이버 추천)\n\n프린터 세팅이 완료되지 않으면 정상적인 사용이 불가능하므로, 교체 후 즉시 본사에 세팅 요청을 해주시기 바랍니다.",
+      "steps": [
+        [
+          "전원 끄기",
+          "프린터 전원 스위치를 OFF로 변경합니다."
+        ],
+        [
+          "케이블 제거",
+          "프린터에 연결된 AB 케이블(데이터 전송 케이블)과 전원 케이블을 분리합니다."
+        ],
+        [
+          "프린터 해체 및 교체",
+          "1. 프린터 후면에서 키오스크와 연결된 볼트 2개를 해체합니다.\n2. 프린터 전면에 있는 볼트 2개를 해체한 후, 프린터를 앞으로 당겨 키오스크와 분리합니다.\n3. 프린터 하단의 브라켓과 프린터를 분리하기 위해 측면에 고정된 작은 볼트 4개를 해체합니다.\n4. 교체할 프린터를 준비한 후, 해체한 순서의 역순으로 조립하여 프린터를 장착합니다."
+        ],
+        [
+          "프린터 세팅 요청",
+          "1. CMS 접속 후 우측 하단 채팅 상담 클릭\n2. \"장비 세팅 문의\" → \"프린터 세팅 문의\" 선택\n3. 프린터 교체 사실을 알리고 세팅 요청\n\n본사에서 세팅이 완료된 후 정상 작동 여부를 확인한 후 사용해 주세요. 세팅 요청이 누락될 경우 프린터 사용이 불가능하니 반드시 진행해 주시기 바랍니다."
+        ]
+      ]
+    }
+  ],
+  "프린터:ask400": [
+    {
+      "label": "프린터 본체",
+      "preparation": "준비 물품: 십자드라이버 (주먹 드라이버 추천)\n\n프린터 세팅이 완료되지 않으면 정상적인 사용이 불가능하므로, 교체 후 즉시 본사에 세팅 요청을 해주시기 바랍니다.",
+      "steps": [
+        [
+          "전원 끄기",
+          "프린터 전원 스위치를 OFF로 변경합니다."
+        ],
+        [
+          "케이블 제거",
+          "프린터에 연결된 AB 케이블(데이터 전송 케이블)과 전원 케이블을 분리합니다."
+        ],
+        [
+          "프린터 해체 및 교체",
+          "1. 프린터 후면에서 키오스크와 연결된 볼트 2개를 해체합니다.\n2. 프린터 전면에 있는 볼트 2개를 해체한 후, 프린터를 앞으로 당겨 키오스크와 분리합니다.\n3. 프린터 하단의 브라켓과 프린터를 분리하기 위해 측면에 고정된 작은 볼트 4개를 해체합니다.\n4. 교체할 프린터를 준비한 후, 해체한 순서의 역순으로 조립하여 프린터를 장착합니다."
+        ],
+        [
+          "프린터 세팅 요청",
+          "1. CMS 접속 후 우측 하단 채팅 상담 클릭\n2. \"장비 세팅 문의\" → \"프린터 세팅 문의\" 선택\n3. 프린터 교체 사실을 알리고 세팅 요청\n\n본사에서 세팅이 완료된 후 정상 작동 여부를 확인한 후 사용해 주세요. 세팅 요청이 누락될 경우 프린터 사용이 불가능하니 반드시 진행해 주시기 바랍니다."
+        ]
+      ]
+    }
+  ],
+  "에스라이트": [
+    {
+      "label": "에스라이트",
+      "preparation": "준비 물품: 십자드라이버",
+      "steps": [
+        [
+          "기존 장비 분리하기",
+          "에스라이트 좌측의 전원 케이블과 핫슈 조명 케이블(싱크 케이블)을 분리해줍니다. 이후 에스라이트 양쪽 브라켓에 고정된 피스 4개를 드라이버로 제거한 후 브라켓과 기존 에스라이트를 분리해줍니다."
+        ],
+        [
+          "새 장비 장착하기",
+          "교체할 에스라이트를 기존 위치에 맞춰 장착한 뒤, 브라켓을 고정하고 피스 4개를 결합합니다. 좌측에 전원 케이블과 핫슈 케이블(싱크 케이블)을 다시 연결해줍니다."
+        ],
+        [
+          "설정 및 작동 확인하기",
+          "에스라이트 좌측의 전원을 켜고, 지속광 밝기를 최저로 조절합니다. 우측 다이얼 수치를 확인하여 표준 값인 2.0으로 설정되어 있는지 확인한 뒤, 최종 작동 테스트를 진행해 주세요."
+        ]
+      ]
+    }
+  ],
+  "카드리더기": [
+    {
+      "label": "카드리더기",
+      "steps": [
+        [
+          "브라켓 나사 제거",
+          "카드리더기 브라켓에 체결돼 있는 나사 두개를 제거해주세요"
+        ],
+        [
+          "케이블타이 제거",
+          "카드리더기 케이블에 묶인 케이블타이를 제거해주세요"
+        ],
+        [
+          "케이블 분리",
+          "카드리더기 케이블이 꽂힌 본체 쪽으로 따라가면서 분리해준다."
+        ],
+        [
+          "케이블 제거 및 조립",
+          "카드리더기 USB타입 케이블과 RGB타입 케이블을 제거해주세요\n\n※ 새 카드리더기를 해체의 역순으로 조립해주세요"
+        ]
+      ]
+    }
+  ],
+  "지폐투입기": [
+    {
+      "label": "A/B 타입",
+      "media": [
+        0,
+        1
+      ],
+      "steps": [
+        [
+          "커넥터 분리",
+          "지폐투입기 우측에 체결되어 있는 커넥터의 양쪽 끝단을 손톱 또는 얇은 일자 드라이버로 들어올린 후 케이블을 제거해 주세요\n\n※ 케이블만 잡고 당길 경우 케이블 연결 부분이 끊어질 위험이 있습니다."
+        ],
+        [
+          "접지선 분리",
+          "지폐투입기 접지선 고정 볼트를 제거해 주세요\n\n※ 접지선이 없을 경우 해당 작업을 생략합니다."
+        ],
+        [
+          "지폐투입기 교체",
+          "지폐투입기 브라켓 하단에 체결되어 있는 작은 볼트 4ea를 제거해 주세요\n지폐투입기를 뒤쪽으로 제거해 주세요\n설치는 해체의 역순으로 조립해 주세요"
+        ]
+      ]
+    },
+    {
+      "label": "C 타입",
+      "media": [
+        2,
+        3
+      ],
+      "steps": [
+        [
+          "커넥터 분리",
+          "지폐투입기 우측에서 체결되어 있는 커넥터 2ea의 양쪽 끝단을 손톱 또는 얇은 일자 드라이버로 들어올린 후 케이블을 제거한다.\n\n※ 케이블만 잡고 당길 경우 케이블 연결 부분이 끊어질 위험이 있습니다."
+        ],
+        [
+          "지폐투입기 교체",
+          "지폐투입기 브라켓 하단에 체결되어 있는 작은 볼트 4ea를 제거해 주세요\n지폐투입기를 뒤쪽으로 제거해 주세요\n설치는 해체의 역순으로 조립해 주세요"
+        ]
+      ]
+    }
+  ],
+  "리모컨 / 서비스코인 / 설정": [
+    {
+      "label": "리모컨",
+      "media": [0, 1],
+      "steps": [
+        [
+          "리모컨 선 찾기",
+          "키오스크 우측에 연결되어 있는 리모컨 선을 찾아준다."
+        ],
+        [
+          "케이블타이 제거",
+          "리모컨 선 접촉 부분을 찾아 케이블타이를 제거한다."
+        ],
+        [
+          "커넥터 분리",
+          "리모컨 커넥터 부분을 분리한다.\n※ 접촉 부분을 누른 후 분리"
+        ],
+        [
+          "새 리모컨 연결",
+          "교체하는 리모컨 커넥터 부분을 접촉 시킨다"
+        ]
+      ]
+    },
+    {
+      "label": "서비스코인 / 설정 · USB 커넥터",
+      "media": [2, 3],
+      "steps": [
+        [
+          "커넥터 분리",
+          "커넥터 연결부 ↔ 커넥터 양 옆을 누른 후 분리"
+        ],
+        [
+          "USB 케이블 제거",
+          "PC(본체) 후면부 USB 단자 케이블 제거"
+        ],
+        [
+          "새 케이블 교체",
+          "새상품 USB 단자 케이블부 역순으로 교체 진행"
+        ]
+      ]
+    }
+  ],
+  "모니터": [
+    {
+      "label": "모니터",
+      "preparation": "모니터 교체 전, 기존 모니터의 모델명을 반드시 확인해 주세요. 모델명이 다를 경우 브라켓 규격이 맞지 않아 장착이 불가능할 수 있습니다.\n\n모니터 발주 전에는 채널톡을 통해 본사에 사전 문의해 주시고, 호환 가능한 모델 안내를 받은 후 구매해 주시기 바랍니다.\n\n※ 사전 확인 없이 구매 시 설치 불가 또는 환불이 어려울 수 있습니다.",
+      "steps": []
+    }
+  ],
+  "PC": [
+    {
+      "label": "PC",
+      "steps": []
+    }
+  ]
+};
+function replacementCards(guide){
+ const cards=[];
+ if(guide.preparation)cards.push({label:'시작 전 확인',title:'준비물 · 유의사항',body:guide.preparation});
+ guide.steps.forEach(([title,body],i)=>cards.push({label:'STEP '+(i+1)+' / '+guide.steps.length,title,body}));
+ if(guide.after)cards.push({label:'교체 후 확인',title:'본사 세팅 요청',body:guide.after});
+ return cards;
+}
+function appendReplacementGuide(host,key){
+ const guides=REPLACEMENT_GUIDES[key]||[];
+ if(!guides.length){const note=document.createElement('p');note.textContent='교체 안내를 준비 중이에요.';host.appendChild(note);appendReplacementMedia(host,key);return;}
+ const section=document.createElement('section');section.className='replacement-guide';host.appendChild(section);
+ let variant=0,page=0;
+ const choices=document.createElement('div');choices.className='replacement-choices';
+ if(guides.length>1){const label=document.createElement('p');label.textContent='교체할 종류를 선택해 주세요.';section.appendChild(label);section.appendChild(choices);}
+ const stage=document.createElement('div');section.appendChild(stage);
+ const media=document.createElement('div');section.appendChild(media);
+ function draw(focus){
+  const guide=guides[variant],cards=replacementCards(guide);
+  choices.innerHTML='';
+  guides.forEach((g,i)=>{if(guides.length<2)return;const b=document.createElement('button');b.className='replacement-choice';b.textContent=g.label;b.setAttribute('aria-pressed',String(i===variant));b.onclick=()=>{variant=i;page=0;draw(true);};choices.appendChild(b);});
+  stage.innerHTML='';media.innerHTML='';
+  if(cards.length){
+   const card=document.createElement('article');card.className='replacement-step';card.setAttribute('aria-live','polite');
+   const current=cards[page];
+   const progress=document.createElement('p');progress.className='replacement-progress';progress.textContent=page<cards.length?current.label+' · '+(page+1)+' / '+cards.length+' 카드':'안내 확인 완료';card.appendChild(progress);
+   const title=document.createElement('h3');title.tabIndex=-1;title.textContent=current?current.title:'교체 안내를 모두 확인했어요';card.appendChild(title);
+   const body=document.createElement('p');body.className='replacement-body';body.textContent=current?current.body:'필요한 단계는 이전 버튼으로 다시 확인할 수 있어요.';card.appendChild(body);
+   const nav=document.createElement('div');nav.className='replacement-navigation';
+   const prev=document.createElement('button');prev.textContent='이전';prev.disabled=page===0;prev.onclick=()=>{page=Math.max(0,page-1);draw(true);};nav.appendChild(prev);
+   const next=document.createElement('button');next.className='replacement-next';next.textContent=page===cards.length?'처음부터 보기':page===cards.length-1?'안내 확인 완료':'다음';next.onclick=()=>{page=page===cards.length?0:page+1;draw(true);};nav.appendChild(next);card.appendChild(nav);stage.appendChild(card);
+   if(focus)title.focus({preventScroll:true});
+  }
+  if(!guide.steps.length){const note=document.createElement('p');note.className='replacement-video-note';note.textContent='교체 과정은 아래 영상 매뉴얼에서 확인해 주세요.';stage.appendChild(note);}
+  appendReplacementMedia(media,key,guide.media);
+ }
+ draw(false);
+}
+function appendReplacementMedia(host,key,indices){
+ const all=REPLACEMENT_MEDIA[key]||[];const items=indices?indices.map(i=>all[i]).filter(Boolean):all;if(!items.length)return;
  const section=document.createElement('section');section.className='replacement-media';
  const title=document.createElement('h3');title.textContent='영상 매뉴얼';section.appendChild(title);
  for(const [label,video,image] of items){const card=document.createElement('div');card.className='replacement-media-card';const heading=document.createElement('h4');heading.textContent=label;card.appendChild(heading);
@@ -9601,15 +9900,15 @@ function renderEquipReplaceDetailScreen(){
   const area = document.getElementById('chatArea');
   const dev = EQUIP_REPLACE_DEVICES.find(d => d.name === selectedEquipReplaceDevice);
   const printer = selectedEquipReplaceDevice === '프린터' ? PRINTER_MODELS.find(m=>m.id===selectedPrinterModel) : null;
-  const title = printer ? printer.label : (dev ? dev.name : '');
+  const camera = selectedEquipReplaceDevice === '카메라' ? CAMERA_MODELS.find(m=>m.id===selectedCameraModel) : null;
+  const title = printer ? printer.label : camera ? camera.sub : (dev ? dev.name : '');
   const wrap = document.createElement('div');
   wrap.className = 'colorsetup-screen hud-frame';
   wrap.innerHTML = '<div class="colorsetup-icon">'+(dev ? dev.icon : '🔄')+'</div>' +
-    '<div class="t1">'+title+' 교체 방법</div>' +
-    '<div class="t2">이 안내 내용은 곧 채워질 예정이에요.<br>준비되는 대로 여기에 단계별 교체 방법이 나올 거예요.</div>';
+    '<div class="t1">'+title+' 교체 방법</div>';
   area.innerHTML = '';
   area.appendChild(wrap);
-  appendReplacementMedia(wrap,selectedEquipReplaceDevice==='카메라'?'카메라:'+selectedCameraModel:printer?'프린터:'+selectedPrinterModel:selectedEquipReplaceDevice);
+  appendReplacementGuide(wrap,selectedEquipReplaceDevice==='카메라'?'카메라:'+selectedCameraModel:printer?'프린터:'+selectedPrinterModel:selectedEquipReplaceDevice);
   document.getElementById('breadcrumb').innerHTML = '장비 교체 방법<span class="sep">·</span>'+title;
 }
 

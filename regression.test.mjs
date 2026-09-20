@@ -11,7 +11,7 @@ const html = readFileSync(resolve(root, 'index.html'), 'utf8');
 const swSource = readFileSync(resolve(root, 'sw.js'), 'utf8');
 test('printer replacement remembers the chosen model and clears it when choosing again',()=>{
   const elements=new Map();
-  const element=()=>({innerHTML:'',textContent:'',classList:{remove(){}},appendChild(child){this.innerHTML+=child.innerHTML;}});
+  const element=()=>({innerHTML:'',textContent:'',setAttribute(){},classList:{remove(){}},appendChild(child){this.innerHTML+=child.innerHTML;}});
   const context=vm.createContext({document:{getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);},createElement:element},clearTimeout(){},logEvent(...args){context.events.push(args);},events:[],render(){},updateResetButton(){}});
   vm.runInContext(section('let selectedEquipReplaceDevice = null;', 'let pendingCameraAction')+"\nlet appState,selectedDevice,screenSwapTimer,screenEnterTimer;const EQUIP_REPLACE_DEVICES=[{name:'프린터',icon:'🖨️'}];\n"+section('function goToPrinterModel(', 'function goToColorModel('),context);
   for(const [id,label] of [['rx1','DNP RX1'],['ask400','후지필름 ASK-400']]){
@@ -31,6 +31,31 @@ function section(from, to) {
   assert.ok(start >= 0 && end > start, `Source markers: ${from}`);
   return html.slice(start, end);
 }
+test('replacement cards navigate, finish, restart and reset type without mixing videos',()=>{
+  const element=()=>({children:[],_html:'',set innerHTML(v){this._html=v;this.children=[];},get innerHTML(){return this._html;},textContent:'',setAttribute(){},focus(){},appendChild(child){this.children.push(child);}});
+  const ctx=vm.createContext({document:{createElement:element}});
+  vm.runInContext(section('const REPLACEMENT_MEDIA =','function renderEquipReplaceDetailScreen()'),ctx);
+  const host=element();ctx.host=host;
+  vm.runInContext("appendReplacementGuide(host,'지폐투입기')",ctx);
+  const sectionEl=host.children[0],choices=sectionEl.children[1],stage=sectionEl.children[2],media=sectionEl.children[3];
+  const card=()=>stage.children[0],nav=()=>card().children[3];
+  assert.equal(nav().children[0].disabled,true);
+  nav().children[1].onclick();
+  assert.equal(card().children[1].textContent,'접지선 분리');
+  nav().children[0].onclick();
+  assert.equal(card().children[1].textContent,'커넥터 분리');
+  choices.children[1].onclick();
+  assert.equal(nav().children[0].disabled,true);
+  assert.match(card().children[2].textContent,/2ea/);
+  assert.match(media.children[0].children[1].children[0].textContent,/C 타입/);
+  nav().children[1].onclick();nav().children[1].onclick();
+  assert.equal(card().children[0].textContent,'안내 확인 완료');
+  nav().children[1].onclick();
+  assert.equal(nav().children[0].disabled,true);
+  assert.equal(card().children[1].textContent,'커넥터 분리');
+  assert.equal(vm.runInContext("REPLACEMENT_GUIDES['PC'][0].steps.length",ctx),0);
+  assert.equal(vm.runInContext("replacementCards(REPLACEMENT_GUIDES['프린터:rx1'][0]).length",ctx),5);
+});
 test('only channel inquiry outcomes show the CMS link; AS retains its handoff summary',()=>{
   const source=section("      actions.innerHTML = '<button onclick=\"resetAll()\">",'      inner.appendChild(actions);');
   for(const endType of ['escalate','as','solved','info']){
