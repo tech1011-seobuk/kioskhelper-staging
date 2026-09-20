@@ -42,6 +42,16 @@ test('only channel inquiry outcomes show the CMS link; AS retains its handoff su
     if(endType==='escalate')assert.ok(markup.includes('CMS로 이동해 문의하기 ↗'));
   }
 });
+test('diagram brand categories reuse common data and keep dedicated printers separate',()=>{
+ const c=vm.createContext({});vm.runInContext(section('const DEVICES = [','const EQUIP_REPLACE_DEVICES')+section('function diagramDevicesForBrand','async function renderDiagramEditorScreen'),c);
+ for(const name of ['모니터','카드리더기','PC','CMS']){
+  assert.equal(vm.runInContext(`diagramDevicesForBrand('photoism').find(d=>d.name==='${name}')===diagramDevicesForBrand('snapism').find(d=>d.name==='${name}')`,c),true);
+ }
+ assert.equal(vm.runInContext("diagramDevicesForBrand('photoism').some(d=>d.symptoms.includes('SNAP-COIN-1'))",c),false);
+ assert.equal(vm.runInContext("diagramDevicesForBrand('snapism').some(d=>d.symptoms.includes('SNAP-COIN-1'))",c),true);
+ assert.equal(vm.runInContext("diagramDevicesForBrand('snapism').filter(d=>d.name.includes('프린터')).every(d=>d.symptoms.length===0)",c),true);
+ assert.equal(vm.runInContext("diagramDevicesForBrand('invalid').length",c),0);
+});
 function storage() {
   const values = new Map();
   return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };

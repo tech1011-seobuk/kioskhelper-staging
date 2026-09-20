@@ -1972,6 +1972,7 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 .printer-showroom{max-width:920px}.camera-showroom.printer-showroom .camera-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.printer-render:not([data-camera-source]):not(.camera-render-failed)::before{content:"프린터를 불러오는 중…"}.printer-card .cc-flip-inner{transform:none!important;transition:none!important}.printer-card:active .cc-flip-inner{transform:none!important}@media(max-width:760px){.camera-showroom.printer-showroom .camera-grid{grid-template-columns:1fr}}
 
 /* CAMERA_SHOWROOM_END */
+.diagram-step-nav button{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font:inherit;cursor:pointer}.diagram-step-nav button:disabled{opacity:.5;cursor:default}.diagram-step-nav{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 22px}.diagram-symptom-link{width:100%;text-align:left;background:transparent;border:0;cursor:pointer;font:inherit;color:var(--text)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -8457,40 +8458,62 @@ const DIAGRAM_HOT_TOPICS = [
 ];
 function isHotTopic(sid){return DIAGRAM_HOT_TOPICS.some(t=>t.sid===sid);}
 function hotTopicLabel(sid){return DIAGRAM_HOT_TOPICS.find(t=>t.sid===sid)?.label || SYMPTOM_LABEL[sid] || sid;}
+function diagramDevicesForBrand(brand){
+ if(brand==='photoism')return DEVICES.filter(d=>d.name!=='서비스코인');
+ if(brand!=='snapism')return [];
+ return ['모니터','카드리더기','PC','서비스코인','CMS'].map(name=>DEVICES.find(d=>d.name===name)).filter(Boolean).concat([
+  {name:'CX7600 프린터 (포토카드)',icon:'🖨️',symptoms:[]},
+  {name:'DS620 프린터 (스티커)',icon:'🖨️',symptoms:[]}
+ ]);
+}
+function diagramCategoryShared(name){return diagramDevicesForBrand('photoism').some(d=>d.name===name)&&diagramDevicesForBrand('snapism').some(d=>d.name===name);}
 async function renderDiagramEditorScreen(){
  const area=document.getElementById('chatArea');
- document.getElementById('breadcrumb').textContent='진단 다이어그램 · '+(APP_ENV==='staging'?'테스트':'운영');
- area.innerHTML='<div class="diagram-editor-screen"><div class="diagram-editor-sidebar">'+
- '<div class="hot-topic-tabs"><button type="button" class="btn" id="hotTopicTab" aria-pressed="true">🔥 핫토픽</button><button type="button" class="btn" id="allTopicTab" aria-pressed="false">전체 증상</button></div>'+
- '<p class="hub-sub" id="diagramSideHint">먼저 보완할 10개 증상</p><input type="search" class="diagram-side-search" id="diagramSideSearch" placeholder="증상 검색..." aria-label="작업할 증상 검색"><div id="diagramSideList"></div></div>'+
- '<div class="diagram-editor-main" id="diagramEditorMain"></div></div>';
- const sideList=document.getElementById('diagramSideList'),main=document.getElementById('diagramEditorMain'),search=document.getElementById('diagramSideSearch');
- let hot=true;
- function choose(sid,topic){
-  if(diagramSaving)return;
-  if(diagramSelectedSid)captureDiagramDraft(diagramSelectedSid);
-  diagramEditingList=true;diagramPhotoLibraryOpen=true;diagramPhotoFilter='all';diagramPhotoSearch='';
-  openDiagram(sid);
-  sideList.querySelectorAll('.side-link').forEach(l=>l.classList.toggle('active',topic==null?l.dataset.sid===sid:l.dataset.topic===String(topic)));
-  const item=topic==null?null:DIAGRAM_HOT_TOPICS[topic];
-  if(item){const note=document.createElement('div');note.className='hot-topic-context';note.textContent='🔥 핫토픽 · '+item.label;main.prepend(note);}
+ let brand=null,device=null,hot=false;
+ const brandName=()=>brand==='photoism'?'포토이즘':'스내피즘';
+ function retain(){
+  if(diagramSaving||mediaUploading){showToast('⏳','저장 또는 사진 업로드가 끝난 뒤 이동해주세요.');return false;}
+  if(diagramSelectedSid&&document.getElementById('diagramCanvas'))captureDiagramDraft(diagramSelectedSid);
+  return true;
  }
- function renderList(){
-  let markup='';
-  if(hot){markup='<div class="side-group">'+DIAGRAM_HOT_TOPICS.map((t,i)=>'<a href="#" class="side-link" data-sid="'+t.sid+'" data-topic="'+i+'">'+(i+1)+'. '+escapeHtml(t.label)+'</a>').join('')+'</div>';}
-  else DEVICES.forEach(dev=>{markup+='<div class="side-group"><div class="side-device">'+dev.icon+' '+escapeHtml(dev.name)+'</div>'+dev.symptoms.filter(sid=>TREES[sid]).map(sid=>'<a href="#" class="side-link" data-sid="'+sid+'">'+sid+' · '+escapeHtml(SYMPTOM_LABEL[sid]||'')+'</a>').join('')+'</div>';});
-  sideList.innerHTML=markup;
-  sideList.querySelectorAll('.side-link').forEach(l=>l.onclick=e=>{e.preventDefault();choose(l.dataset.sid,l.dataset.topic);});
-  filter();
+ function frame(){
+  document.getElementById('breadcrumb').textContent='진단 다이어그램 · '+(brand?brandName():'브랜드 선택')+(device?' · '+device.name:'');
+  area.innerHTML='<nav class="diagram-step-nav" aria-label="다이어그램 편집 단계"><button class="btn" data-nav="brand">1. 브랜드 선택</button><span>›</span><button class="btn" data-nav="device" '+(!brand?'disabled':'')+'>2. '+(brand?escapeHtml(brandName())+' 장비 선택':'장비 선택')+'</button><span>›</span><span>'+(device?'3. '+escapeHtml(device.name)+' 증상 선택':'3. 증상 선택')+'</span></nav><div id="diagramNavigationBody"></div>';
+  area.querySelector('[data-nav="brand"]').onclick=()=>{if(retain()){brand=null;device=null;renderBrands();}};
+  area.querySelector('[data-nav="device"]').onclick=()=>{if(retain()){device=null;renderDevices();}};
+  return document.getElementById('diagramNavigationBody');
  }
- function filter(){const q=search.value.trim().toLowerCase().replace(/\s/g,'');sideList.querySelectorAll('.side-link').forEach(l=>l.hidden=!l.textContent.toLowerCase().replace(/\s/g,'').includes(q));sideList.querySelectorAll('.side-group').forEach(g=>g.hidden=![...g.querySelectorAll('.side-link')].some(l=>!l.hidden));}
- function tab(value){hot=value;document.getElementById('hotTopicTab').setAttribute('aria-pressed',String(hot));document.getElementById('allTopicTab').setAttribute('aria-pressed',String(!hot));document.getElementById('diagramSideHint').textContent=hot?'먼저 보완할 10개 증상':'기기별 모든 증상';search.value='';renderList();}
- document.getElementById('hotTopicTab').onclick=()=>tab(true);
- document.getElementById('allTopicTab').onclick=()=>tab(false);search.oninput=filter;
- main.innerHTML='<section class="hot-topic-home"><h2>🔥 핫토픽 작업란</h2><p>우선 보완할 10개 증상을 모았습니다. 항목을 누르면 안내·선택지·사진을 한 화면에서 편집할 수 있어요.</p><div class="hot-topic-grid">'+DIAGRAM_HOT_TOPICS.map((t,i)=>'<button type="button" class="hot-topic-card" data-topic="'+i+'"><span>'+String(i+1).padStart(2,'0')+'</span><strong>'+escapeHtml(t.label)+'</strong><small>'+'안내 내용 편집'+' →</small></button>').join('')+'</div><p class="hub-sub">수정한 내용은 ‘저장하고 적용’을 눌러 반영합니다. 상담 데이터 분석을 통한 내용 보완은 별도 작업입니다.</p></section>';
- main.querySelectorAll('[data-topic]').forEach(btn=>btn.onclick=()=>choose(DIAGRAM_HOT_TOPICS[Number(btn.dataset.topic)].sid,btn.dataset.topic));
- renderList();
+ function renderBrands(){
+  const body=frame();body.innerHTML='<section class="hot-topic-home"><h2>어떤 브랜드를 편집할까요?</h2><p>브랜드와 장비를 선택한 뒤 증상별 조치 내용을 수정하세요.</p><div class="hot-topic-grid">'+[['photoism','포토이즘'],['snapism','스내피즘']].map(([key,label])=>'<button class="hot-topic-card" data-brand="'+key+'"><strong>'+label+'</strong><small>장비 선택 →</small></button>').join('')+'</div><p class="hub-sub">두 브랜드에 공통으로 있는 카테고리는 조치 내용과 사진을 함께 사용합니다.</p></section>';
+  body.querySelectorAll('[data-brand]').forEach(b=>b.onclick=()=>{brand=b.dataset.brand;renderDevices();});
+ }
+ function renderDevices(){
+  const devices=diagramDevicesForBrand(brand),body=frame();
+  body.innerHTML='<section class="hot-topic-home"><h2>'+brandName()+' · 장비 선택</h2><p>수정할 장비를 선택해주세요.</p><div class="hot-topic-grid">'+devices.map((d,i)=>'<button class="hot-topic-card" data-diagram-device="'+i+'"><span>'+d.icon+'</span><strong>'+escapeHtml(d.name)+'</strong><small>'+(diagramCategoryShared(d.name)?'공통 조치 · ':'브랜드 전용 · ')+(d.symptoms.length?d.symptoms.length+'개 증상':'증상 준비 중')+'</small></button>').join('')+'</div></section>';
+  body.querySelectorAll('[data-diagram-device]').forEach(b=>b.onclick=()=>{device=devices[Number(b.dataset.diagramDevice)];hot=false;renderSymptoms();});
+ }
+ function renderSymptoms(){
+  const body=frame(),shared=diagramCategoryShared(device.name);
+  body.innerHTML='<p class="hot-topic-context">'+(shared?'공통 카테고리입니다. 저장한 내용과 사진은 포토이즘·스내피즘에 함께 적용됩니다.':escapeHtml(brandName())+' 전용 카테고리입니다.')+'</p><div class="diagram-editor-screen"><aside class="diagram-editor-sidebar"><div class="hot-topic-tabs"><button class="btn" id="allTopicTab" aria-pressed="true">전체 증상</button><button class="btn" id="hotTopicTab" aria-pressed="false">🔥 핫토픽</button></div><input type="search" class="diagram-side-search" id="diagramSideSearch" placeholder="선택한 장비의 증상 검색" aria-label="작업할 증상 검색"><div id="diagramSideList"></div></aside><div class="diagram-editor-main" id="diagramEditorMain"></div></div>';
+  const side=document.getElementById('diagramSideList'),main=document.getElementById('diagramEditorMain'),search=document.getElementById('diagramSideSearch');
+  function choose(sid){if(!retain())return;diagramEditingList=true;diagramPhotoLibraryOpen=true;diagramPhotoFilter='all';diagramPhotoSearch='';openDiagram(sid);side.querySelectorAll('[data-sid]').forEach(b=>b.classList.toggle('active',b.dataset.sid===sid));}
+  function list(){
+   const q=search.value.trim().replace(/\s/g,'').toLowerCase();
+   const ids=device.symptoms.filter(sid=>TREES[sid]&&(!hot||isHotTopic(sid))&&hotTopicLabel(sid).replace(/\s/g,'').toLowerCase().includes(q));
+   side.innerHTML=ids.map(sid=>'<button class="side-link diagram-symptom-link" data-sid="'+sid+'">'+(isHotTopic(sid)?'🔥 ':'')+escapeHtml(hotTopicLabel(sid))+'</button>').join('')||'<p class="hub-sub">해당 증상이 없습니다.</p>';
+   side.querySelectorAll('[data-sid]').forEach(b=>b.onclick=()=>choose(b.dataset.sid));
+   if(!document.getElementById('diagramCanvas')){
+    main.innerHTML='<section class="hot-topic-home"><h2>'+escapeHtml(device.name)+' · 증상 선택</h2>'+(device.symptoms.length?'<p>수정할 증상을 선택하세요. 내용과 사진 편집은 다음 화면에서 진행합니다.</p><div class="hot-topic-grid">'+ids.map(sid=>'<button class="hot-topic-card" data-sid="'+sid+'"><strong>'+escapeHtml(hotTopicLabel(sid))+'</strong><small>내용 수정 →</small></button>').join('')+'</div>':'<p>이 전용 장비에는 아직 등록된 조치 프로세스가 없습니다.</p><p class="hub-sub">포토이즘 프린터 안내와 구분하여 준비할 항목입니다.</p>')+'</section>';
+    main.querySelectorAll('[data-sid]').forEach(b=>b.onclick=()=>choose(b.dataset.sid));
+   }
+  }
+  document.getElementById('allTopicTab').onclick=()=>{hot=false;tabs();};document.getElementById('hotTopicTab').onclick=()=>{hot=true;tabs();};
+  function tabs(){document.getElementById('allTopicTab').setAttribute('aria-pressed',String(!hot));document.getElementById('hotTopicTab').setAttribute('aria-pressed',String(hot));list();}
+  search.oninput=list;list();
+ }
+ renderBrands();
 }
+
 
 function computeDiagramLayout(tree,metrics={}){
  const levels=[],seen=new Set(),queue=[[tree.start,0]];
