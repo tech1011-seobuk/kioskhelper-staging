@@ -9481,29 +9481,25 @@ const REPLACEMENT_MEDIA = {
   "카메라:r10": [
     [
       "R10 카메라 교체",
-      "G85D5JuZE6Q",
-      "67dbc9b3b43a1fe08251"
+      "G85D5JuZE6Q"
     ]
   ],
   "카메라:850d": [
     [
       "850D 카메라 교체",
-      "G85D5JuZE6Q",
-      "articles/60378/revisions/227452/usermedia/67dbcda0091aa208a5e3"
+      "G85D5JuZE6Q"
     ]
   ],
   "카메라:m50": [
     [
       "M50 카메라 교체",
-      "MUsQ-23kqOk",
-      "articles/60378/revisions/227452/usermedia/67dbce1c10b6b5a32896"
+      "MUsQ-23kqOk"
     ]
   ],
   "프린터:rx1": [
     [
       "DNP RX1 교체",
-      "nTR23UkNhBc",
-      "67dbd30338549610ada4"
+      "nTR23UkNhBc"
     ],
     [
       "프린터 교체 후 SW 설정",
@@ -9513,8 +9509,7 @@ const REPLACEMENT_MEDIA = {
   "프린터:ask400": [
     [
       "FUJI 프린터 교체",
-      "7yA38wdkSA8",
-      "67dbd396e00e5a8f7221"
+      "7yA38wdkSA8"
     ],
     [
       "프린터 교체 후 SW 설정",
@@ -9524,8 +9519,7 @@ const REPLACEMENT_MEDIA = {
   "에스라이트": [
     [
       "에스라이트 교체",
-      "3KWloMeSYe8",
-      "67e121cb43dfa113a5bf"
+      "3KWloMeSYe8"
     ],
     [
       "에스라이트 케이블 교체",
@@ -9549,27 +9543,23 @@ const REPLACEMENT_MEDIA = {
   "PC": [
     [
       "오픈형 PC 교체",
-      "NHmTpOsyhxM",
-      "articles/77904/revisions/227518/usermedia/67dbd716bedf42e0cb04"
+      "NHmTpOsyhxM"
     ],
     [
       "미니 PC 교체",
-      "F8WVTzZJCxI",
-      "articles/77904/revisions/227518/usermedia/67dbd720d727f7e54f90"
+      "F8WVTzZJCxI"
     ]
   ],
   "카드리더기": [
     [
       "카드단말기 교체",
-      "qxth2meldtc",
-      "67dbdf011de8cd02d1fc"
+      "qxth2meldtc"
     ]
   ],
   "지폐투입기": [
     [
       "A/B 타입 지폐투입기 교체",
-      "DvduL3OC-jg",
-      "67dbdfbae35324fbc98c"
+      "DvduL3OC-jg"
     ],
     [
       "A/B 타입 케이블 교체",
@@ -9577,8 +9567,7 @@ const REPLACEMENT_MEDIA = {
     ],
     [
       "C 타입 지폐투입기 교체",
-      "WWEisshO2AU",
-      "67dbe02506f1409d732d"
+      "WWEisshO2AU"
     ],
     [
       "C 타입 케이블 교체",
@@ -9588,20 +9577,18 @@ const REPLACEMENT_MEDIA = {
   "리모컨 / 서비스코인 / 설정": [
     [
       "A/B 타입 리모컨 교체",
-      "aYxPJaHwNlA",
-      "67dbd8413bd888bfd9f2"
+      "aYxPJaHwNlA"
     ],
     [
       "C 타입 리모컨 교체",
-      "4FcBZLfd-Lw",
-      "67dbd8cf3d1091482bb6"
+      "4FcBZLfd-Lw"
     ]
   ]
 };
 function appendReplacementMedia(host,key){
  const items=REPLACEMENT_MEDIA[key]||[];if(!items.length)return;
  const section=document.createElement('section');section.className='replacement-media';
- const title=document.createElement('h3');title.textContent='사진 · 영상 매뉴얼';section.appendChild(title);
+ const title=document.createElement('h3');title.textContent='영상 매뉴얼';section.appendChild(title);
  for(const [label,video,image] of items){const card=document.createElement('div');card.className='replacement-media-card';const heading=document.createElement('h4');heading.textContent=label;card.appendChild(heading);
  if(video){const button=document.createElement('button');button.className='symptom-video-entry';button.textContent='🎬 '+label+' 영상 보기';button.onclick=()=>openSymptomVideo('https://www.youtube.com/watch?v='+video);card.appendChild(button);}
  if(image){const img=document.createElement('img');img.alt=label+' 사진 매뉴얼';img.loading='lazy';img.src='https://cf.channel.io/document/spaces/8576/'+(image.includes('/')?image:'usermedia/'+image);img.onclick=()=>openLightbox(img.src);img.onerror=()=>{img.replaceWith(document.createTextNode('사진을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.'));};card.appendChild(img);}section.appendChild(card);}
