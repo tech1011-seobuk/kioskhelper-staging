@@ -12,3 +12,14 @@
 .model-callout-fallback .model-host{height:130px}.model-callout-fallback .model-leaders{display:none}.model-callout-fallback .model-parts{position:static;display:grid;grid-template-columns:1fr 1fr;gap:10px}.model-callout-fallback .model-callout{position:static;width:100%}
 @media(max-width:600px){.model-callout-stage .model-host{height:490px}.model-callout-stage .model-callout{font-size:11px;width:clamp(72px,23%,104px);padding:3px}.model-callout-fallback .model-host{height:130px}}
 @media(prefers-reduced-motion:reduce){.model-callout-stage .model-callout,.model-leaders path,.model-leaders circle{animation:none}}
+
+/* CMS satellite reuses the original picker illustration. */
+.model-cms-satellite{position:absolute;z-index:3;right:12px;top:0;width:130px;min-height:72px;padding:0 6px 5px!important;background:transparent!important;border:1px solid transparent!important;box-shadow:none!important;border-radius:12px;cursor:pointer;color:var(--text)}
+.model-cms-satellite svg{width:100%;display:block;overflow:visible}.model-cms-satellite span{display:block;font-size:12px;font-weight:700;letter-spacing:2px;color:var(--accent)}
+.model-cms-satellite:hover,.model-cms-satellite:focus-visible{border-color:var(--accent)!important;background:var(--panel)!important;outline-offset:3px}
+.model-cms-waves{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;z-index:1}
+.model-cms-waves path{fill:none;stroke:var(--accent);stroke-width:1.5;stroke-linecap:round;opacity:0;animation:cmsTransmit 3s ease-in-out infinite}.model-cms-waves path:nth-child(2){animation-delay:.3s}.model-cms-waves path:nth-child(3){animation-delay:.6s}
+@keyframes cmsTransmit{0%,65%,100%{opacity:0}20%{opacity:.65}40%{opacity:.3}}
+.model-callout-fallback .model-cms-waves{display:none}.model-callout-fallback .model-cms-satellite{position:relative;margin:12px 0 0 auto;right:auto}
+@media(max-width:600px){.model-cms-satellite{width:94px;min-height:59px;right:4px}.model-cms-satellite span{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.model-cms-waves path{animation:none;opacity:.35}.model-cms-satellite .sat-blink{animation:none}}
