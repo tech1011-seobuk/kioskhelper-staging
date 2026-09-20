@@ -1973,6 +1973,13 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 
 /* CAMERA_SHOWROOM_END */
 .diagram-step-nav button{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font:inherit;cursor:pointer}.diagram-step-nav button:disabled{opacity:.5;cursor:default}.diagram-step-nav{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 22px}.diagram-symptom-link{width:100%;text-align:left;background:transparent;border:0;cursor:pointer;font:inherit;color:var(--text)}
+.symptom-video-editor{padding:18px;margin:12px 0;border:1px solid var(--border);border-radius:14px;background:var(--panel2)}
+.symptom-video-editor h3{margin:0 0 8px}.symptom-video-editor p{font-size:13px;color:var(--muted)}
+.symptom-video-editor input{box-sizing:border-box;display:block;width:100%;min-width:0;padding:12px;margin:8px 0;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--text)}
+.symptom-video-actions{display:flex;flex-wrap:wrap;gap:8px}.symptom-video-actions button,.symptom-video-entry,.symptom-video-dialog button{padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);color:var(--text);font:inherit;cursor:pointer}
+.symptom-video-entry{margin:0 0 18px;text-align:left;font-size:14px;max-width:100%}
+.symptom-video-dialog{box-sizing:border-box;width:min(800px,94vw);max-height:90vh;padding:20px;border:1px solid var(--border);border-radius:16px;background:var(--panel);color:var(--text)}
+.symptom-video-dialog::backdrop{background:#000b}.symptom-video-dialog iframe{display:block;width:100%;aspect-ratio:16/9;border:0;margin:14px 0}.symptom-video-dialog a{color:var(--text)}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -8239,10 +8246,67 @@ function validateDiagnosisMedia(items){
     }
   }
 }
+
+// Reserved link name within existing validated media schema; shared and versioned with the symptom.
+const SYMPTOM_VIDEO_NAME='전체 조치 과정 영상 매뉴얼';
+function isSymptomVideo(item){return item?.kind==='link'&&item.name===SYMPTOM_VIDEO_NAME;}
+function youtubeManualUrl(value){
+ const raw=String(value||'').trim();if(!raw)return '';
+ let u;try{u=new URL(raw);}catch{throw new Error('유튜브 영상 링크를 확인해주세요.');}
+ if(u.protocol!=='https:'||u.username||u.password)throw new Error('HTTPS 유튜브 영상 링크를 입력해주세요.');
+ let id='';
+ if(u.hostname==='youtu.be')id=u.pathname.slice(1);
+ else if(['youtube.com','www.youtube.com','m.youtube.com'].includes(u.hostname)){
+  if(u.pathname==='/watch')id=u.searchParams.get('v');
+  else id=u.pathname.match(/^\/(?:shorts|embed|live)\/([^/]+)\/?$/)?.[1];
+ }
+ if(!/^[A-Za-z0-9_-]{11}$/.test(id||''))throw new Error('채널이나 재생목록이 아닌 유튜브 영상 링크를 입력해주세요.');
+ return 'https://www.youtube.com/watch?v='+id;
+}
+function symptomVideoUrl(tree){
+ const item=tree?.nodes?.[tree.start]?.media?.find(isSymptomVideo);
+ try{return youtubeManualUrl(item?.url);}catch{return '';}
+}
+function withSymptomVideo(tree,value){
+ const url=youtubeManualUrl(value),copy=cloneDiagnosis(tree),node=copy.nodes[copy.start];
+ const media=(node.media||[]).filter(item=>!isSymptomVideo(item));
+ if(url)media.push({kind:'link',url,name:SYMPTOM_VIDEO_NAME});
+ validateDiagnosisMedia(media);
+ if(media.length)node.media=media;else delete node.media;
+ return copy;
+}
+function openSymptomVideo(url){
+ const normalized=youtubeManualUrl(url);if(!normalized)return;
+ const dialog=document.createElement('dialog');dialog.className='symptom-video-dialog';
+ const close=document.createElement('button');close.textContent='닫기 · 조치로 돌아가기';close.onclick=()=>dialog.close();
+ const title=document.createElement('h3');title.textContent=SYMPTOM_VIDEO_NAME;
+ const frame=document.createElement('iframe');frame.title=SYMPTOM_VIDEO_NAME;frame.allowFullscreen=true;
+ frame.src='https://www.youtube-nocookie.com/embed/'+new URL(normalized).searchParams.get('v');
+ const fallback=document.createElement('a');fallback.href=normalized;fallback.target='_blank';fallback.rel='noopener noreferrer';fallback.textContent='재생이 안 되면 유튜브에서 보기 ↗';
+ dialog.append(close,title,frame,fallback);dialog.addEventListener('close',()=>dialog.remove());
+ document.body.appendChild(dialog);dialog.showModal();close.focus();
+}
+function bindSymptomVideoEditor(sid){
+ const input=document.getElementById('symptomVideoUrl'),status=document.getElementById('symptomVideoStatus');
+ input.value=symptomVideoUrl(getDiagramDraft(sid).tree);
+ const change=value=>{
+  if(diagramSaving||mediaUploading)return;
+  try{const candidate=withSymptomVideo(getDiagramDraft(sid).tree,value);
+   captureDiagramDraft(sid);const draft=getDiagramDraft(sid);
+   // Preserve freshly captured card text/options while updating only the manual attachment.
+   draft.tree=withSymptomVideo(draft.tree,value);input.value=symptomVideoUrl(candidate);
+   finishDiagramMediaChange(sid);status.textContent=value?'링크 등록됨 · 저장하고 적용을 눌러 반영해주세요.':'링크 제거됨 · 저장하고 적용을 눌러 반영해주세요.';
+  }catch(error){status.textContent=error.message;}
+ };
+ document.getElementById('symptomVideoApply').onclick=()=>change(input.value);
+ document.getElementById('symptomVideoRemove').onclick=()=>change('');
+ document.getElementById('symptomVideoPreview').onclick=()=>{try{openSymptomVideo(input.value);}catch(error){status.textContent=error.message;}};
+}
+
 function renderDiagnosisMedia(node){
   if(!node.media?.length)return '';
   try{validateDiagnosisMedia(node.media);}catch{return '';}
-  return '<div class="diagnosis-media" data-media="'+encodeURIComponent(JSON.stringify(node.media))+'"></div>';
+  return '<div class="diagnosis-media" data-media="'+encodeURIComponent(JSON.stringify(node.media.filter(item=>!isSymptomVideo(item))))+'"></div>';
 }
 async function hydrateDiagnosisMedia(){
   if(!currentUser)return;
@@ -8358,6 +8422,7 @@ function buildDiagramMediaControls(sid,nid,box){
   panel.innerHTML=renderDiagnosisMedia(node);
   const preview=panel.querySelector('.diagnosis-media');if(preview)preview.style.minHeight=(node.media.length*110)+'px';
   for(const [index,item] of (node.media||[]).entries()){
+    if(isSymptomVideo(item))continue;
     const row=document.createElement('div');row.className='media-file-row';
     const name=document.createElement('span');name.textContent=item.name;
     const remove=document.createElement('button');remove.textContent='첨부 해제';remove.type='button';remove.disabled=mediaUploading||diagramSaving;
@@ -8645,6 +8710,7 @@ function openDiagram(sid){
       '<button class="code-actions-single" id="diagramHistoryBtn" style="width:auto">이전 버전 복구</button><button class="code-actions-single" id="diagramReloadBtn" style="width:auto">최신 안내 불러오기</button>' +
       '<button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
     '</div>' +
+    '<section class="symptom-video-editor"><h3>🎬 증상별 영상 매뉴얼</h3><p>증상 선택 직후 첫 질문 위에 표시됩니다. 링크 등록 후 저장하고 적용을 눌러주세요.</p><label for="symptomVideoUrl">유튜브 영상 링크</label><input id="symptomVideoUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"><div class="symptom-video-actions"><button id="symptomVideoApply">링크 등록 / 변경</button><button id="symptomVideoPreview">미리보기</button><button id="symptomVideoRemove">링크 제거</button></div><p id="symptomVideoStatus" role="status">등록하지 않으면 영상 버튼이 표시되지 않습니다.</p></section>' +
     '<div id="diagramSaveStatus" role="status" aria-live="polite"></div>' +
     '<div class="diagram-note" style="margin:0 0 12px;">위에서 아래로 안내를 읽으세요 · 선택지(동일합니다 / 해결되었습니다 등)를 눌러 문구와 다음 단계를 수정 · 다음 단계 접기/펼치기 · 카드와 빈 배경을 끌어 이동</div>' +
     '<div class="diagram-toolbar"><button id="diagramEditListBtn" aria-pressed="false">✏️ 목록으로 편집</button><button id="diagramFlowBtn">흐름도 보기</button><button id="diagramListToggle">목록 접기 / 펼치기</button><button id="diagramZoomOut" aria-label="다이어그램 축소">−</button><span id="diagramZoomValue">100%</span><button id="diagramZoomIn" aria-label="다이어그램 확대">＋</button><button id="diagramZoomReset">원래 크기</button><button id="diagramPhotoLibraryBtn" aria-expanded="false" aria-controls="diagramPhotoLibrary">📷 사진 필요한 항목</button><button id="diagramNewCard">＋ 새 안내 카드</button><button id="diagramFit">전체 보기</button><button id="diagramAutoLayout">세로 자동 정렬</button><button id="diagramUndoAddition">추가·삭제 되돌리기</button><span>배치는 이 브라우저에 자동 보관됩니다</span></div>' +
@@ -8712,6 +8778,7 @@ function openDiagram(sid){
   document.getElementById('diagramNewCard').onclick=()=>addStandaloneDiagramCard(sid);
   const undo=document.getElementById('diagramUndoAddition');undo.disabled=diagramAdditionHistory[sid]?.at(-1)?.owner!==currentUser?.id;undo.onclick=()=>undoDiagramAddition(sid);
   bindDiagramPhotoLibrary(sid);
+  bindSymptomVideoEditor(sid);
   document.getElementById('diagramSaveBtn').onclick = ()=>saveDiagram(sid);
   document.getElementById('diagramHistoryBtn').onclick=()=>openDiagnosisHistory(sid);
   document.getElementById('diagramReloadBtn').onclick = ()=>reloadDiagramPublished(sid);
@@ -9781,6 +9848,8 @@ function renderChat(){
   area.appendChild(inner);
 
   const first = path[0];
+  const manual=symptomVideoUrl(TREES[first.symptomId]);
+  if(manual){const button=document.createElement('button');button.className='symptom-video-entry';button.textContent='🎬 전체 조치 과정 영상 매뉴얼 보기';button.onclick=()=>openSymptomVideo(manual);inner.appendChild(button);}
   crumb.innerHTML = '<b>'+first.symptomId+'</b><span class="sep">·</span>'+SYMPTOM_LABEL[first.symptomId];
 
   let stepCounter = 0;

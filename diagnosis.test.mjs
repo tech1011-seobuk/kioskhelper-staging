@@ -75,3 +75,28 @@ test('photo checklist distinguishes photos from videos and includes disconnected
  assert.deepEqual(Array.from(select(tree,'missing','n3'),e=>e[0]),[]);
  assert.equal(select(tree,'all','').length,4);
 });
+
+test('symptom manual normalizes video URLs and rejects unrelated or unsafe links',()=>{
+ const c=harness();
+ for(const url of ['https://youtu.be/abcdefghijk?si=test','https://www.youtube.com/watch?v=abcdefghijk&t=30','https://youtube.com/shorts/abcdefghijk']){
+  c.url=url;assert.equal(vm.runInContext('youtubeManualUrl(url)',c),'https://www.youtube.com/watch?v=abcdefghijk');
+ }
+ for(const url of ['javascript:alert(1)','https://youtube.com.evil.test/watch?v=abcdefghijk','https://youtube.com/playlist?list=abc','https://user@youtube.com/watch?v=abcdefghijk']){
+  c.url=url;assert.throws(()=>vm.runInContext('youtubeManualUrl(url)',c));
+ }
+});
+test('manual replacement and removal preserve steps and photos without duplicates',()=>{
+ const c=harness();c.tree={start:'n1',nodes:{n1:{text:'안내',options:[{label:'완료',end:'solved'}],media:[{kind:'image',url:'https://example.com/a.jpg',name:'사진'}]}}};
+ vm.runInContext("globalThis.updated=withSymptomVideo(withSymptomVideo(tree,'https://youtu.be/abcdefghijk'),'https://youtu.be/12345678901');globalThis.removed=withSymptomVideo(updated,'');",c);
+ assert.equal(c.updated.nodes.n1.media.length,2);assert.equal(c.tree.nodes.n1.media.length,1);
+ assert.equal(JSON.stringify(c.removed),JSON.stringify(c.tree));c.api.validateDiagnosisTree(c.updated);
+ c.updated.nodes.n1.media=Array.from({length:6},()=>c.tree.nodes.n1.media[0]);
+ assert.throws(()=>vm.runInContext("withSymptomVideo(updated,'https://youtu.be/abcdefghijk')",c),/6개/);
+});
+test('manual saves via existing revision guarded publication and survives reload',async()=>{
+ let saved;const c=harness(async(_name,p)=>{saved=p.p_tree;return{data:{symptom_id:p.p_symptom_id,tree:p.p_tree,revision:2}}});
+ const sid='CAM-1';c.api.applyPublishedRows([{symptom_id:sid,revision:1,tree:c.api.TREES[sid]}],'server');
+ vm.runInContext("getDiagramDraft('CAM-1').tree=withSymptomVideo(getDiagramDraft('CAM-1').tree,'https://youtu.be/abcdefghijk');",c);
+ await c.api.saveDiagram(sid);assert.ok(saved);c.api.applyPublishedRows([{symptom_id:sid,revision:2,tree:saved}],'server');
+ assert.equal(vm.runInContext("symptomVideoUrl(TREES['CAM-1'])",c),'https://www.youtube.com/watch?v=abcdefghijk');
+});
