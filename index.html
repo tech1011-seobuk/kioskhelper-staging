@@ -7521,13 +7521,15 @@ function goToCameraColorGuide(){
 }
 
 const CAMERA_SETUP_VIDEOS = {r10:'xScLykjpLAQ','850d':'NiIGdGjtyhc',m50:'bTCNjvB5RIM'};
-function appendCameraSetupVideo(host){
-  const video=CAMERA_SETUP_VIDEOS[selectedCameraModel];
+const CAMERA_COLOR_VIDEOS = {r10:'ge9gad8IPac','850d':'vP8-n601TmY',m50:'gxG7k71MedM'};
+function appendCameraSetupVideo(host,kind='basic'){
+  const video=(kind==='color'?CAMERA_COLOR_VIDEOS:CAMERA_SETUP_VIDEOS)[selectedCameraModel];
+  const label=kind==='color'?'색감 세팅':'기본 설정';
   const model=CAMERA_MODELS.find(m=>m.id===selectedCameraModel);
   if(!video||!model)return;
   const section=document.createElement('section');section.className='replacement-media';
-  const heading=document.createElement('h3');heading.textContent=model.sub+' 기본 설정 영상';section.appendChild(heading);
-  const button=document.createElement('button');button.className='symptom-video-entry';button.textContent='🎬 '+model.sub+' 기본 설정 영상 보기';
+  const heading=document.createElement('h3');heading.textContent=model.sub+' '+label+' 영상';section.appendChild(heading);
+  const button=document.createElement('button');button.className='symptom-video-entry';button.textContent='🎬 '+model.sub+' '+label+' 영상 보기';
   button.onclick=()=>openSymptomVideo('https://www.youtube.com/watch?v='+video);section.appendChild(button);host.appendChild(section);
 }
 function renderCameraBasicCheckScreen(){
@@ -7598,10 +7600,10 @@ function renderCameraColorGuideScreen(){
   wrap.className = 'colorsetup-screen hud-frame';
   wrap.innerHTML = '<div class="colorsetup-icon">🎨</div>' +
     '<div class="t1">'+(model?model.sub:'카메라')+' · 색감 조정</div>' +
-    '<div class="t2">기종에 맞는 기본 설정 영상을 확인해 주세요.<br>카메라 교체 후에는 CMS 채팅 상담에서 본사에 색감 조정을 요청해 주세요.</div>';
+    '<div class="t2">색감 값을 보면서 아래 영상에 따라 하나씩 설정해 주세요.</div>';
   area.innerHTML = '';
   area.appendChild(wrap);
-  appendCameraSetupVideo(wrap);
+  appendCameraSetupVideo(wrap,'color');
   document.getElementById('breadcrumb').innerHTML = (model?model.sub:'카메라')+'<span class="sep">·</span>색감 조정';
 }
 
@@ -9614,7 +9616,7 @@ const REPLACEMENT_GUIDES = {
   "카메라:r10": [
     {
       "label": "카메라 본체",
-      "preparation": "준비 물품: 십자드라이버\n\n유의 사항\n카메라 각도 조정은 불필요하므로, 브라켓 옆면 각도 조정 피스는 조정하지 말아주세요..!\n\n카메라 교체 후 본사 색감 조정이 필요합니다.",
+      "preparation": "준비 물품: 십자드라이버\n\n유의 사항\n카메라 각도 조정은 불필요하므로, 브라켓 옆면 각도 조정 피스는 조정하지 말아주세요..!\n\n카메라 교체 후 기본세팅과 색감 세팅을 진행해 주세요.",
       "steps": [
         [
           "선 제거",
@@ -9629,13 +9631,14 @@ const REPLACEMENT_GUIDES = {
           "장착은 분리의 역순으로 진행됩니다. 새로 교체할 카메라의 하부 피스를 먼저 고정한 후, 앞으로 당겨 브라켓에 단단히 고정합니다. 그다음, 제거했던 핫슈, 테더선(테더툴스), 더미 배터리를 다시 장착한 후, 카메라가 정상적으로 작동하는지 테스트합니다."
         ]
       ],
-      "after": "본사 색감 조정 요청 방법\n1. CMS 접속 후 우측 하단 채팅 상담 클릭\n2. \"장비 세팅 문의\" → \"카메라 색감 조정 문의\" 선택\n3. 카메라 교체 사실을 알리고 세팅 요청\n\n본사에서 세팅을 완료한 후 정상적인 촬영이 가능한지 확인한 후 운영을 재개해 주시기 바랍니다."
+      "after": "아래 카드에서 기본세팅과 색감 세팅 안내로 바로 이동할 수 있어요.\n교체할 때 선택한 카메라 기종으로 안내합니다.",
+      "afterTitle": "교체 후 카메라 세팅"
     }
   ],
   "카메라:850d": [
     {
       "label": "카메라 본체",
-      "preparation": "준비 물품: 십자드라이버\n\n유의 사항\n카메라 각도 조정은 불필요하므로, 브라켓 옆면 각도 조정 피스는 조정하지 말아주세요..!\n\n카메라 교체 후 본사 색감 조정이 필요합니다.",
+      "preparation": "준비 물품: 십자드라이버\n\n유의 사항\n카메라 각도 조정은 불필요하므로, 브라켓 옆면 각도 조정 피스는 조정하지 말아주세요..!\n\n카메라 교체 후 기본세팅과 색감 세팅을 진행해 주세요.",
       "steps": [
         [
           "선 제거",
@@ -9650,13 +9653,14 @@ const REPLACEMENT_GUIDES = {
           "장착은 분리의 역순으로 진행됩니다. 새로 교체할 카메라의 하부 피스를 먼저 고정한 후, 앞으로 당겨 브라켓에 단단히 고정합니다. 그다음, 제거했던 핫슈, 테더선(테더툴스), 더미 배터리를 다시 장착한 후, 카메라가 정상적으로 작동하는지 테스트합니다."
         ]
       ],
-      "after": "본사 색감 조정 요청 방법\n1. CMS 접속 후 우측 하단 채팅 상담 클릭\n2. \"장비 세팅 문의\" → \"카메라 색감 조정 문의\" 선택\n3. 카메라 교체 사실을 알리고 세팅 요청\n\n본사에서 세팅을 완료한 후 정상적인 촬영이 가능한지 확인한 후 운영을 재개해 주시기 바랍니다."
+      "after": "아래 카드에서 기본세팅과 색감 세팅 안내로 바로 이동할 수 있어요.\n교체할 때 선택한 카메라 기종으로 안내합니다.",
+      "afterTitle": "교체 후 카메라 세팅"
     }
   ],
   "카메라:m50": [
     {
       "label": "카메라 본체",
-      "preparation": "준비 물품: 십자드라이버\n\n유의 사항\n카메라 각도 조정은 불필요하므로, 브라켓 옆면 각도 조정 피스는 조정하지 말아주세요..!\n\n카메라 교체 후 본사 색감 조정이 필요합니다.",
+      "preparation": "준비 물품: 십자드라이버\n\n유의 사항\n카메라 각도 조정은 불필요하므로, 브라켓 옆면 각도 조정 피스는 조정하지 말아주세요..!\n\n카메라 교체 후 기본세팅과 색감 세팅을 진행해 주세요.",
       "steps": [
         [
           "선 제거",
@@ -9671,7 +9675,8 @@ const REPLACEMENT_GUIDES = {
           "장착은 분리의 역순으로 진행됩니다. 새로 교체할 카메라의 하부 피스를 먼저 고정한 후, 앞으로 당겨 브라켓에 단단히 고정합니다. 그다음, 제거했던 핫슈, 테더선(테더툴스), 더미 배터리를 다시 장착한 후, 카메라가 정상적으로 작동하는지 테스트합니다."
         ]
       ],
-      "after": "본사 색감 조정 요청 방법\n1. CMS 접속 후 우측 하단 채팅 상담 클릭\n2. \"장비 세팅 문의\" → \"카메라 색감 조정 문의\" 선택\n3. 카메라 교체 사실을 알리고 세팅 요청\n\n본사에서 세팅을 완료한 후 정상적인 촬영이 가능한지 확인한 후 운영을 재개해 주시기 바랍니다."
+      "after": "아래 카드에서 기본세팅과 색감 세팅 안내로 바로 이동할 수 있어요.\n교체할 때 선택한 카메라 기종으로 안내합니다.",
+      "afterTitle": "교체 후 카메라 세팅"
     }
   ],
   "프린터:rx1": [
@@ -9808,7 +9813,10 @@ const REPLACEMENT_GUIDES = {
   "리모컨 / 서비스코인 / 설정": [
     {
       "label": "리모컨",
-      "media": [0, 1],
+      "media": [
+        0,
+        1
+      ],
       "steps": [
         [
           "리모컨 선 찾기",
@@ -9830,7 +9838,10 @@ const REPLACEMENT_GUIDES = {
     },
     {
       "label": "서비스코인 / 설정 · USB 커넥터",
-      "media": [2, 3],
+      "media": [
+        2,
+        3
+      ],
       "steps": [
         [
           "커넥터 분리",
@@ -9865,7 +9876,7 @@ function replacementCards(guide){
  const cards=[];
  if(guide.preparation)cards.push({label:'시작 전 확인',title:'준비물 · 유의사항',body:guide.preparation});
  guide.steps.forEach(([title,body],i)=>cards.push({label:'STEP '+(i+1)+' / '+guide.steps.length,title,body}));
- if(guide.after)cards.push({label:'교체 후 확인',title:'본사 세팅 요청',body:guide.after});
+ if(guide.after)cards.push({label:'교체 후 확인',title:guide.afterTitle||'본사 세팅 요청',body:guide.after});
  return cards;
 }
 function appendReplacementGuide(host,key){
@@ -9891,6 +9902,11 @@ function appendReplacementGuide(host,key){
    const nav=document.createElement('div');nav.className='replacement-navigation';
    const prev=document.createElement('button');prev.textContent='이전';prev.disabled=page===0;prev.onclick=()=>{page=Math.max(0,page-1);draw(true);};nav.appendChild(prev);
    const next=document.createElement('button');next.className='replacement-next';next.textContent=page===cards.length?'처음부터 보기':page===cards.length-1?'안내 확인 완료':'다음';next.onclick=()=>{page=page===cards.length?0:page+1;draw(true);};nav.appendChild(next);card.appendChild(nav);stage.appendChild(card);
+   if(key.startsWith('카메라:')&&page>=cards.length-1){
+    const links=document.createElement('div');links.className='tool-card-grid';
+    for(const [label,action] of [['기본세팅 하기',goToCameraBasicSetup],['색감 세팅 하기',goToCameraColorGuideContent]]){const b=document.createElement('button');b.className='tool-card';b.textContent=label;b.onclick=()=>{selectedCameraModel=key.split(':')[1];action();};links.appendChild(b);}
+    card.appendChild(links);
+   }
    if(focus)title.focus({preventScroll:true});
   }
   if(!guide.steps.length){const note=document.createElement('p');note.className='replacement-video-note';note.textContent='교체 과정은 아래 영상 매뉴얼에서 확인해 주세요.';stage.appendChild(note);}

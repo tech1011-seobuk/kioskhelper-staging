@@ -39,7 +39,13 @@ test('camera setup video follows the selected model and opens the shared player'
     ctx.host=element();vm.runInContext(`selectedCameraModel='${id}';appendCameraSetupVideo(host)`,ctx);
     ctx.host.children[0].children[1].onclick();assert.equal(ctx.opened,'https://www.youtube.com/watch?v='+video);
   }
-  for(const [from,to] of [['function renderCameraBasicCheckScreen()','function goToCameraBasicSetup()'],['function renderCameraBasicSetupScreen()','function goToCameraColorGuideContent()'],['function renderCameraColorGuideScreen()','const PRIVACY_CONSENT_HTML']])assert.match(section(from,to),/appendCameraSetupVideo\(wrap\)/);
+  for(const [from,to] of [['function renderCameraBasicCheckScreen()','function goToCameraBasicSetup()'],['function renderCameraBasicSetupScreen()','function goToCameraColorGuideContent()']])assert.match(section(from,to),/appendCameraSetupVideo\(wrap\)/);
+  assert.match(section('function renderCameraColorGuideScreen()','const PRIVACY_CONSENT_HTML'),/appendCameraSetupVideo\(wrap,'color'\)/);
+  for(const [id,video] of [['r10','ge9gad8IPac'],['850d','vP8-n601TmY'],['m50','gxG7k71MedM']]){
+    ctx.host=element();vm.runInContext(`selectedCameraModel='${id}';appendCameraSetupVideo(host,'color')`,ctx);
+    assert.match(ctx.host.children[0].children[1].textContent,/색감 세팅/);
+    ctx.host.children[0].children[1].onclick();assert.equal(ctx.opened,'https://www.youtube.com/watch?v='+video);
+  }
 });
 test('replacement cards navigate, finish, restart and reset type without mixing videos',()=>{
   const element=()=>({children:[],_html:'',set innerHTML(v){this._html=v;this.children=[];},get innerHTML(){return this._html;},textContent:'',setAttribute(){},focus(){},appendChild(child){this.children.push(child);}});
