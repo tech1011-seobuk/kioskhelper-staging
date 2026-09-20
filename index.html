@@ -1975,11 +1975,12 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 .diagram-step-nav button{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 14px;font:inherit;cursor:pointer}.diagram-step-nav button:disabled{opacity:.5;cursor:default}.diagram-step-nav{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 22px}.diagram-symptom-link{width:100%;text-align:left;background:transparent;border:0;cursor:pointer;font:inherit;color:var(--text)}
 .symptom-video-editor{padding:18px;margin:12px 0;border:1px solid var(--border);border-radius:14px;background:var(--panel2)}
 .symptom-video-editor h3{margin:0 0 8px}.symptom-video-editor p{font-size:13px;color:var(--muted)}
-.symptom-video-editor input{box-sizing:border-box;display:block;width:100%;min-width:0;padding:12px;margin:8px 0;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--text)}
+.symptom-video-editor select,.symptom-video-editor input{box-sizing:border-box;display:block;width:100%;min-width:0;padding:12px;margin:8px 0;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--text)}
 .symptom-video-actions{display:flex;flex-wrap:wrap;gap:8px}.symptom-video-actions button,.symptom-video-entry,.symptom-video-dialog button{padding:10px 14px;border:1px solid var(--border);border-radius:10px;background:var(--panel2);color:var(--text);font:inherit;cursor:pointer}
 .symptom-video-entry{margin:0 0 18px;text-align:left;font-size:14px;max-width:100%}
 .symptom-video-dialog{box-sizing:border-box;width:min(800px,94vw);max-height:90vh;padding:20px;border:1px solid var(--border);border-radius:16px;background:var(--panel);color:var(--text)}
 .symptom-video-dialog::backdrop{background:#000b}.symptom-video-dialog iframe{display:block;width:100%;aspect-ratio:16/9;border:0;margin:14px 0}.symptom-video-dialog a{color:var(--text)}
+.replacement-media{text-align:left;margin-top:24px}.replacement-media-card{margin:16px 0;padding:16px;border:1px solid var(--border);border-radius:12px}.replacement-media-card img{display:block;max-width:100%;height:auto;cursor:zoom-in}.replacement-media-card h4{margin:0 0 12px}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -8249,7 +8250,7 @@ function validateDiagnosisMedia(items){
 
 // Reserved link name within existing validated media schema; shared and versioned with the symptom.
 const SYMPTOM_VIDEO_NAME='전체 조치 과정 영상 매뉴얼';
-function isSymptomVideo(item){return item?.kind==='link'&&item.name===SYMPTOM_VIDEO_NAME;}
+function isSymptomVideo(item){return item?.kind==='link'&&(item.name===SYMPTOM_VIDEO_NAME||item.name?.startsWith(SYMPTOM_VIDEO_NAME+' · '));}
 function youtubeManualUrl(value){
  const raw=String(value||'').trim();if(!raw)return '';
  let u;try{u=new URL(raw);}catch{throw new Error('유튜브 영상 링크를 확인해주세요.');}
@@ -8267,10 +8268,12 @@ function symptomVideoUrl(tree){
  const item=tree?.nodes?.[tree.start]?.media?.find(isSymptomVideo);
  try{return youtubeManualUrl(item?.url);}catch{return '';}
 }
-function withSymptomVideo(tree,value){
+function withSymptomVideo(tree,value,label=''){
+ label=String(label).trim();if(label.length>80)throw new Error('기종명은 80자 이내로 입력해주세요.');
+ const name=SYMPTOM_VIDEO_NAME+(label?' · '+label:'');
  const url=youtubeManualUrl(value),copy=cloneDiagnosis(tree),node=copy.nodes[copy.start];
- const media=(node.media||[]).filter(item=>!isSymptomVideo(item));
- if(url)media.push({kind:'link',url,name:SYMPTOM_VIDEO_NAME});
+ const media=(node.media||[]).filter(item=>!(isSymptomVideo(item)&&item.name===name));
+ if(url)media.push({kind:'link',url,name});
  validateDiagnosisMedia(media);
  if(media.length)node.media=media;else delete node.media;
  return copy;
@@ -8287,20 +8290,23 @@ function openSymptomVideo(url){
  document.body.appendChild(dialog);dialog.showModal();close.focus();
 }
 function bindSymptomVideoEditor(sid){
- const input=document.getElementById('symptomVideoUrl'),status=document.getElementById('symptomVideoStatus');
- input.value=symptomVideoUrl(getDiagramDraft(sid).tree);
+ const input=document.getElementById('symptomVideoUrl'),status=document.getElementById('symptomVideoStatus'),label=document.getElementById('symptomVideoLabel'),select=document.getElementById('symptomVideoSelect');
+ const refresh=()=>{select.innerHTML='<option value="">새 영상 / 공통 영상</option>';for(const item of getDiagramDraft(sid).tree.nodes[getDiagramDraft(sid).tree.start].media||[]){if(!isSymptomVideo(item))continue;const o=document.createElement('option');o.value=item.name;o.textContent=item.name===SYMPTOM_VIDEO_NAME?'공통 영상':item.name.slice(SYMPTOM_VIDEO_NAME.length+3);select.appendChild(o);}};
+ refresh();input.value=symptomVideoUrl(getDiagramDraft(sid).tree);
+ const first=getDiagramDraft(sid).tree.nodes[getDiagramDraft(sid).tree.start].media?.find(isSymptomVideo);if(first){select.value=first.name;label.value=first.name===SYMPTOM_VIDEO_NAME?'':first.name.slice(SYMPTOM_VIDEO_NAME.length+3);}
+ select.onchange=()=>{const item=getDiagramDraft(sid).tree.nodes[getDiagramDraft(sid).tree.start].media?.find(m=>m.name===select.value);input.value=item?.url||'';label.value=item&&item.name!==SYMPTOM_VIDEO_NAME?item.name.slice(SYMPTOM_VIDEO_NAME.length+3):'';};
  const change=value=>{
   if(diagramSaving||mediaUploading)return;
-  try{const candidate=withSymptomVideo(getDiagramDraft(sid).tree,value);
-   captureDiagramDraft(sid);const draft=getDiagramDraft(sid);
-   // Preserve freshly captured card text/options while updating only the manual attachment.
-   draft.tree=withSymptomVideo(draft.tree,value);input.value=symptomVideoUrl(candidate);
-   finishDiagramMediaChange(sid);status.textContent=value?'링크 등록됨 · 저장하고 적용을 눌러 반영해주세요.':'링크 제거됨 · 저장하고 적용을 눌러 반영해주세요.';
+  try{withSymptomVideo(getDiagramDraft(sid).tree,value,label.value);captureDiagramDraft(sid);const draft=getDiagramDraft(sid);draft.tree=withSymptomVideo(draft.tree,value,label.value);
+   finishDiagramMediaChange(sid);refresh();status.textContent=value?'링크 등록됨 · 저장하고 적용을 눌러 반영해주세요.':'링크 제거됨 · 저장하고 적용을 눌러 반영해주세요.';
   }catch(error){status.textContent=error.message;}
  };
  document.getElementById('symptomVideoApply').onclick=()=>change(input.value);
  document.getElementById('symptomVideoRemove').onclick=()=>change('');
  document.getElementById('symptomVideoPreview').onclick=()=>{try{openSymptomVideo(input.value);}catch(error){status.textContent=error.message;}};
+}
+function appendSymptomVideoButtons(host,tree){
+ for(const item of tree?.nodes?.[tree.start]?.media||[]){if(!isSymptomVideo(item))continue;let url;try{url=youtubeManualUrl(item.url);}catch{continue;}const button=document.createElement('button');button.className='symptom-video-entry';button.textContent='🎬 '+item.name+' 보기';button.onclick=()=>openSymptomVideo(url);host.appendChild(button);}
 }
 
 function renderDiagnosisMedia(node){
@@ -8440,7 +8446,7 @@ function buildDiagramMediaControls(sid,nid,box){
     const url=window.prompt('사진·영상 HTTPS 주소를 입력하세요. YouTube 등 영상 페이지는 새 탭으로 열립니다.');if(!url?.trim())return;
     try{
       const parsed=new URL(url.trim());const ext=parsed.pathname.toLowerCase();
-      const kind=/\.(jpg|jpeg|png|gif|webp)$/.test(ext)?'image':/\.(mp4|webm)$/.test(ext)?'video':'link';
+      const kind=(/\.(jpg|jpeg|png|gif|webp)$/.test(ext)||(parsed.hostname==='cf.channel.io'&&parsed.pathname.includes('/usermedia/')))?'image':/\.(mp4|webm)$/.test(ext)?'video':'link';
       const item={kind,url:parsed.href,name:kind==='image'?'조치 사진':kind==='video'?'조치 영상':'영상·참고 자료'};
       validateDiagnosisMedia([item]);const draft=captureDiagramDraft(sid),media=draft.tree.nodes[nid].media||[];
       if(media.length>=6)throw new Error('카드당 최대 6개까지 첨부할 수 있습니다.');draft.tree.nodes[nid].media=[...media,item];finishDiagramMediaChange(sid);
@@ -8710,7 +8716,7 @@ function openDiagram(sid){
       '<button class="code-actions-single" id="diagramHistoryBtn" style="width:auto">이전 버전 복구</button><button class="code-actions-single" id="diagramReloadBtn" style="width:auto">최신 안내 불러오기</button>' +
       '<button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
     '</div>' +
-    '<section class="symptom-video-editor"><h3>🎬 증상별 영상 매뉴얼</h3><p>증상 선택 직후 첫 질문 위에 표시됩니다. 링크 등록 후 저장하고 적용을 눌러주세요.</p><label for="symptomVideoUrl">유튜브 영상 링크</label><input id="symptomVideoUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"><div class="symptom-video-actions"><button id="symptomVideoApply">링크 등록 / 변경</button><button id="symptomVideoPreview">미리보기</button><button id="symptomVideoRemove">링크 제거</button></div><p id="symptomVideoStatus" role="status">등록하지 않으면 영상 버튼이 표시되지 않습니다.</p></section>' +
+    '<section class="symptom-video-editor"><h3>🎬 증상별 영상 매뉴얼</h3><p>증상 선택 직후 첫 질문 위에 표시됩니다. 링크 등록 후 저장하고 적용을 눌러주세요.</p><label for="symptomVideoSelect">등록된 영상</label><select id="symptomVideoSelect"></select><label for="symptomVideoLabel">기종 또는 영상 구분 (공통이면 비워두세요)</label><input id="symptomVideoLabel" maxlength="80" placeholder="예: R10 · 850D"><label for="symptomVideoUrl">유튜브 영상 링크</label><input id="symptomVideoUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"><div class="symptom-video-actions"><button id="symptomVideoApply">링크 등록 / 변경</button><button id="symptomVideoPreview">미리보기</button><button id="symptomVideoRemove">링크 제거</button></div><p id="symptomVideoStatus" role="status">등록하지 않으면 영상 버튼이 표시되지 않습니다.</p></section>' +
     '<div id="diagramSaveStatus" role="status" aria-live="polite"></div>' +
     '<div class="diagram-note" style="margin:0 0 12px;">위에서 아래로 안내를 읽으세요 · 선택지(동일합니다 / 해결되었습니다 등)를 눌러 문구와 다음 단계를 수정 · 다음 단계 접기/펼치기 · 카드와 빈 배경을 끌어 이동</div>' +
     '<div class="diagram-toolbar"><button id="diagramEditListBtn" aria-pressed="false">✏️ 목록으로 편집</button><button id="diagramFlowBtn">흐름도 보기</button><button id="diagramListToggle">목록 접기 / 펼치기</button><button id="diagramZoomOut" aria-label="다이어그램 축소">−</button><span id="diagramZoomValue">100%</span><button id="diagramZoomIn" aria-label="다이어그램 확대">＋</button><button id="diagramZoomReset">원래 크기</button><button id="diagramPhotoLibraryBtn" aria-expanded="false" aria-controls="diagramPhotoLibrary">📷 사진 필요한 항목</button><button id="diagramNewCard">＋ 새 안내 카드</button><button id="diagramFit">전체 보기</button><button id="diagramAutoLayout">세로 자동 정렬</button><button id="diagramUndoAddition">추가·삭제 되돌리기</button><span>배치는 이 브라우저에 자동 보관됩니다</span></div>' +
@@ -9463,6 +9469,136 @@ function renderPrinterModelScreen(){
   area.querySelectorAll('[data-printer-model]').forEach(btn=>btn.onclick=()=>selectPrinterModel(btn.dataset.printerModel));
 }
 
+const REPLACEMENT_MEDIA = {
+  "카메라:r10": [
+    [
+      "R10 카메라 교체",
+      "G85D5JuZE6Q",
+      "67dbc9b3b43a1fe08251"
+    ]
+  ],
+  "카메라:850d": [
+    [
+      "850D 카메라 교체",
+      "G85D5JuZE6Q",
+      "articles/60378/revisions/227452/usermedia/67dbcda0091aa208a5e3"
+    ]
+  ],
+  "카메라:m50": [
+    [
+      "M50 카메라 교체",
+      "MUsQ-23kqOk",
+      "articles/60378/revisions/227452/usermedia/67dbce1c10b6b5a32896"
+    ]
+  ],
+  "프린터:rx1": [
+    [
+      "DNP RX1 교체",
+      "nTR23UkNhBc",
+      "67dbd30338549610ada4"
+    ],
+    [
+      "프린터 교체 후 SW 설정",
+      "O0oa1EE--Ps"
+    ]
+  ],
+  "프린터:ask400": [
+    [
+      "FUJI 프린터 교체",
+      "7yA38wdkSA8",
+      "67dbd396e00e5a8f7221"
+    ],
+    [
+      "프린터 교체 후 SW 설정",
+      "O0oa1EE--Ps"
+    ]
+  ],
+  "에스라이트": [
+    [
+      "에스라이트 교체",
+      "3KWloMeSYe8",
+      "67e121cb43dfa113a5bf"
+    ],
+    [
+      "에스라이트 케이블 교체",
+      "z5XkfOhpg4k"
+    ]
+  ],
+  "모니터": [
+    [
+      "B 타입 모니터 교체",
+      "EORqrJOYW1M"
+    ],
+    [
+      "C 타입 모니터 교체",
+      "8iQSlPiZllA"
+    ],
+    [
+      "모니터 케이블 교체",
+      "3uehpJLn4tM"
+    ]
+  ],
+  "PC": [
+    [
+      "오픈형 PC 교체",
+      "NHmTpOsyhxM",
+      "articles/77904/revisions/227518/usermedia/67dbd716bedf42e0cb04"
+    ],
+    [
+      "미니 PC 교체",
+      "F8WVTzZJCxI",
+      "articles/77904/revisions/227518/usermedia/67dbd720d727f7e54f90"
+    ]
+  ],
+  "카드리더기": [
+    [
+      "카드단말기 교체",
+      "qxth2meldtc",
+      "67dbdf011de8cd02d1fc"
+    ]
+  ],
+  "지폐투입기": [
+    [
+      "A/B 타입 지폐투입기 교체",
+      "DvduL3OC-jg",
+      "67dbdfbae35324fbc98c"
+    ],
+    [
+      "A/B 타입 케이블 교체",
+      "zTyDPm-thJI"
+    ],
+    [
+      "C 타입 지폐투입기 교체",
+      "WWEisshO2AU",
+      "67dbe02506f1409d732d"
+    ],
+    [
+      "C 타입 케이블 교체",
+      "Rs3AVG0j_Vs"
+    ]
+  ],
+  "리모컨 / 서비스코인 / 설정": [
+    [
+      "A/B 타입 리모컨 교체",
+      "aYxPJaHwNlA",
+      "67dbd8413bd888bfd9f2"
+    ],
+    [
+      "C 타입 리모컨 교체",
+      "4FcBZLfd-Lw",
+      "67dbd8cf3d1091482bb6"
+    ]
+  ]
+};
+function appendReplacementMedia(host,key){
+ const items=REPLACEMENT_MEDIA[key]||[];if(!items.length)return;
+ const section=document.createElement('section');section.className='replacement-media';
+ const title=document.createElement('h3');title.textContent='사진 · 영상 매뉴얼';section.appendChild(title);
+ for(const [label,video,image] of items){const card=document.createElement('div');card.className='replacement-media-card';const heading=document.createElement('h4');heading.textContent=label;card.appendChild(heading);
+ if(video){const button=document.createElement('button');button.className='symptom-video-entry';button.textContent='🎬 '+label+' 영상 보기';button.onclick=()=>openSymptomVideo('https://www.youtube.com/watch?v='+video);card.appendChild(button);}
+ if(image){const img=document.createElement('img');img.alt=label+' 사진 매뉴얼';img.loading='lazy';img.src='https://cf.channel.io/document/spaces/8576/'+(image.includes('/')?image:'usermedia/'+image);img.onclick=()=>openLightbox(img.src);img.onerror=()=>{img.replaceWith(document.createTextNode('사진을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.'));};card.appendChild(img);}section.appendChild(card);}
+ host.appendChild(section);
+}
 function renderEquipReplaceDetailScreen(){
   if(selectedEquipReplaceDevice === '프린터' && !PRINTER_MODELS.some(m=>m.id===selectedPrinterModel)){
     appState='printerModel';renderPrinterModelScreen();return;
@@ -9478,6 +9614,7 @@ function renderEquipReplaceDetailScreen(){
     '<div class="t2">이 안내 내용은 곧 채워질 예정이에요.<br>준비되는 대로 여기에 단계별 교체 방법이 나올 거예요.</div>';
   area.innerHTML = '';
   area.appendChild(wrap);
+  appendReplacementMedia(wrap,selectedEquipReplaceDevice==='카메라'?'카메라:'+selectedCameraModel:printer?'프린터:'+selectedPrinterModel:selectedEquipReplaceDevice);
   document.getElementById('breadcrumb').innerHTML = '장비 교체 방법<span class="sep">·</span>'+title;
 }
 
@@ -9848,8 +9985,7 @@ function renderChat(){
   area.appendChild(inner);
 
   const first = path[0];
-  const manual=symptomVideoUrl(TREES[first.symptomId]);
-  if(manual){const button=document.createElement('button');button.className='symptom-video-entry';button.textContent='🎬 전체 조치 과정 영상 매뉴얼 보기';button.onclick=()=>openSymptomVideo(manual);inner.appendChild(button);}
+  appendSymptomVideoButtons(inner,TREES[first.symptomId]);
   crumb.innerHTML = '<b>'+first.symptomId+'</b><span class="sep">·</span>'+SYMPTOM_LABEL[first.symptomId];
 
   let stepCounter = 0;

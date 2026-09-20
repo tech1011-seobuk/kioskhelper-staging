@@ -100,3 +100,9 @@ test('manual saves via existing revision guarded publication and survives reload
  await c.api.saveDiagram(sid);assert.ok(saved);c.api.applyPublishedRows([{symptom_id:sid,revision:2,tree:saved}],'server');
  assert.equal(vm.runInContext("symptomVideoUrl(TREES['CAM-1'])",c),'https://www.youtube.com/watch?v=abcdefghijk');
 });
+
+test('model-specific manuals coexist and updating one preserves other media and instructions',()=>{
+ const c=harness();c.tree=c.api.TREES['CAM-7'];const before=JSON.stringify(c.tree);
+ vm.runInContext("globalThis.multi=withSymptomVideo(withSymptomVideo(tree,'https://youtu.be/dTV-i1ClNHA','R10'),'https://youtu.be/eAnRZeqV14A','M50');globalThis.only=withSymptomVideo(multi,'','R10');",c);
+ assert.equal(JSON.stringify(c.tree),before);assert.equal(c.multi.nodes[c.multi.start].media.length,2);assert.equal(c.only.nodes[c.only.start].media.length,1);assert.match(c.only.nodes[c.only.start].media[0].name,/M50/);c.api.validateDiagnosisTree(c.multi);
+});
