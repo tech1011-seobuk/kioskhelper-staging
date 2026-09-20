@@ -8441,18 +8441,26 @@ function buildDiagramMediaControls(sid,nid,box){
   const upload=document.createElement('button');upload.type='button';upload.textContent='＋ 사진·영상 업로드';upload.setAttribute('aria-label',nid+' 사진·영상 업로드');
   upload.disabled=mediaUploading||diagramSaving;upload.onclick=()=>input.click();
   const link=document.createElement('button');link.type='button';link.textContent='＋ 링크';link.setAttribute('aria-label',nid+' 사진·영상 링크 추가');link.disabled=mediaUploading||diagramSaving;
-  link.onclick=()=>{
+  const linkForm=document.createElement('div');linkForm.hidden=true;linkForm.style.cssText='width:100%;padding:10px 0';
+  const linkUrl=document.createElement('input');linkUrl.type='url';linkUrl.placeholder='https://...';linkUrl.setAttribute('aria-label',nid+' 첨부 주소');linkUrl.style.width='100%';
+  const linkName=document.createElement('input');linkName.placeholder='자료 이름 (예: R10 테더선 교체)';linkName.setAttribute('aria-label',nid+' 첨부 이름');linkName.maxLength=200;linkName.style.width='100%';
+  const addLink=document.createElement('button');addLink.type='button';addLink.textContent='자료 등록';addLink.setAttribute('aria-label',nid+' 자료 등록');
+  const cancelLink=document.createElement('button');cancelLink.type='button';cancelLink.textContent='취소';cancelLink.onclick=()=>{linkForm.hidden=true;link.focus();};
+  link.onclick=()=>{linkForm.hidden=!linkForm.hidden;if(!linkForm.hidden)linkUrl.focus();};
+  addLink.onclick=()=>{
     if(mediaUploading||diagramSaving)return;
-    const url=window.prompt('사진·영상 HTTPS 주소를 입력하세요. YouTube 등 영상 페이지는 새 탭으로 열립니다.');if(!url?.trim())return;
+    const url=linkUrl.value;if(!url.trim())return;
     try{
       const parsed=new URL(url.trim());const ext=parsed.pathname.toLowerCase();
       const kind=(/\.(jpg|jpeg|png|gif|webp)$/.test(ext)||(parsed.hostname==='cf.channel.io'&&parsed.pathname.includes('/usermedia/')))?'image':/\.(mp4|webm)$/.test(ext)?'video':'link';
-      const item={kind,url:parsed.href,name:kind==='image'?'조치 사진':kind==='video'?'조치 영상':'영상·참고 자료'};
+      const item={kind,url:parsed.href,name:linkName.value.trim()||(kind==='image'?'조치 사진':kind==='video'?'조치 영상':'영상·참고 자료')};
       validateDiagnosisMedia([item]);const draft=captureDiagramDraft(sid),media=draft.tree.nodes[nid].media||[];
+      if(media.some(existing=>existing.url===item.url))throw new Error('이미 이 단계에 등록된 자료입니다.');
       if(media.length>=6)throw new Error('카드당 최대 6개까지 첨부할 수 있습니다.');draft.tree.nodes[nid].media=[...media,item];finishDiagramMediaChange(sid);
     }catch(error){updateDiagramSaveStatus(sid,error.message,true);}
   };
   actions.append(upload,link,input);panel.appendChild(actions);
+  linkForm.append(linkUrl,linkName,addLink,cancelLink);panel.appendChild(linkForm);
   const hint=document.createElement('small');hint.textContent='사진 10MB · 영상 50MB 이하 / 카드당 6개';panel.appendChild(hint);
   box.appendChild(panel);
 }
