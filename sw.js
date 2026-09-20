@@ -1,9 +1,9 @@
-const CACHE_NAME = 'photoism-helper-staging-v57';
+const CACHE_NAME = 'photoism-helper-staging-v60';
 const OWN_CACHE_PATTERN = /^photoism-helper-staging-v[0-9]+$/;
 const APP_SCOPE = new URL('./', self.location.href);
 const SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';
 const URLS_TO_CACHE = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
-const MODEL_URLS = ['./assets/camera-m50.glb','./assets/camera-850d.glb','./assets/camera-r10.glb','./assets/printer-rx1.glb','./assets/printer-ask400.glb','./assets/photoism-kiosk-v4.glb'];
+const MODEL_URLS = ['./assets/camera-m50.glb','./assets/camera-850d.glb','./assets/camera-r10.glb','./assets/printer-rx1.glb','./assets/printer-ask400.glb','./assets/photoism-kiosk-door.glb'];
 const STATIC_URLS = new Set([...URLS_TO_CACHE,...MODEL_URLS].map(path => new URL(path, APP_SCOPE).href));
 const PAGE_URLS = new Set([APP_SCOPE.href, new URL('index.html', APP_SCOPE).href]);
 
