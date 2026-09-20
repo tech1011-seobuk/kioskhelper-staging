@@ -9890,6 +9890,7 @@ function appendReplacementGuide(host,key){
  const media=document.createElement('div');section.appendChild(media);
  function draw(focus){
   const guide=guides[variant],cards=replacementCards(guide);
+  const cameraFinish=key.startsWith('카메라:')&&page===cards.length-1;
   choices.innerHTML='';
   guides.forEach((g,i)=>{if(guides.length<2)return;const b=document.createElement('button');b.className='replacement-choice';b.textContent=g.label;b.setAttribute('aria-pressed',String(i===variant));b.onclick=()=>{variant=i;page=0;draw(true);};choices.appendChild(b);});
   stage.innerHTML='';media.innerHTML='';
@@ -9901,12 +9902,13 @@ function appendReplacementGuide(host,key){
    const body=document.createElement('p');body.className='replacement-body';body.textContent=current?current.body:'필요한 단계는 이전 버튼으로 다시 확인할 수 있어요.';card.appendChild(body);
    const nav=document.createElement('div');nav.className='replacement-navigation';
    const prev=document.createElement('button');prev.textContent='이전';prev.disabled=page===0;prev.onclick=()=>{page=Math.max(0,page-1);draw(true);};nav.appendChild(prev);
-   const next=document.createElement('button');next.className='replacement-next';next.textContent=page===cards.length?'처음부터 보기':page===cards.length-1?'안내 확인 완료':'다음';next.onclick=()=>{page=page===cards.length?0:page+1;draw(true);};nav.appendChild(next);card.appendChild(nav);stage.appendChild(card);
-   if(key.startsWith('카메라:')&&page>=cards.length-1){
-    const links=document.createElement('div');links.className='tool-card-grid';
-    for(const [label,action] of [['기본세팅 하기',goToCameraBasicSetup],['색감 세팅 하기',goToCameraColorGuideContent]]){const b=document.createElement('button');b.className='tool-card';b.textContent=label;b.onclick=()=>{selectedCameraModel=key.split(':')[1];action();};links.appendChild(b);}
+   const next=document.createElement('button');next.className='replacement-next';next.textContent=cameraFinish||page===cards.length?'처음부터 보기':page===cards.length-1?'안내 확인 완료':'다음';next.onclick=()=>{page=cameraFinish||page===cards.length?0:page+1;draw(true);};nav.appendChild(next);
+   if(cameraFinish){
+    const links=document.createElement('div');links.className='tool-card-grid';links.style.marginTop='18px';
+    for(const [icon,label,desc,action] of [['🛠️','기본세팅 하기','교체한 카메라의 기본 설정을 확인해요.',goToCameraBasicSetup],['🎨','색감 세팅 하기','색감 값을 보며 영상에 따라 설정해요.',goToCameraColorGuideContent]]){const b=document.createElement('button');b.className='tool-card';b.innerHTML='<span class="tc-icon">'+icon+'</span><div class="tc-title">'+label+'</div><div class="tc-desc">'+desc+'</div>';b.onclick=()=>{selectedCameraModel=key.split(':')[1];action();};links.appendChild(b);}
     card.appendChild(links);
    }
+   card.appendChild(nav);stage.appendChild(card);
    if(focus)title.focus({preventScroll:true});
   }
   if(!guide.steps.length){const note=document.createElement('p');note.className='replacement-video-note';note.textContent='교체 과정은 아래 영상 매뉴얼에서 확인해 주세요.';stage.appendChild(note);}
