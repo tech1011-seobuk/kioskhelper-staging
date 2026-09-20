@@ -21,7 +21,7 @@ mark=label('Camera marker','LOOK HERE!',(0,1.641,.0586),.171,.025,ink)
 font='C:/Windows/Fonts/arialbd.ttf'
 if os.path.exists(font):mark.data.font=bpy.data.fonts.load(font)
 # White hand below lens, slanted toward it. Thin black border follows the outline.
-pts=[(-.40,-.28),(-.42,.02),(-.40,.43),(-.34,.47),(-.28,.43),(-.28,.10),(-.23,.10),(-.23,.58),(-.17,.62),(-.10,.58),(-.10,.13),(-.05,.13),(-.05,.65),(.02,.69),(.09,.65),(.09,.13),(.14,.13),(.14,.51),(.21,.55),(.27,.51),(.27,-.01),(.44,.13),(.53,.10),(.55,.02),(.32,-.20),(.20,-.40),(-.23,-.43)]
+pts=[(-.26,-.40),(-.38,-.21),(-.43,-.02),(-.40,.09),(-.32,.13),(-.22,.05),(-.18,-.04),(-.18,.65),(-.15,.72),(-.09,.75),(-.02,.73),(.02,.66),(.02,.13),(.09,.17),(.17,.14),(.20,.07),(.27,.10),(.35,.05),(.36,-.02),(.43,-.03),(.47,-.12),(.43,-.30),(.31,-.44),(.29,-.51),(-.20,-.51)]
 def hand(name,scale,z,m):
  a=-.32;verts=[]
  for x,y in pts:
@@ -59,7 +59,7 @@ bpy.context.view_layer.update()
 for o in scene.objects:
  if o.parent==door and o.name.startswith(('How to use','Instruction')):
   o.matrix_parent_inverse=door.matrix_world.inverted()
-bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT,'photoism-kiosk-decals.blend'))
+bpy.ops.wm.save_as_mainfile(filepath=os.path.join(OUT,'photoism-kiosk-pointing.blend'))
 for o in list(scene.objects):
  if o.type=='FONT':
   bpy.ops.object.select_all(action='DESELECT');o.select_set(True);bpy.context.view_layer.objects.active=o;bpy.ops.object.convert(target='MESH')
@@ -77,7 +77,7 @@ for m in [body,edge]:
 bpy.ops.object.select_all(action='DESELECT')
 for o in scene.objects:
  if (o.type=='MESH' and o.parent!=studio) or o in [shell,inside,doors,door]:o.select_set(True)
-bpy.ops.export_scene.gltf(filepath=os.path.join(OUT,'photoism-kiosk-decals.glb'),export_format='GLB',use_selection=True,export_apply=True)
+bpy.ops.export_scene.gltf(filepath=os.path.join(OUT,'photoism-kiosk-pointing.glb'),export_format='GLB',use_selection=True,export_apply=True)
 scene.cycles.samples=12;scene.render.resolution_x=1000;scene.render.resolution_y=1000
 cam=scene.camera;cam.data.ortho_scale=.93;target=v((0,1.45,.06));cam.location=v((.15,1.50,4));cam.rotation_euler=(target-cam.location).to_track_quat('-Z','Y').to_euler()
-scene.render.filepath=os.path.join(OUT,'decals-detail.png');bpy.ops.render.render(write_still=True)
+scene.render.filepath=os.path.join(OUT,'pointing-detail.png');bpy.ops.render.render(write_still=True)
