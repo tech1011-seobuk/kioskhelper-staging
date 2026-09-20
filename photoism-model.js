@@ -14,6 +14,17 @@ export function mount(host){
  for(const [color,power,p] of [[0xffffff,2.7,[-2,3,4]],[0xc9dbff,2,[3,2,-3]],[0xffffff,1.6,[-2,1,-4]]]){const l=new T.DirectionalLight(color,power);l.position.set(...p);scene.add(l);}
  const shadowCanvas=document.createElement('canvas');shadowCanvas.width=shadowCanvas.height=128;const c=shadowCanvas.getContext('2d'),g=c.createRadialGradient(64,64,4,64,64,60);g.addColorStop(0,'rgba(0,0,0,.48)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,128,128);
  const shadow=new T.Mesh(new T.PlaneGeometry(1.5,1.1),new T.MeshBasicMaterial({map:new T.CanvasTexture(shadowCanvas),transparent:true,depthWrite:false}));shadow.rotation.x=-Math.PI/2;shadow.position.y=.002;scene.add(shadow);
+ // Soft light halos supplement the GLB emission without a full-screen bloom pass.
+ const lightHalos=new T.Group();scene.add(lightHalos);
+ function lightHalo(x,y,z,w,h,tilt=0){
+  const surface=document.createElement('canvas');surface.width=surface.height=256;const ctx=surface.getContext('2d');
+  ctx.shadowColor='rgba(238,245,255,.55)';ctx.shadowBlur=23;ctx.fillStyle='rgba(245,249,255,.10)';ctx.beginPath();ctx.roundRect(48,48,160,160,24);ctx.fill();
+  const texture=new T.CanvasTexture(surface);texture.colorSpace=T.SRGBColorSpace;
+  const glow=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false,opacity:.6}));
+  glow.position.set(x,y,z);glow.rotation.x=tilt;lightHalos.add(glow);
+ }
+ lightHalo(0,1.872,.115,.66,.15,Math.atan2(.085,.210));
+ for(const x of [-.315,.315])lightHalo(x,1.558,.064,.072,.36);
  let yaw=0,frame=0,disposed=false,tween=null,model=null,back=null,pending=null;
  const target=new T.Vector3(0,1,0),reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
  function release(root){const geometries=new Set(),materials=new Set(),textures=new Set();root.traverse(o=>{if(o.geometry)geometries.add(o.geometry);for(const m of (Array.isArray(o.material)?o.material:[o.material]))if(m){materials.add(m);for(const value of Object.values(m))if(value?.isTexture)textures.add(value);}});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>{t.dispose();t.source?.data?.close?.();});}
@@ -21,12 +32,12 @@ export function mount(host){
   const distance=Math.max(3.65,host.clientHeight/Math.max(host.clientWidth,1)*3.12);camera.position.set(Math.sin(yaw)*distance,1.16,Math.cos(yaw)*distance);camera.lookAt(target);renderer.render(scene,camera);host.dispatchEvent(new Event('modelrender'));if(tween)frame=requestAnimationFrame(draw);if(done)done();
  }
  function request(){if(!frame&&!disposed)frame=requestAnimationFrame(draw);}
- function view(mode,done){if(disposed)return;if(!model){pending={mode,done};return;}back.visible=mode!=='inside';tween={from:yaw,to:mode==='inside'?Math.PI:0,start:performance.now(),done};request();}
+ function view(mode,done){if(disposed)return;if(!model){pending={mode,done};return;}back.visible=mode!=='inside';lightHalos.visible=mode!=='inside';tween={from:yaw,to:mode==='inside'?Math.PI:0,start:performance.now(),done};request();}
  const resize=new ResizeObserver(()=>{const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h);camera.aspect=w/h;camera.updateProjectionMatrix();request();});resize.observe(host);
  canvas.addEventListener('webglcontextlost',e=>{if(disposed)return;e.preventDefault();host.dispatchEvent(new CustomEvent('modelerror'));});
  const observer=new MutationObserver(()=>{if(!host.isConnected)dispose();});observer.observe(document.body,{subtree:true,childList:true});
  function dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();release(scene);environment.dispose();renderer.dispose();renderer.forceContextLoss();canvas.remove();loading.remove();pending=null;}
- new GLTFLoader().load(new URL('./assets/photoism-kiosk.glb',document.baseURI).href,gltf=>{if(disposed){release(gltf.scene);return;}model=gltf.scene;back=model.getObjectByName('kiosk_rear_doors');if(!back){release(model);model=null;host.dispatchEvent(new CustomEvent('modelerror'));return;}scene.add(model);loading.remove();host.dataset.modelSource='blender';host.dataset.modelState='ready';if(pending){const next=pending;pending=null;view(next.mode,next.done);}else request();},undefined,()=>{if(!disposed){host.dataset.modelState='error';host.dispatchEvent(new CustomEvent('modelerror'));}});
- const anchors={'에스라이트':[0,1.872,.103],'카메라':[0,1.548,.1],'지속광':[.315,1.558,.066],'모니터':[0,1.232,.179],'리모컨':[.337,1.238,.192],'지폐투입기':[-.25,.86,.286],'카드리더기':[-.065,.848,.3],'프린터':[.119,.564,-.19],'PC':[-.099,.91,-.16]};
+ new GLTFLoader().load(new URL('./assets/photoism-kiosk-v4.glb',document.baseURI).href,gltf=>{if(disposed){release(gltf.scene);return;}model=gltf.scene;back=model.getObjectByName('kiosk_rear_doors');if(!back){release(model);model=null;host.dispatchEvent(new CustomEvent('modelerror'));return;}scene.add(model);loading.remove();host.dataset.modelSource='blender';host.dataset.modelState='ready';if(pending){const next=pending;pending=null;view(next.mode,next.done);}else request();},undefined,()=>{if(!disposed){host.dataset.modelState='error';host.dispatchEvent(new CustomEvent('modelerror'));}});
+ const anchors={'에스라이트':[0,1.872,.103],'카메라':[0,1.548,.1],'지속광':[.315,1.558,.066],'모니터':[0,1.226,.160],'리모컨':[.337,1.238,.192],'지폐투입기':[-.25,.86,.286],'카드리더기':[-.065,.848,.3],'프린터':[.119,.564,-.19],'PC':[-.099,.91,-.16]};
  request();return {project(name){const v=new T.Vector3(...anchors[name]).project(camera);return {x:(v.x+1)*host.clientWidth/2,y:(1-v.y)*host.clientHeight/2};},view,dispose};
 }
