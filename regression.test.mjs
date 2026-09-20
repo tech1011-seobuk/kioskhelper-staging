@@ -10,6 +10,30 @@ const root = resolve(process.env.KIOSKHELPER_TEST_ROOT || fileURLToPath(new URL(
 const html = readFileSync(resolve(root, 'index.html'), 'utf8');
 const swSource = readFileSync(resolve(root, 'sw.js'), 'utf8');
 
+test('unavailable attachment badges are hidden but real attachment notes remain',()=>{
+  const c=vm.createContext({escapeHtml:s=>s});
+  vm.runInContext(section('function attachmentMarkup(', 'function buildBubbleInner('),c);
+  for(const label of ['🎥 영상 매뉴얼 (전달 예정)','📷 사진 첨부 예정','준비 중',undefined])assert.equal(c.attachmentMarkup(label),'');
+  assert.match(c.attachmentMarkup('전원 위치 참고 사진'),/전원 위치 참고 사진/);
+});
+
+test('recent symptoms include non-hot topics, deduplicate QR aliases and skip unknown IDs',async()=>{
+  const rows=['ES-1','CL-2','PRT-13','PRT-7','missing'].map(symptom_id=>({event_type:'symptom_click',symptom_id,device:'장비'}));
+  const list={innerHTML:'',querySelectorAll(){return [];}},wrap={style:{}};
+  const query={select(){return this},eq(){return this},in(){return this},order(){return this},async limit(){return {data:rows}}};
+  const c=vm.createContext({sb:{from(){return query}},currentUser:{id:'u'},appState:'picker',TREES:{'ES-1':{},'CL-2':{},'PRT-7':{}},SYMPTOM_LABEL:{},escapeHtml:s=>s,document:{getElementById:id=>id==='recentSymptomsList'?list:wrap}});
+  vm.runInContext(section('async function loadRecentSymptoms(', 'function goToAdminDashboard('),c);
+  await c.loadRecentSymptoms('photoism');
+  assert.match(list.innerHTML,/ES-1/);assert.match(list.innerHTML,/CL-2/);
+  assert.equal((list.innerHTML.match(/PRT-7/g)||[]).length,1);assert.doesNotMatch(list.innerHTML,/missing|PRT-13/);
+});
+
+test('historical QR entry opens the maintained QR guide',async()=>{
+ const c=vm.createContext({currentUser:{id:'u'},appState:'symptoms',TREES:{'PRT-7':{start:'n1'},'PRT-13':{start:'old'}},path:[],selectedDevice:'프린터',symptomSource:'photoism',async loadPublishedDiagnosis(){},render(){},logEvent(){}});
+ vm.runInContext(section('async function startSymptom(', 'function resetAll('),c);await c.startSymptom('PRT-13');
+ assert.equal(c.path[0].symptomId,'PRT-7');assert.equal(c.path[0].nodeId,'n1');
+});
+
 test('non-hot-topic symptoms load their published guide before opening the chat',async()=>{
   for(const sid of ['ES-1','ES-2','CL-1','CL-2']){
     const c=vm.createContext({currentUser:{id:'tester'},appState:'symptoms',TREES:{},path:[],selectedDevice:'light',symptomSource:'photoism',render(){c.rendered=true;},logEvent(){},isHotTopic(){return false;},showToast(){throw new Error('Unexpected blocked symptom');},async loadPublishedDiagnosis(){c.TREES[sid]={start:'published-start'};}});

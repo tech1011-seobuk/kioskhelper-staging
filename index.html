@@ -6139,7 +6139,7 @@ const SYMPTOM_LABEL = {
   'MON-1':'화면 송출 자체가 안되는 증상', 'MON-2':'화면 터치가 안되는 증상', 'MON-3':'화면 송출이 비정상적인 증상',
   'PRT-1':'리본오류 문구 발생', 'PRT-2':'헤드위치 오류 문구 발생', 'PRT-3':'전원 차단 문구 발생',
   'PRT-4':'냉각팬 오류 문구 발생', 'PRT-5':'출력물에 얼룩/점 발생', 'PRT-6':'소모품(인화지·리본) 구겨짐/끊어짐',
-  'PRT-7':'사진 출력 시 QR이 안 나오는 증상',
+  'PRT-7':'QR코드 미출력 (사진에 QR 없음)',
   'PRT-8':'커터오류 문구 발생', 'PRT-9':'출력물 흰색 여백 발생', 'PRT-10':'리본 끊어진 증상',
   'PRT-11':'QR인식 불가', 'PRT-12':'QR코드 기간 만료', 'PRT-13':'QR코드 미출력', 'PRT-14':'QR코드 잘림',
   'PC-1':'부팅이 안되는 증상', 'PC-2':'블루스크린 발생', 'PC-3':'용량 부족',
@@ -6156,7 +6156,7 @@ const DEVICES = [
   {name:'지속광', icon:'🔦', symptoms:['CL-1','CL-2']},
   {name:'카메라', icon:'📷', symptoms:['CAM-1','CAM-2','CAM-3','CAM-4','CAM-5','CAM-6','CAM-7','CAM-8']},
   {name:'모니터', icon:'🖥️', symptoms:['MON-1','MON-2','MON-3']},
-  {name:'프린터', icon:'🖨️', symptoms:['PRT-1','PRT-2','PRT-8','PRT-3','PRT-4','PRT-5','PRT-6','PRT-7','PRT-9','PRT-10','PRT-11','PRT-12','PRT-13','PRT-14']},
+  {name:'프린터', icon:'🖨️', symptoms:['PRT-1','PRT-2','PRT-8','PRT-3','PRT-4','PRT-5','PRT-6','PRT-7','PRT-9','PRT-10','PRT-11','PRT-12','PRT-14']},
   {name:'PC', icon:'💻', symptoms:['PC-1','PC-2','PC-3']},
   {name:'카드리더기', icon:'💳', symptoms:['CR-1','CR-2']},
   {name:'지폐투입기', icon:'💵', symptoms:['BILL-1','BILL-3','BILL-4']},
@@ -6553,6 +6553,8 @@ function addRipple(el, evt){
 /* ============================= FLOW LOGIC ============================= */
 
 async function startSymptom(symptomId){
+  // Keep historical QR links usable without duplicating the public/editor list.
+  if(symptomId==='PRT-13')symptomId='PRT-7';
   const owner=currentUser?.id, previousState=appState;
   await loadPublishedDiagnosis();
   if (!currentUser || currentUser.id !== owner || appState !== previousState) return;
@@ -6608,6 +6610,10 @@ const ENCOURAGE_LINES = [
   '이 정도면 TX팀 명예직원 각!'
 ];
 
+function attachmentMarkup(value){
+  return value && !/(전달|첨부)\s*예정|준비\s*중/.test(value)
+    ? '<div class="attachment-tag">'+escapeHtml(value)+'</div>' : '';
+}
 function buildBubbleInner(stepCounter, step, node){
   const photoList = node.images ? node.images : (node.image ? [node.image] : []);
   const photosHtml = photoList.length
@@ -6618,7 +6624,7 @@ function buildBubbleInner(stepCounter, step, node){
   return '<div class="step-tag">STEP '+stepCounter+' · '+step.symptomId+'</div>' +
     escapeHtml(node.text) +
     photosHtml + renderDiagnosisMedia(node) +
-    (!photoList.length && node.attachment ? '<div class="attachment-tag">'+escapeHtml(node.attachment)+'</div>' : '');
+    (!photoList.length ? attachmentMarkup(node.attachment) : '');
 }
 
 /* ---- 음성 읽어주기 (자동 모드) ---- */
@@ -7841,7 +7847,8 @@ async function loadRecentSymptoms(brand){
     for (const e of data) {
       let key;
       if (e.event_type === 'symptom_click') {
-        if (!e.symptom_id || !isHotTopic(e.symptom_id)) continue;
+        if(e.symptom_id==='PRT-13')e.symptom_id='PRT-7';
+        if (!e.symptom_id || !TREES[e.symptom_id]) continue;
         key = 'symptom:'+e.symptom_id;
       } else {
         if (!e.device || !e.detail) continue; // 세부항목 없는 단순 부위 클릭은 표시 안 함
@@ -8309,6 +8316,7 @@ function bindSymptomVideoEditor(sid){
  const refresh=()=>{select.innerHTML='<option value="">새 영상 / 공통 영상</option>';for(const item of getDiagramDraft(sid).tree.nodes[getDiagramDraft(sid).tree.start].media||[]){if(!isSymptomVideo(item))continue;const o=document.createElement('option');o.value=item.name;o.textContent=item.name===SYMPTOM_VIDEO_NAME?'공통 영상':item.name.slice(SYMPTOM_VIDEO_NAME.length+3);select.appendChild(o);}};
  refresh();input.value=symptomVideoUrl(getDiagramDraft(sid).tree);
  const first=getDiagramDraft(sid).tree.nodes[getDiagramDraft(sid).tree.start].media?.find(isSymptomVideo);if(first){select.value=first.name;label.value=first.name===SYMPTOM_VIDEO_NAME?'':first.name.slice(SYMPTOM_VIDEO_NAME.length+3);}
+ status.textContent=first?'등록된 영상입니다. 미리보기로 확인할 수 있어요.':'등록하지 않으면 영상 버튼이 표시되지 않습니다.';
  select.onchange=()=>{const item=getDiagramDraft(sid).tree.nodes[getDiagramDraft(sid).tree.start].media?.find(m=>m.name===select.value);input.value=item?.url||'';label.value=item&&item.name!==SYMPTOM_VIDEO_NAME?item.name.slice(SYMPTOM_VIDEO_NAME.length+3):'';};
  const change=value=>{
   if(diagramSaving||mediaUploading)return;
@@ -10332,7 +10340,7 @@ function renderChat(){
       card.innerHTML = '<div class="end-title">'+meta.icon+' '+meta.label+'</div><div class="end-desc">'+escapeHtml(desc)+'</div>' +
         (step.endType==='escalate' ? '<div class="end-desc">CMS에 접속한 뒤 채널톡으로 문의해주세요.</div>' : '') +
         encourageHtml +
-        (step.endAttachment ? '<div class="attachment-tag">'+escapeHtml(step.endAttachment)+'</div>' : '');
+        attachmentMarkup(step.endAttachment);
       inner.appendChild(card);
 
       const actions = document.createElement('div');

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'photoism-helper-staging-v78';
+const CACHE_NAME = 'photoism-helper-staging-v79';
 const OWN_CACHE_PATTERN = /^photoism-helper-staging-v[0-9]+$/;
 const APP_SCOPE = new URL('./', self.location.href);
 const SDK_URL = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js';
