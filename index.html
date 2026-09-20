@@ -1614,6 +1614,8 @@
   }
   .end-actions button:hover{border-color:var(--accent); color:var(--accent);}
   .end-actions button:active{transform:scale(.96);}
+  .end-actions{flex-wrap:wrap;}
+  .end-actions > button,.end-actions > a{white-space:nowrap;flex-shrink:0;}
   .end-actions .copy-btn{
     background:var(--escalate-dim);
     border-color:var(--escalate);
@@ -6580,7 +6582,7 @@ function chooseOption(stepIndex, option){
 
 const END_META = {
   solved:{ label:'해결완료', icon:'✅', desc:'점주 자가조치로 문제가 해결되었습니다.'},
-  escalate:{ label:'TX팀 연결 필요', icon:'🔧', desc:'자가조치로 해결되지 않아 TX팀 원격/방문 조치가 필요합니다.'},
+  escalate:{ label:'채널톡 문의하기', icon:'💬', desc:'자가조치로 해결되지 않았습니다.'},
   as:{ label:'A/S 필요', icon:'📋', desc:'부품/장비 자체 문제로 A/S 절차가 필요합니다.'},
   info:{ label:'안내 완료', icon:'ℹ️', desc:'설정 안내로 조치가 종료되었습니다.'}
 };
@@ -8313,7 +8315,7 @@ function refreshDiagramPhotoLibrary(sid){
    name.oninput=()=>{if(diagramSaving||mediaUploading||currentUser?.role!=='admin')return;opt.label=name.value;captureDiagramDraft(sid);};
    const target=document.createElement('select');target.setAttribute('aria-label',nid+' 선택지 '+(index+1)+' 이동');target.disabled=name.disabled;
    const add=(value,label)=>{const o=document.createElement('option');o.value=value;o.textContent=label;target.appendChild(o);};
-   for(const [key,label] of [['solved','해결되었습니다'],['escalate','담당자 연결'],['as','A/S 필요'],['info','안내 완료']])add('end:'+key,label);
+   for(const [key,label] of [['solved','해결되었습니다'],['escalate','채널톡 문의하기'],['as','A/S 필요'],['info','안내 완료']])add('end:'+key,label);
    for(const [id,n] of Object.entries(tree.nodes))add('next:'+id,'다음 단계 '+id+' · '+(n.text||'새 안내').slice(0,35));
    if(opt.type==='jump')add('jump:'+opt.jump,'다른 증상: '+opt.jump);
    target.value=opt.type==='next'?'next:'+opt.target:opt.type==='jump'?'jump:'+opt.jump:'end:'+opt.type;
@@ -8630,7 +8632,7 @@ function openDiagram(sid){
       '<select class="edge-pop-type" id="edgePopType">' +
         '<option value="next">➡️ 다음 단계로</option>' +
         '<option value="solved">✅ 해결</option>' +
-        '<option value="escalate">📞 담당자연결</option>' +
+        '<option value="escalate">📞 채널톡 문의하기</option>' +
         '<option value="as">🔧 A/S필요</option>' +
         '<option value="info">ℹ️ 안내 완료</option>' +
       '</select>' +
@@ -8743,7 +8745,7 @@ function getOrCreateEndNode(sid, canvas, endType){
   const id = 'dn_END_' + endType;
   let el = document.getElementById(id);
   if (el) return el;
-  const labelMap = { solved:'✅ 해결', escalate:'📞 담당자 연결', as:'🔧 A/S 필요' };
+  const labelMap = { solved:'✅ 해결', escalate:'📞 채널톡 문의하기', as:'🔧 A/S 필요' };
   const y = parseInt(canvas.dataset.endNodesY || '30', 10);
   canvas.dataset.endNodesY = (y + 130).toString();
   const x = canvas.querySelectorAll('.dnode-step').length ? Math.max(...Array.from(canvas.querySelectorAll('.dnode-step')).map(n=>parseInt(n.style.left,10))) + 380 : 380;
@@ -8763,7 +8765,7 @@ function redrawDiagramLines(sid){
   const svg = document.getElementById('diagramSvg');
   if (!canvas || !svg || diagramSelectedSid !== sid) return;
   const tree = getDiagramDraft(sid).tree;
-  const labels = {solved:'해결', escalate:'담당자 연결', as:'A/S 필요', info:'안내 완료'};
+  const labels = {solved:'해결', escalate:'채널톡 문의하기', as:'A/S 필요', info:'안내 완료'};
   canvas.querySelectorAll('.diagram-options, .diagram-column-label, .diagram-add-actions, .diagram-media-editor').forEach(el=>el.remove());
   const positions = computeDiagramLayout(tree);
   const columns = new Map();
@@ -8825,7 +8827,7 @@ function copyDiagramContent(sid, tree, btn){
       let resultText;
       if (opt.type === 'next') resultText = '→ [' + opt.target + '] 단계로 이동';
       else if (opt.type === 'solved') resultText = '✅ 해결 (종료)';
-      else if (opt.type === 'escalate') resultText = '📞 담당자 연결 (종료)';
+      else if (opt.type === 'escalate') resultText = '📞 채널톡 문의하기 (종료)';
       else if (opt.type === 'as') resultText = '🔧 A/S 필요 (종료)';
       out += '  - "' + opt.label + '" ' + resultText + '\n';
     });
@@ -8975,7 +8977,7 @@ function renderAdminDashboardContent(events, profiles){
   });
   const timeMax = Math.max(...timeBuckets, 1);
 
-  // 미해결 최근 건 리스트 (담당자연결/A·S, 최근 10건)
+  // 미해결 최근 건 리스트 (채널톡 문의하기/A·S, 최근 10건)
   const recentUnresolved = outcomes
     .filter(e => e.outcome === 'escalate' || e.outcome === 'as')
     .sort((a,b)=> new Date(b.created_at) - new Date(a.created_at))
@@ -9069,7 +9071,7 @@ function renderAdminDashboardContent(events, profiles){
 
   // 미해결률 높은 증상 랭킹 (매뉴얼 보강 필요 신호)
   const worstUnresolvedHtml = worstUnresolvedRows.length ?
-    '<table class="admin-table"><thead><tr><th></th><th>증상</th><th>미해결률</th><th>담당자연결</th><th>A/S</th><th>총 건수</th></tr></thead><tbody>' +
+    '<table class="admin-table"><thead><tr><th></th><th>증상</th><th>미해결률</th><th>채널톡 문의하기</th><th>A/S</th><th>총 건수</th></tr></thead><tbody>' +
     worstUnresolvedRows.map(([sid, s, rate], i) => {
       const label = (typeof SYMPTOM_LABEL !== 'undefined' && SYMPTOM_LABEL[sid]) ? SYMPTOM_LABEL[sid] : '';
       const rateClass = rate >= 60 ? 'admin-rate-bad' : (rate < 30 ? 'admin-rate-good' : '');
@@ -9163,7 +9165,7 @@ function renderAdminDashboardContent(events, profiles){
     recentUnresolved.map(e => {
       const label = (typeof SYMPTOM_LABEL !== 'undefined' && SYMPTOM_LABEL[e.symptom_id]) ? SYMPTOM_LABEL[e.symptom_id] : (e.symptom_id||'');
       const tagClass = e.outcome === 'as' ? 'as' : 'escalate';
-      const tagText = e.outcome === 'as' ? 'A/S 필요' : '담당자 연결';
+      const tagText = e.outcome === 'as' ? 'A/S 필요' : '채널톡 문의하기';
       const when = new Date(e.created_at).toLocaleString('ko-KR', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
       return '<div class="admin-recent-item">' +
         '<div><b>'+(profileMap[e.user_id] || '(알수없음)')+'</b> · '+(e.device||'')+' · '+label+'<div style="color:var(--muted); font-size:11.5px;">'+when+'</div></div>' +
@@ -9218,7 +9220,7 @@ function renderAdminDashboardContent(events, profiles){
 function exportEventsToCSV(events, profileMap){
   const headers = ['일시','직원','종류','브랜드','기기','증상ID','결과','의견'];
   const typeLabel = { device_click:'부위클릭', symptom_click:'증상클릭', symptom_outcome:'결과', feedback:'의견' };
-  const outcomeLabel = { solved:'해결', escalate:'담당자연결', as:'A/S필요' };
+  const outcomeLabel = { solved:'해결', escalate:'채널톡 문의하기', as:'A/S필요' };
   const rows = events.map(e => [
     new Date(e.created_at).toLocaleString('ko-KR'),
     profileMap[e.user_id] || '',
@@ -9773,6 +9775,7 @@ function renderChat(){
         ? '<div class="end-encourage">'+ENCOURAGE_LINES[Math.floor(Math.random()*ENCOURAGE_LINES.length)]+'</div>'
         : '';
       card.innerHTML = '<div class="end-title">'+meta.icon+' '+meta.label+'</div><div class="end-desc">'+escapeHtml(desc)+'</div>' +
+        (step.endType==='escalate' ? '<div class="end-desc">CMS에 접속한 뒤 채널톡으로 문의해주세요.</div>' : '') +
         encourageHtml +
         (step.endAttachment ? '<div class="attachment-tag">'+escapeHtml(step.endAttachment)+'</div>' : '');
       inner.appendChild(card);
@@ -9780,10 +9783,11 @@ function renderChat(){
       const actions = document.createElement('div');
       actions.className = 'end-actions enter';
       actions.innerHTML = '<button onclick="resetAll()">🏠 처음으로</button>' +
+        (step.endType==='escalate'
+          ? '<a href="https://cms.seobuk.kr/" target="_blank" rel="noopener" class="channel-btn">💬 CMS로 이동해 문의하기 ↗</a>'
+          : '') +
         (step.endType==='escalate' || step.endType==='as'
-          ? '<a href="https://cms.seobuk.kr/" target="_blank" rel="noopener" class="channel-btn">💬 채널톡으로 문의하기</a>' +
-            '<button class="copy-btn" onclick="openHandoff()">📋 담당자 인계 내용 만들기</button>'
-          : '');
+          ? '<button class="copy-btn" onclick="openHandoff()">📋 담당자 인계 내용 만들기</button>' : '');
       inner.appendChild(actions);
 
       const fbKey = idx + '|' + step.symptomId + '|' + step.endType;
@@ -9917,7 +9921,7 @@ function openHelperDialog(title){
  dialog.addEventListener('close',()=>dialog.remove());document.body.appendChild(dialog);dialog.showModal();return {dialog,body};
 }
 function describeDiagnosisVersion(tree){
- const result={solved:'해결',escalate:'담당자 연결',as:'A/S 필요',info:'안내 완료'};
+ const result={solved:'해결',escalate:'채널톡 문의하기',as:'A/S 필요',info:'안내 완료'};
  return '시작 카드: '+tree.start+'\n\n'+Object.entries(tree.nodes).map(([id,node])=>
  '['+id+'] '+node.text+'\n'+node.options.map(o=>'  • '+o.label+' → '+(o.next?'카드 '+o.next:o.jump?'증상 '+o.jump:result[o.end])).join('\n')+(node.media?.length?'\n  첨부: '+node.media.map(m=>m.name).join(', '):'')).join('\n\n');
 }
@@ -9959,7 +9963,9 @@ function openHandoff(){
  const status=document.createElement('p');status.setAttribute('role','status');body.appendChild(status);
  const copy=document.createElement('button');copy.textContent='인계 내용 복사';copy.onclick=async()=>{try{await navigator.clipboard.writeText(preview.value);status.textContent='복사했습니다. 문의 채널에 붙여넣어 전달해주세요.';}catch{preview.focus();preview.select();status.textContent='자동 복사가 차단되었습니다. 선택된 내용을 Ctrl+C로 복사하거나 파일로 저장해주세요.';}};body.appendChild(copy);
  const download=document.createElement('button');download.textContent='인계 내용 파일로 저장';download.onclick=()=>{const url=URL.createObjectURL(new Blob([preview.value],{type:'text/plain;charset=utf-8'}));const link=document.createElement('a');link.href=url;link.download='장비장애_인계.txt';link.click();setTimeout(()=>URL.revokeObjectURL(url),1000);};body.appendChild(download);
- const channel=document.createElement('a');channel.href='https://cms.seobuk.kr/';channel.target='_blank';channel.rel='noopener';channel.textContent='문의 채널 열기';body.appendChild(channel);
+ if(path[path.length-1]?.endType==='escalate'){
+ const channel=document.createElement('a');channel.href='https://cms.seobuk.kr/';channel.target='_blank';channel.rel='noopener';channel.textContent='CMS로 이동해 문의하기 ↗';body.appendChild(channel);
+ }
 }
 
 

@@ -31,6 +31,17 @@ function section(from, to) {
   assert.ok(start >= 0 && end > start, `Source markers: ${from}`);
   return html.slice(start, end);
 }
+test('only channel inquiry outcomes show the CMS link; AS retains its handoff summary',()=>{
+  const source=section("      actions.innerHTML = '<button onclick=\"resetAll()\">",'      inner.appendChild(actions);');
+  for(const endType of ['escalate','as','solved','info']){
+    const context=vm.createContext({step:{endType},actions:{}});
+    vm.runInContext(source,context);
+    const markup=context.actions.innerHTML;
+    assert.equal(markup.includes('https://cms.seobuk.kr/'),endType==='escalate');
+    assert.equal(markup.includes('openHandoff()'),['escalate','as'].includes(endType));
+    if(endType==='escalate')assert.ok(markup.includes('CMS로 이동해 문의하기 ↗'));
+  }
+});
 function storage() {
   const values = new Map();
   return { getItem: key => values.get(key) ?? null, setItem: (key, value) => values.set(key, value), removeItem: key => values.delete(key) };
