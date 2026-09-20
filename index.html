@@ -7520,6 +7520,16 @@ function goToCameraColorGuide(){
   render();
 }
 
+const CAMERA_SETUP_VIDEOS = {r10:'xScLykjpLAQ','850d':'NiIGdGjtyhc',m50:'bTCNjvB5RIM'};
+function appendCameraSetupVideo(host){
+  const video=CAMERA_SETUP_VIDEOS[selectedCameraModel];
+  const model=CAMERA_MODELS.find(m=>m.id===selectedCameraModel);
+  if(!video||!model)return;
+  const section=document.createElement('section');section.className='replacement-media';
+  const heading=document.createElement('h3');heading.textContent=model.sub+' 기본 설정 영상';section.appendChild(heading);
+  const button=document.createElement('button');button.className='symptom-video-entry';button.textContent='🎬 '+model.sub+' 기본 설정 영상 보기';
+  button.onclick=()=>openSymptomVideo('https://www.youtube.com/watch?v='+video);section.appendChild(button);host.appendChild(section);
+}
 function renderCameraBasicCheckScreen(){
   const area = document.getElementById('chatArea');
   const model = CAMERA_MODELS.find(m => m.id === selectedCameraModel);
@@ -7535,6 +7545,7 @@ function renderCameraBasicCheckScreen(){
   area.innerHTML = '';
   area.appendChild(wrap);
   document.getElementById('breadcrumb').innerHTML = '<b>'+(model ? model.sub : '카메라')+'</b><span class="sep">·</span>색감 조정';
+  appendCameraSetupVideo(wrap);
   area.querySelectorAll('.tool-card[data-check]').forEach(btn=>{
     btn.onclick = (e)=>{
       addRipple(e.currentTarget, e); 
@@ -7568,6 +7579,7 @@ function renderCameraBasicSetupScreen(){
   area.innerHTML = '';
   area.appendChild(wrap);
   document.getElementById('breadcrumb').innerHTML = '<b>'+(model ? model.sub : '카메라')+'</b><span class="sep">·</span>기본세팅';
+  appendCameraSetupVideo(wrap);
   document.getElementById('basicNextBtn').onclick = (e)=>{
     addRipple(e.currentTarget, e); 
     goToCameraColorGuideContent();
@@ -7581,14 +7593,16 @@ function goToCameraColorGuideContent(){
 
 function renderCameraColorGuideScreen(){
   const area = document.getElementById('chatArea');
+  const model = CAMERA_MODELS.find(m=>m.id===selectedCameraModel);
   const wrap = document.createElement('div');
   wrap.className = 'colorsetup-screen hud-frame';
   wrap.innerHTML = '<div class="colorsetup-icon">🎨</div>' +
-    '<div class="t1">카메라 · 색감 조정</div>' +
-    '<div class="t2">이 안내 내용은 곧 채워질 예정이에요.<br>준비되는 대로 여기에 화이트밸런스·톤 조정 방법이 나올 거예요.</div>';
+    '<div class="t1">'+(model?model.sub:'카메라')+' · 색감 조정</div>' +
+    '<div class="t2">기종에 맞는 기본 설정 영상을 확인해 주세요.<br>카메라 교체 후에는 CMS 채팅 상담에서 본사에 색감 조정을 요청해 주세요.</div>';
   area.innerHTML = '';
   area.appendChild(wrap);
-  document.getElementById('breadcrumb').innerHTML = '카메라<span class="sep">·</span>색감 조정';
+  appendCameraSetupVideo(wrap);
+  document.getElementById('breadcrumb').innerHTML = (model?model.sub:'카메라')+'<span class="sep">·</span>색감 조정';
 }
 
 const PRIVACY_CONSENT_HTML =

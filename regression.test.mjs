@@ -31,6 +31,16 @@ function section(from, to) {
   assert.ok(start >= 0 && end > start, `Source markers: ${from}`);
   return html.slice(start, end);
 }
+test('camera setup video follows the selected model and opens the shared player',()=>{
+  const element=()=>({children:[],appendChild(child){this.children.push(child);}});
+  const ctx=vm.createContext({document:{createElement:element},openSymptomVideo(url){ctx.opened=url;}});
+  vm.runInContext("let selectedCameraModel;const CAMERA_MODELS=[{id:'r10',sub:'R10'},{id:'850d',sub:'850D'},{id:'m50',sub:'M50'}];"+section('const CAMERA_SETUP_VIDEOS =','function renderCameraBasicCheckScreen()'),ctx);
+  for(const [id,video] of [['r10','xScLykjpLAQ'],['850d','NiIGdGjtyhc'],['m50','bTCNjvB5RIM']]){
+    ctx.host=element();vm.runInContext(`selectedCameraModel='${id}';appendCameraSetupVideo(host)`,ctx);
+    ctx.host.children[0].children[1].onclick();assert.equal(ctx.opened,'https://www.youtube.com/watch?v='+video);
+  }
+  for(const [from,to] of [['function renderCameraBasicCheckScreen()','function goToCameraBasicSetup()'],['function renderCameraBasicSetupScreen()','function goToCameraColorGuideContent()'],['function renderCameraColorGuideScreen()','const PRIVACY_CONSENT_HTML']])assert.match(section(from,to),/appendCameraSetupVideo\(wrap\)/);
+});
 test('replacement cards navigate, finish, restart and reset type without mixing videos',()=>{
   const element=()=>({children:[],_html:'',set innerHTML(v){this._html=v;this.children=[];},get innerHTML(){return this._html;},textContent:'',setAttribute(){},focus(){},appendChild(child){this.children.push(child);}});
   const ctx=vm.createContext({document:{createElement:element}});
