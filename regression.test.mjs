@@ -9,6 +9,18 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(process.env.KIOSKHELPER_TEST_ROOT || fileURLToPath(new URL('.', import.meta.url)));
 const html = readFileSync(resolve(root, 'index.html'), 'utf8');
 const swSource = readFileSync(resolve(root, 'sw.js'), 'utf8');
+
+test('non-hot-topic symptoms load their published guide before opening the chat',async()=>{
+  for(const sid of ['ES-1','ES-2','CL-1','CL-2']){
+    const c=vm.createContext({currentUser:{id:'tester'},appState:'symptoms',TREES:{},path:[],selectedDevice:'light',symptomSource:'photoism',render(){c.rendered=true;},logEvent(){},isHotTopic(){return false;},showToast(){throw new Error('Unexpected blocked symptom');},async loadPublishedDiagnosis(){c.TREES[sid]={start:'published-start'};}});
+    vm.runInContext(section('async function startSymptom(', 'function resetAll('),c);
+    await c.startSymptom(sid);
+    assert.equal(c.appState,'chat');
+    assert.equal(c.path[0].nodeId,'published-start');
+    assert.equal(c.path[0].symptomId,sid);
+    assert.equal(c.rendered,true);
+  }
+});
 test('printer replacement remembers the chosen model and clears it when choosing again',()=>{
   const elements=new Map();
   const element=()=>({innerHTML:'',textContent:'',setAttribute(){},classList:{remove(){}},appendChild(child){this.innerHTML+=child.innerHTML;}});

@@ -6553,7 +6553,6 @@ function addRipple(el, evt){
 /* ============================= FLOW LOGIC ============================= */
 
 async function startSymptom(symptomId){
-  if(!isHotTopic(symptomId)){showToast("이 증상은 안내를 준비하고 있어요.");return;}
   const owner=currentUser?.id, previousState=appState;
   await loadPublishedDiagnosis();
   if (!currentUser || currentUser.id !== owner || appState !== previousState) return;
