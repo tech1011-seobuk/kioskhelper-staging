@@ -39,7 +39,8 @@ test('camera setup video follows the selected model and opens the shared player'
     ctx.host=element();vm.runInContext(`selectedCameraModel='${id}';appendCameraSetupVideo(host)`,ctx);
     ctx.host.children[0].children[1].onclick();assert.equal(ctx.opened,'https://www.youtube.com/watch?v='+video);
   }
-  for(const [from,to] of [['function renderCameraBasicCheckScreen()','function goToCameraBasicSetup()'],['function renderCameraBasicSetupScreen()','function goToCameraColorGuideContent()']])assert.match(section(from,to),/appendCameraSetupVideo\(wrap\)/);
+  assert.doesNotMatch(section('function renderCameraBasicCheckScreen()','function goToCameraBasicSetup()'),/appendCameraSetupVideo/);
+  assert.match(section('function renderCameraBasicSetupScreen()','function goToCameraColorGuideContent()'),/appendCameraSetupVideo\(wrap\)/);
   assert.match(section('function renderCameraColorGuideScreen()','const PRIVACY_CONSENT_HTML'),/appendCameraSetupVideo\(wrap,'color'\)/);
   for(const [id,video] of [['r10','ge9gad8IPac'],['850d','vP8-n601TmY'],['m50','gxG7k71MedM']]){
     ctx.host=element();vm.runInContext(`selectedCameraModel='${id}';appendCameraSetupVideo(host,'color')`,ctx);
