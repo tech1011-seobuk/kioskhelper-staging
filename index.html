@@ -8359,7 +8359,9 @@ async function hydrateDiagnosisMedia(){
           const video=document.createElement('video');video.src=src;video.controls=true;video.preload='metadata';video.playsInline=true;
           video.setAttribute('aria-label',item.name);video.onerror=()=>{wrapper.textContent='영상을 재생하지 못했습니다. 파일 형식과 연결을 확인해주세요.';};wrapper.appendChild(video);
         }else{
-          const link=document.createElement('a');link.href=src;link.target='_blank';link.rel='noopener noreferrer';link.textContent='↗ '+item.name+' (새 탭)';wrapper.appendChild(link);
+          let youtube='';try{youtube=youtubeManualUrl(src);}catch{}
+          if(youtube){const button=document.createElement('button');button.className='symptom-video-entry';button.textContent='🎬 '+item.name+' 보기';button.onclick=()=>openSymptomVideo(youtube);wrapper.appendChild(button);}
+          else {const link=document.createElement('a');link.href=src;link.target='_blank';link.rel='noopener noreferrer';link.textContent='↗ '+item.name+' (새 탭)';wrapper.appendChild(link);}
         }
       }catch{wrapper.textContent='첨부 자료를 불러오지 못했습니다. 인터넷 연결 후 화면을 다시 열어주세요.';}
     }
@@ -9920,7 +9922,8 @@ function appendReplacementMedia(host,key,indices){
  const section=document.createElement('section');section.className='replacement-media';
  const title=document.createElement('h3');title.textContent='영상 매뉴얼';section.appendChild(title);
  for(const [label,video,image] of items){const card=document.createElement('div');card.className='replacement-media-card';const heading=document.createElement('h4');heading.textContent=label;card.appendChild(heading);
- if(video){const button=document.createElement('button');button.className='symptom-video-entry';button.textContent='🎬 '+label+' 영상 보기';button.onclick=()=>openSymptomVideo('https://www.youtube.com/watch?v='+video);card.appendChild(button);}
+ if(video==='O0oa1EE--Ps'){const note=document.createElement('p');note.className='replacement-video-note';note.textContent='⌨️ 키보드가 있으신가요? 키보드가 있다면 프린터 교체 후 필요한 프로그램 설정을 직접 진행하실 수 있어요. 아래 영상에서 설정 방법을 차근차근 알려드릴게요!';card.appendChild(note);}
+ if(video){const button=document.createElement('button');button.className='symptom-video-entry';button.textContent=video==='O0oa1EE--Ps'?'🎬 프린터 설정 방법 보기':'🎬 '+label+' 영상 보기';button.onclick=()=>openSymptomVideo('https://www.youtube.com/watch?v='+video);card.appendChild(button);}
  if(image){const img=document.createElement('img');img.alt=label+' 사진 매뉴얼';img.loading='lazy';img.src='https://cf.channel.io/document/spaces/8576/'+(image.includes('/')?image:'usermedia/'+image);img.onclick=()=>openLightbox(img.src);img.onerror=()=>{img.replaceWith(document.createTextNode('사진을 불러오지 못했습니다. 잠시 후 다시 확인해주세요.'));};card.appendChild(img);}section.appendChild(card);}
  host.appendChild(section);
 }
@@ -10147,18 +10150,18 @@ function renderSymptomsScreen(){
   area.appendChild(wrap);
 
   const grid = document.getElementById('symptomsGrid');
-  dev.symptoms.filter(isHotTopic).forEach((sid, i)=>{
+  dev.symptoms.forEach((sid, i)=>{
     const card = document.createElement('button');
     card.className = 'symptom-card';
     card.style.animationDelay = (i*0.05)+'s';
-    card.innerHTML = '<span class="symptom-id mono">'+sid+'</span><span>'+escapeHtml(hotTopicLabel(sid))+'</span>';
+    card.innerHTML = '<span class="symptom-id mono">'+sid+'</span><span>'+(isHotTopic(sid)?'🔥 ':'')+escapeHtml(hotTopicLabel(sid))+'</span>';
     card.onclick = (e)=>{ addRipple(card, e); startSymptom(sid); };
     grid.appendChild(card);
   });
 
   const support=document.createElement('div');
   support.className='hub-sub';support.style.padding='20px';
-  support.innerHTML=(dev.symptoms.some(isHotTopic)?'찾는 증상이 없나요?':'이 부품의 고장 안내는 준비 중입니다.')+' <a href="https://cms.seobuk.kr/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">다른 증상으로 문의하기 ↗</a>';
+  support.innerHTML='찾는 증상이 없나요?'+' <a href="https://cms.seobuk.kr/" target="_blank" rel="noopener" style="color:inherit;text-decoration:underline">다른 증상으로 문의하기 ↗</a>';
   wrap.appendChild(support);
   document.getElementById('breadcrumb').innerHTML = '<b>'+dev.name+'</b><span class="sep">·</span>증상을 선택해주세요';
   add3DTilt(grid, '.symptom-card', 5);
