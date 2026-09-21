@@ -63,14 +63,14 @@ test('recent symptoms include non-hot topics, deduplicate QR aliases and skip un
 });
 
 test('historical QR entry opens the maintained QR guide',async()=>{
- const c=vm.createContext({currentUser:{id:'u'},appState:'symptoms',TREES:{'PRT-7':{start:'n1'},'PRT-13':{start:'old'}},path:[],selectedDevice:'프린터',symptomSource:'photoism',async loadPublishedDiagnosis(){},render(){},logEvent(){}});
+ const c=vm.createContext({currentUser:{id:'u'},appState:'symptoms',TREES:{'PRT-7':{start:'n1'},'PRT-13':{start:'old'}},helperStartAttempt(){},helperAttemptDetail(){return null;},path:[],selectedDevice:'프린터',symptomSource:'photoism',async loadPublishedDiagnosis(){},render(){},logEvent(){}});
  vm.runInContext(section('async function startSymptom(', 'function resetAll('),c);await c.startSymptom('PRT-13');
  assert.equal(c.path[0].symptomId,'PRT-7');assert.equal(c.path[0].nodeId,'n1');
 });
 
 test('non-hot-topic symptoms load their published guide before opening the chat',async()=>{
   for(const sid of ['ES-1','ES-2','CL-1','CL-2']){
-    const c=vm.createContext({currentUser:{id:'tester'},appState:'symptoms',TREES:{},path:[],selectedDevice:'light',symptomSource:'photoism',render(){c.rendered=true;},logEvent(){},isHotTopic(){return false;},showToast(){throw new Error('Unexpected blocked symptom');},async loadPublishedDiagnosis(){c.TREES[sid]={start:'published-start'};}});
+    const c=vm.createContext({currentUser:{id:'tester'},appState:'symptoms',TREES:{},helperStartAttempt(){},helperAttemptDetail(){return null;},path:[],selectedDevice:'light',symptomSource:'photoism',render(){c.rendered=true;},logEvent(){},isHotTopic(){return false;},showToast(){throw new Error('Unexpected blocked symptom');},async loadPublishedDiagnosis(){c.TREES[sid]={start:'published-start'};}});
     vm.runInContext(section('async function startSymptom(', 'function resetAll('),c);
     await c.startSymptom(sid);
     assert.equal(c.appState,'chat');

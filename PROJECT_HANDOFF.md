@@ -203,3 +203,17 @@ v80 staging 배포: main 5e2bcbc373acac43b7bb657f6c3dacedde4427b2, Pages 3555539
 본 서버 apply 35555452394 성공(1분28초), build17초/apply1분3초. 운영 URL https://tech1011-seobuk.github.io/KIOSKHELPER/ 새로고침 후 로그인 화면 정상 확인. 운영 관리자 세션 부재로 로그인 후 UI 직접검증은 미실시; staging/production 관리자·직원 조합 메뉴/진입 및 운영 저장차단 자동검사 통과. 테스트 다이어그램 유지 실화면 확인. 기존 사용자 창 보존, 임시탭 정리.
 
 2026-09-21 v81: CMS 매핑 미수신 상태에서도 본 서버 UI 선배포 요청. 최신 v80에 CMS ID/비밀번호/확인, 일치 검증, 제출 시 공동계정 정책 팝업 이관. 이메일·이름·지점 입력 제거. 신규 가입은 명시적 준비중 상태로 전송/저장/계정생성 하지 않음. 데이터 미수집이므로 동의 체크박스는 연결 완료 시 추가. 기존 이메일 로그인/비밀번호 복구 유지, DB/승인 권한 미변경. 실제 승인목록·매핑·이메일 없는 인증은 미완료. 로컬 비밀번호 불일치·일치·정책팝업·미접수 안내 확인. 실제 휴대폰 미검사.
+
+v81 검증: 전체 자동검사47개, 운영 변환 후31개 통과. 로컬 화면/일치·불일치·정책취소/확인 흐름 중 확인 경로 및 미저장 안내 검증. viewport390 요청이 실제 DOM1272로 유지되어 모바일 확인으로 간주하지 않음. 원격 staging main 5cf8dc938b15b6d112247122df1b740d142a0c41 게시, Pages35563520680 진행중.
+
+v81 staging Pages35563520680 성공(57초). 본 서버 apply35563630502 실행, source5cf8dc938b15b6d112247122df1b740d142a0c41 및 build25초 성공 확인. 데이터·권한 변경 없이 UI만 선배포.
+
+v81 본 서버 apply35563630502 성공(48초). 본 서버 신규 탭에서 회원가입 진입 후 CMS ID/비밀번호/비밀번호 확인, 이메일·지점·이름 제거, 비밀번호 확인 전 제출 비활성 및 미접수 안내 실제 확인. 기존 사용자 탭 입력은 건드리지 않음. 가입 접수·매핑·승인 기능은 아직 미연결임을 사용자에게 명확히 안내.
+
+
+## 2026-09-21 — staging v82 community and performance
+- Test-only release requested. Production has NOT been changed.
+- Embedded community-ui.js adds announcement archive/admin draft and scheduled publishing, once-confirmed account popup, private suggestions with admin status/reply, end-of-guide satisfaction. Run node sync-community.cjs after editing it.
+- community-storage.sql applied to STAGING mjzhljlhjsbnnxyekmwy only; uses existing is_admin, RLS and column grants. No changes to auth/profiles/CMS signup or diagnosis content. Production requires this reviewed schema migration before promoting these features.
+- v2 event detail carries per-attempt UUID; latest ending counted once, info separated, CMS clicks are not actual inquiries. New dashboard excludes legacy events from outcome KPIs; historical detail remains collapsible. Median uses paired solved attempts within 1h; feedback is store-account satisfaction, not end-customer satisfaction.
+- 52 automated tests passed, including deduplication, missing outcomes, rating/account matching and existing flows. UI and deployed verification pending below.
