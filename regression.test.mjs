@@ -10,6 +10,26 @@ const root = resolve(process.env.KIOSKHELPER_TEST_ROOT || fileURLToPath(new URL(
 const html = readFileSync(resolve(root, 'index.html'), 'utf8');
 const swSource = readFileSync(resolve(root, 'sw.js'), 'utf8');
 
+test('diagram editor is available only to staging admins and production cannot enter or save',async()=>{
+  for(const env of ['staging','production']){
+    for(const role of ['admin','staff']){
+      const elements=new Map();
+      const ctx=vm.createContext({APP_ENV:env,currentUser:{id:'u',role},appState:'hub',diagramSaving:false,
+        updateDiagnosisNotice(){},render(){},async loadPublishedDiagnosis(){},
+        document:{getElementById(id){if(!elements.has(id))elements.set(id,{style:{},classList:{toggle(){}}});return elements.get(id);}}
+      });
+      vm.runInContext(section('function updateUserInfoBar(){','async function handleLogout(){')+section('async function goToDiagramEditor(){','const DIAGRAM_HOT_TOPICS'),ctx);
+      ctx.updateUserInfoBar();await ctx.goToDiagramEditor();
+      const allowed=env==='staging'&&role==='admin';
+      assert.equal(elements.get('diagramEditorBtn').style.display,allowed?'flex':'none');
+      assert.equal(ctx.appState,allowed?'diagramEditor':'hub');
+    }
+  }
+  const ctx=vm.createContext({APP_ENV:'production'});
+  vm.runInContext(section('async function saveDiagram(sid){','async function reloadDiagramPublished(sid){'),ctx);
+  await ctx.saveDiagram('PRT-1');
+});
+
 test('unavailable attachment badges are hidden but real attachment notes remain',()=>{
   const c=vm.createContext({escapeHtml:s=>s});
   vm.runInContext(section('function attachmentMarkup(', 'function buildBubbleInner('),c);

@@ -5931,7 +5931,7 @@ function updateUserInfoBar(){
     if (currentUser.role === 'admin') {
       adminBtn.style.display = 'flex';
       adminBtn.classList.toggle('active', appState === 'adminDashboard');
-      diagramBtn.style.display = 'flex';
+      diagramBtn.style.display = APP_ENV === 'staging' ? 'flex' : 'none';
       diagramBtn.classList.toggle('active', appState === 'diagramEditor');
     } else {
       adminBtn.style.display = 'none';
@@ -8125,6 +8125,7 @@ function updateDiagramSaveStatus(sid, message, isError = false){
 }
 
 async function saveDiagram(sid){
+  if (APP_ENV !== 'staging') return;
   if (diagramSaving || mediaUploading || !currentUser || currentUser.role !== 'admin') return;
   const draft = captureDiagramDraft(sid);
   if (!draft.dirty) return;
@@ -8512,6 +8513,7 @@ async function uploadDiagramMedia(sid,nid,file){
 /* ============================= END PUBLISHED DIAGNOSIS ============================= */
 
 async function goToDiagramEditor(){
+  if (APP_ENV !== 'staging') return;
   if (diagramSaving || currentUser?.role !== 'admin') return;
   const owner=currentUser.id;
   await loadPublishedDiagnosis();
@@ -8572,6 +8574,7 @@ function diagramDevicesForBrand(brand){
 }
 function diagramCategoryShared(name){return diagramDevicesForBrand('photoism').some(d=>d.name===name)&&diagramDevicesForBrand('snapism').some(d=>d.name===name);}
 async function renderDiagramEditorScreen(){
+ if(APP_ENV !== 'staging'){appState=currentUser?'hub':'login';render();return;}
  const area=document.getElementById('chatArea');
  let brand=null,device=null,hot=false;
  const brandName=()=>brand==='photoism'?'포토이즘':'스내피즘';
