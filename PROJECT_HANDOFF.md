@@ -224,3 +224,11 @@ v81 본 서버 apply35563630502 성공(48초). 본 서버 신규 탭에서 회�
 - One real update announcement saved as an ADMIN-ONLY DRAFT, not published. No notifications sent. Login popup behavior (read suppression, one per session, failed acknowledgement retry) covered by tests.
 - v83: three-column KPI layout, styled period control, admin popup preview, and reads restricted to the 30 fetched notices to avoid read-receipt pagination loss. 54 tests total passing across existing suites and added community tests.
 - Actual phone not inspected (IAB viewport override unsupported); responsive CSS included. CMS mapping/signup activation and actual ChannelTalk inquiry correlation remain separate outstanding work.
+
+- Final v83 staging main: d37484618d761d7dcb2b80907412b0cb2cb14381. Pages run 35568964614 (#91) completed successfully. Deployed popup preview visually verified; draft persisted across reload. Production untouched.
+
+## 2026-09-21 v84 — focused details and photo catalog
+- Added shared period/brand/device filters and three expandable TOP-5 tables. Repeated legacy clicks retained; v2 outcomes deduplicate by attempt. Priority sample rule: at least five outcomes with consultation or three low ratings (<3.5).
+- Admin staging-only photo review uses current published diagnosis images plus replacement media; deduplicates photos and lists every use. Does not change diagnosis or save drafts. Not a complete source ChannelTalk archive.
+- 3D framing now measures all front-door swing positions to choose one fixed camera distance for both closed and open views. No view-switch camera translation.
+- Tests: existing 54 pass; added filter/cohort, priority evidence and image deduplication tests. Staging deploy and browser verification pending.

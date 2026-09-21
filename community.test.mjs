@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import {readFileSync} from 'node:fs';
 const source=readFileSync(new URL('community-ui.js',import.meta.url),'utf8');
-const ctx=vm.createContext({});vm.runInContext(source,ctx);
+const ctx=vm.createContext({URL});vm.runInContext(source,ctx);
 const event=(attempt,type,outcome,minute,user='u')=>({user_id:user,event_type:type,outcome,symptom_id:'PRT-1',created_at:new Date(1700000000000+minute*60000).toISOString(),detail:JSON.stringify({v:2,attempt})});
 test('outcome changes are deduplicated per user and attempt, legacy records excluded',()=>{
  const events=[event('a','symptom_click',null,0),event('a','symptom_outcome','escalate',1),event('a','symptom_outcome','solved',3),event('a','symptom_outcome','solved',4),{event_type:'symptom_outcome',outcome:'solved',detail:null}];
@@ -43,4 +43,25 @@ test('confirmed notices do not open; unread notice opens once per login and save
 });
 test('failed notice acknowledgement stays open and can be retried',async()=>{
  const h=popupHarness({failWrite:true});await h.c.helperCheckNotices();const button=h.buttons.get('[data-read]');await button.onclick({currentTarget:button});assert.notEqual(h.dialogs[0].closed,true);assert.equal(button.disabled,false);assert.match(h.buttons.get('[role=status]').textContent,/저장하지 못/);
+});
+test('detail filters use start brand/device, preserve repeated legacy views and pair outcomes',()=>{
+ const start={...event('a','symptom_click',null,0),brand:'photoism',device:'프린터'};
+ const events=[start,{...start,detail:null},{...event('a','symptom_outcome','solved',2),brand:null}, {...event('b','symptom_click',null,1),brand:'snapism',device:'카메라'}];
+ const d=ctx.helperSymptomStats(events,[],0,{brand:'photoism',device:'프린터'});
+ assert.equal(d.views,2);assert.equal(d.popular[0].started,1);assert.equal(d.popular[0].solved,1);assert.equal(d.metrics.rate,100);
+ assert.equal(ctx.helperSymptomStats(events,[],1700000060000,{brand:'photoism'}).views,0);
+});
+test('priority requires sample evidence, excludes AS-only and uses matching low ratings',()=>{
+ const events=[];const ratings=[];
+ for(let i=0;i<5;i++){events.push(event('a'+i,'symptom_click',null,i),event('a'+i,'symptom_outcome','escalate',i+1));}
+ const d=ctx.helperSymptomStats(events,ratings);assert.equal(d.priority[0].sufficient,true);assert.equal(d.priority[0].completed,5);
+ assert.equal(ctx.helperSymptomStats(events.slice(0,2),[]).priority[0].sufficient,false);
+ assert.equal(ctx.helperSymptomStats([event('z','symptom_click',null,0),event('z','symptom_outcome','as',1)],[]).priority.length,0);
+ const low=ctx.helperSymptomStats(events.slice(0,6).map(e=>({...e,outcome:e.outcome?'solved':null})),[0,1,2].map(i=>({user_id:'u',attempt_id:'a'+i,score:2})));
+ assert.equal(low.priority[0].sufficient,true);assert.equal(low.priority[0].scores,3);
+});
+test('photo catalog deduplicates source images and retains every use without including videos',()=>{
+ const url='https://cf.channel.io/document/spaces/8576/usermedia/a';
+ const tree={X:{nodes:{n1:{text:'one',media:[{kind:'image',url,name:'사진'},{kind:'video',url:'https://example.org/v.mp4'}]},n2:{text:'two',media:[{kind:'image',url,name:'사진'}]}}}};
+ const rows=ctx.helperPhotoCatalog(tree,{printer:[['교체','video','a']]});assert.equal(rows.length,1);assert.equal(rows[0].places.length,3);assert.equal(rows[0].channel,true);
 });

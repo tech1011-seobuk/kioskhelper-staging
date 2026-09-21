@@ -41,7 +41,44 @@ function helperNavigation(){
     }
   }
   nav.hidden=!currentUser;nav.style.display=currentUser?'flex':'none';
+  let photos=document.getElementById('helperPhotoReviewButton');
+  if(!photos){photos=document.createElement('button');photos.id='helperPhotoReviewButton';photos.textContent='🖼️ 사진 모아보기';photos.onclick=()=>{appState='photoReview';render();};nav.appendChild(photos);}
+  photos.hidden=!currentUser||currentUser.role!=='admin'||APP_ENV!=='staging';
   if(!currentUser){helperNoticeOwner=null;helperAttempt=null;helperNoticeDialog?.close();helperNoticeDialog?.remove();helperNoticeDialog=null;}
+}
+function helperPhotoCatalog(trees,replacements){
+  const photos=new Map();
+  function add(item,place){
+    if(item.kind!=='image'||(!item.url&&!item.path))return;
+    const key=item.path?'private:'+item.path:item.url;
+    if(!photos.has(key)){let channel=false;try{channel=new URL(item.url).hostname==='cf.channel.io';}catch{}photos.set(key,{item,channel,places:[]});}
+    const row=photos.get(key);if(!row.places.includes(place))row.places.push(place);
+  }
+  for(const [sid,tree] of Object.entries(trees))for(const [nid,node] of Object.entries(tree.nodes||{})){
+    const place=sid+' · '+(typeof SYMPTOM_LABEL==='undefined'?sid:SYMPTOM_LABEL[sid]||sid)+' · 단계 '+nid+' — '+(node.text||'');
+    for(const item of node.media||[])add(item,place);
+    for(const url of node.images|| (node.image?[node.image]:[]))add({kind:'image',url,name:'조치 사진'},place);
+  }
+  for(const [key,items] of Object.entries(replacements))for(const [name,,image] of items)if(image)add({kind:'image',name,url:'https://cf.channel.io/document/spaces/8576/'+(image.includes('/')?image:'usermedia/'+image)},'장비 교체 · '+key+' · '+name);
+  return [...photos.values()];
+}
+async function renderPhotoReviewScreen(){
+  if(APP_ENV!=='staging'||currentUser?.role!=='admin'){appState='hub';render();return;}
+  const owner=currentUser.id,content=helperShell('🖼️ 사진 모아보기','현재 적용된 사진을 중복 없이 모았습니다. 사진을 누르면 확대되고, 아래에서 적용된 증상·단계를 확인할 수 있어요.');
+  try{
+    if(!await loadPublishedDiagnosis())throw new Error('published photos unavailable');if(!helperOwnerValid(owner,'photoReview'))return;
+    const photos=helperPhotoCatalog(TREES,REPLACEMENT_MEDIA);
+    content.innerHTML='<div class="helper-card"><label>사진 검색<input id="helperPhotoSearch" type="search" placeholder="카메라, 프린터, 증상 번호 등"></label><label>출처<select id="helperPhotoSource"><option value="channel">채널톡 사진</option><option value="all">현재 적용된 모든 사진</option></select></label><p id="helperPhotoCount" class="helper-small" role="status"></p><p class="helper-small">채널톡 원문 전체 보관함이 아니라, 현재 앱에 연결된 사진 목록입니다. 이전에 제외한 사진은 포함하지 않습니다. 수정할 사진은 아래 번호나 증상·단계를 알려주세요.</p></div><div id="helperPhotoGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:14px"></div>';
+    const draw=()=>{
+      const q=content.querySelector('#helperPhotoSearch').value.trim().toLowerCase(),source=content.querySelector('#helperPhotoSource').value;
+      const rows=photos.map((row,i)=>({...row,number:i+1})).filter(row=>(source==='all'||row.channel)&&[row.item.name,...row.places].join(' ').toLowerCase().includes(q));
+      content.querySelector('#helperPhotoCount').textContent=rows.length+'장 · 전체 등록 사진 '+photos.length+'장';
+      const grid=content.querySelector('#helperPhotoGrid');grid.innerHTML='';
+      for(const row of rows){const card=document.createElement('article');card.className='helper-card';card.style.margin='0';card.innerHTML='<h2 style="font-size:16px">사진 '+row.number+' · '+escapeHtml(row.item.name||'조치 사진')+'</h2>'+renderDiagnosisMedia({media:[row.item]})+'<details style="margin-top:12px"><summary>적용 위치 '+row.places.length+'곳</summary>'+row.places.map(place=>'<p class="helper-small">'+escapeHtml(place)+'</p>').join('')+'</details>';grid.appendChild(card);}
+      if(!rows.length)grid.textContent='해당 조건의 사진이 없어요.';
+      hydrateDiagnosisMedia();
+    };content.querySelector('#helperPhotoSearch').oninput=draw;content.querySelector('#helperPhotoSource').onchange=draw;draw();
+  }catch{content.innerHTML='<p class="helper-error">사진 목록을 불러오지 못했어요.</p><button>다시 시도</button>';content.querySelector('button').onclick=renderPhotoReviewScreen;}
 }
 function helperErrorText(){return '저장소에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 시도해주세요. 입력 내용은 유지됩니다.';}
 async function helperQuery(query){
@@ -183,18 +220,18 @@ function helperAddRating(container){
   }
 }
 // Only v2 attempts have reliable start/outcome pairing. Legacy records remain in details.
-function helperMetrics(events,ratings,since=0){
+function helperMetrics(events,ratings,since=0,filters={}){
   const attempts=new Map();
   for(const e of [...events].sort((a,b)=>new Date(a.created_at)-new Date(b.created_at))){
     let meta;try{meta=JSON.parse(e.detail);}catch{continue;}
     if(meta?.v!==2||!meta.attempt||!e.user_id)continue;
     const key=e.user_id+'|'+meta.attempt;
-    if(e.event_type==='symptom_click'&&!attempts.has(key))attempts.set(key,{id:meta.attempt,user:e.user_id,start:+new Date(e.created_at),symptom:e.symptom_id,outcome:null});
+    if(e.event_type==='symptom_click'&&!attempts.has(key))attempts.set(key,{id:meta.attempt,user:e.user_id,start:+new Date(e.created_at),symptom:e.symptom_id==='PRT-13'?'PRT-7':e.symptom_id,brand:e.brand,device:e.device,outcome:null});
     const item=attempts.get(key);if(!item)continue;
     if(e.event_type==='symptom_outcome'){item.outcome=e.outcome;item.end=+new Date(e.created_at);}
     if(e.event_type==='support_click')item.clicked=true;
   }
-  const rows=[...attempts.values()].filter(x=>x.start>=since),valid=new Set(rows.map(x=>x.user+'|'+x.id));
+  const rows=[...attempts.values()].filter(x=>x.start>=since&&(!filters.brand||x.brand===filters.brand)&&(!filters.device||x.device===filters.device)),valid=new Set(rows.map(x=>x.user+'|'+x.id));
   const scores=ratings.filter(x=>valid.has(x.user_id+'|'+x.attempt_id));
   const solved=rows.filter(x=>x.outcome==='solved'),escalate=rows.filter(x=>x.outcome==='escalate'),as=rows.filter(x=>x.outcome==='as'),info=rows.filter(x=>x.outcome==='info');
   const completed=solved.length+escalate.length+as.length;
@@ -202,14 +239,40 @@ function helperMetrics(events,ratings,since=0){
   const median=durations.length?(durations[Math.floor((durations.length-1)/2)]+durations[Math.floor(durations.length/2)])/2:null;
   return {rows,solved:solved.length,escalate:escalate.length,as:as.length,info:info.length,pending:rows.filter(x=>!x.outcome).length,completed,rate:completed?Math.round(solved.length/completed*100):null,clicks:rows.filter(x=>x.clicked).length,scores: scores.length,score:scores.length?scores.reduce((s,r)=>s+r.score,0)/scores.length:null,median,durationCount:durations.length};
 }
+function helperSymptomStats(events,ratings,since=0,filters={}){
+  const metrics=helperMetrics(events,ratings,since,filters),stats=new Map();
+  const entry=id=>{if(!stats.has(id))stats.set(id,{id,views:0,started:0,solved:0,escalate:0,as:0,info:0,pending:0,scoreTotal:0,scores:0});return stats.get(id);};
+  for(const e of events){
+    if(e.event_type!=='symptom_click'||!e.symptom_id||!(+new Date(e.created_at)>=since)||(filters.brand&&e.brand!==filters.brand)||(filters.device&&e.device!==filters.device))continue;
+    entry(e.symptom_id==='PRT-13'?'PRT-7':e.symptom_id).views++;
+  }
+  const attempts=new Map();
+  for(const row of metrics.rows){const s=entry(row.symptom);s.started++;s[row.outcome||'pending']=(s[row.outcome||'pending']||0)+1;attempts.set(row.user+'|'+row.id,s);}
+  for(const rating of ratings){const s=attempts.get(rating.user_id+'|'+rating.attempt_id);if(s){s.scores++;s.scoreTotal+=rating.score;}}
+  const rows=[...stats.values()].map(s=>({...s,completed:s.solved+s.escalate+s.as,score:s.scores?s.scoreTotal/s.scores:null}));
+  const views=rows.reduce((n,s)=>n+s.views,0);
+  const popular=[...rows].sort((a,b)=>b.views-a.views||a.id.localeCompare(b.id));
+  const priority=rows.filter(s=>s.escalate>0||(s.score!==null&&s.score<3.5)).map(s=>({...s,sufficient:(s.completed>=5&&s.escalate>0)||(s.scores>=3&&s.score<3.5)})).sort((a,b)=>Number(b.sufficient)-Number(a.sufficient)||b.escalate-a.escalate||(a.score??6)-(b.score??6)||a.id.localeCompare(b.id));
+  return {metrics,popular,priority,views};
+}
+function helperDetailSection(title,headers,rows,note){
+  const section=document.createElement('section');section.className='helper-card';
+  section.innerHTML='<h2>'+title+'</h2><p class="helper-small">'+note+'</p>';
+  const body=document.createElement('div');body.style.overflowX='auto';section.appendChild(body);
+  let expanded=false;
+  const draw=()=>{body.innerHTML=rows.length?'<table class="admin-table"><thead><tr>'+headers.map(x=>'<th scope="col">'+x+'</th>').join('')+'</tr></thead><tbody>'+(expanded?rows:rows.slice(0,5)).map(cells=>'<tr>'+cells.map(c=>'<td>'+c+'</td>').join('')+'</tr>').join('')+'</tbody></table>':'<p class="helper-small">선택한 조건에 해당하는 기록이 없어요.</p>';};draw();
+  if(rows.length>5){const button=document.createElement('button');button.style.marginTop='12px';button.textContent='전체 보기 ('+rows.length+'개)';button.setAttribute('aria-expanded','false');button.onclick=()=>{expanded=!expanded;draw();button.textContent=expanded?'TOP 5만 보기':'전체 보기 ('+rows.length+'개)';button.setAttribute('aria-expanded',String(expanded));};section.appendChild(button);}
+  return section;
+}
 async function helperRenderPerformance(events,profiles){
   const area=document.getElementById('chatArea'),owner=currentUser.id;
   const host=document.createElement('section');host.className='helper-panel';host.id='helperPerformance';
   area.prepend(host);let ratings=[],ratingFailed=false,suggestions=[];
   try{[ratings,suggestions]=await Promise.all([loadAllAdminRows('helper_ratings'),loadAllAdminRows('helper_suggestions')]);}catch{ratingFailed=true;}
   if(!helperOwnerValid(owner,'adminDashboard')||!host.isConnected)return;
+  let brand='',device='';
   const renderStats=(days='30')=>{
-    const since=days==='all'?0:Date.now()-Number(days)*86400000,m=helperMetrics(events,ratings,since);
+    const since=days==='all'?0:Date.now()-Number(days)*86400000,detail=helperSymptomStats(events,ratings,since,{brand,device}),m=detail.metrics;
     const kpi=(name,value,note)=>'<article class="helper-card"><div>'+name+'</div><div class="helper-value">'+value+'</div><div class="helper-small">'+note+'</div></article>';
     host.innerHTML='<h1>📊 해결 성과와 점주 만족도</h1><p class="helper-small">목표: 점주가 더 쉽게 해결하고, 필요한 상담은 빠르게 연결하기</p><div class="helper-filters"><label for="helperPeriod">집계 기간</label><select id="helperPeriod">'+[['7','최근 7일'],['30','최근 30일'],['90','최근 90일'],['all','전체']].map(([v,l])=>'<option value="'+v+'"'+(v===days?' selected':'')+'>'+l+'</option>').join('')+'</select></div><div class="helper-kpis" style="margin-top:16px">'+
       kpi('자가 해결률',m.rate===null?'—':m.rate+'%',m.solved+'건 해결 / 결과 확인 '+m.completed+'건 · 단순 안내 완료 제외')+
@@ -218,9 +281,17 @@ async function helperRenderPerformance(events,profiles){
       kpi('상담 안내 / A/S 안내',m.escalate+' / '+m.as,'A/S 안내를 실패로 단정하지 않아요.')+
       kpi('CMS 문의 이동',m.clicks+'건','버튼 클릭 기준 · 실제 상담 접수와 다름')+
       kpi('진행 중·결과 미응답',m.pending+'건','조치 시작 '+m.rows.length+'건 · 안내 완료 '+m.info+'건')+'</div><p class="helper-small">새 측정 방식 적용 이후 시작한 조치만 집계합니다. 결과를 다시 선택하면 마지막 결과로 갱신해요. 응답 없는 조치를 성공으로 계산하지 않아요. 실제 채널톡 인입 감소율과 고객 만족도는 별도 데이터 연동이 필요해요.</p>';
-    const issues=new Map();m.rows.filter(x=>x.outcome==='escalate').forEach(x=>issues.set(x.symptom,(issues.get(x.symptom)||0)+1));
-    const issueList=[...issues].sort((a,b)=>b[1]-a[1]).slice(0,5);
-    const section=document.createElement('div');section.className='helper-card';section.innerHTML='<h2>우선 보완할 조치 안내</h2>'+(issueList.length?issueList.map(([id,n])=>'<p>'+escapeHtml(SYMPTOM_LABEL[id]||id)+' · 상담 안내 '+n+'건</p>').join(''):'<p class="helper-small">상담 안내가 누적되면 증상별로 표시됩니다.</p>')+'<p>처리 대기 개선 제안: '+(ratingFailed?'조회 실패':suggestions.filter(x=>!['반영 완료','보류'].includes(x.status)).length+'건')+'</p><div class="helper-actions"><button data-notices>공지 관리</button><button data-suggestions>개선 제안 관리</button></div>';
+    const filters=host.querySelector('.helper-filters');
+    const addFilter=(id,label,options,value,onchange)=>{const l=document.createElement('label');l.htmlFor=id;l.textContent=label;const select=document.createElement('select');select.id=id;select.innerHTML=options.map(([v,t])=>'<option value="'+escapeHtml(v)+'">'+escapeHtml(t)+'</option>').join('');select.value=value;select.onchange=onchange;filters.append(l,select);};
+    addFilter('helperBrand','브랜드',[['','전체 브랜드'],['photoism','포토이즘'],['snapism','스내피즘']],brand,e=>{brand=e.target.value;device='';renderStats(days);});
+    const devices=[...new Set(events.filter(e=>e.event_type==='symptom_click'&&e.device&&(!brand||e.brand===brand)).map(e=>e.device))].sort();
+    addFilter('helperDevice','장비',[['','전체 장비'],...devices.map(x=>[x,x])],device,e=>{device=e.target.value;renderStats(days);});
+    const label=s=>escapeHtml(SYMPTOM_LABEL[s.id]||s.id)+'<br><span class="helper-small">'+escapeHtml(s.id)+'</span>';
+    host.appendChild(helperDetailSection('많이 찾는 증상 TOP 5',['증상','조회수','조회 비중'],detail.popular.map(s=>[label(s),s.views+'회',detail.views?(s.views/detail.views*100).toFixed(1)+'%':'—']),'과거 조회 기록 포함 · 반복 조회 포함 · 비중은 현재 필터의 전체 증상 조회 기준'));
+    host.appendChild(helperDetailSection('보완이 필요한 증상 TOP 5',['증상','상담 안내','만족도','판단 근거'],detail.priority.map(s=>[label(s),s.escalate+'건',ratingFailed?'조회 실패':s.score===null?'—':s.score.toFixed(1)+' / 5',(!s.sufficient?'판단 자료 부족<br>':'보완 검토 대상<br>')+'결과 '+s.completed+'건 · 만족도 '+s.scores+'건']),'상담 안내 건수와 낮은 만족도(3.5점 미만)를 참고합니다. 결과 5건 또는 낮은 만족도 응답 3건부터 보완 검토 대상으로 표시해요. A/S 안내만으로 보완 대상으로 분류하지 않아요.'));
+    const count=(s,key)=>s.started?s[key]+'건':'—';
+    host.appendChild(helperDetailSection('증상별 조치 결과',['증상','시작','해결','상담 안내','A/S 안내','안내 완료','진행·미응답'],detail.popular.map(s=>[label(s),s.started?s.started+'건':'—',...['solved','escalate','as','info','pending'].map(k=>count(s,k))]),'새 측정 이후 시작한 조치 기준 · 동일 진행 건은 마지막 결과 1건만 집계 · 과거 조회만 있는 증상의 조치 결과는 —로 표시'));
+    const section=document.createElement('div');section.className='helper-card';section.innerHTML='<p>처리 대기 개선 제안 (전체): '+(ratingFailed?'조회 실패':suggestions.filter(x=>!['반영 완료','보류'].includes(x.status)).length+'건')+'</p><div class="helper-actions"><button data-notices>공지 관리</button><button data-suggestions>개선 제안 관리</button></div>';
     host.appendChild(section);host.querySelector('#helperPeriod').onchange=e=>renderStats(e.target.value);
     host.querySelector('[data-notices]').onclick=()=>{appState='announcements';render();};host.querySelector('[data-suggestions]').onclick=()=>{appState='suggestions';render();};
   };renderStats();
