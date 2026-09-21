@@ -10,6 +10,20 @@ const root = resolve(process.env.KIOSKHELPER_TEST_ROOT || fileURLToPath(new URL(
 const html = readFileSync(resolve(root, 'index.html'), 'utf8');
 const swSource = readFileSync(resolve(root, 'sw.js'), 'utf8');
 
+test('CMS signup checks both passwords without creating an unapproved account',()=>{
+  const ctx=vm.createContext({});
+  vm.runInContext(section('function signupPasswordState(', 'function showSharedAccountPolicy('),ctx);
+  assert.equal(ctx.signupPasswordState('abcdef','').matches,false);
+  assert.equal(ctx.signupPasswordState('abcdef','abcdeg').matches,false);
+  assert.equal(ctx.signupPasswordState('abcdef','abcdef').matches,true);
+  assert.equal(ctx.signupPasswordState('changed','abcdef').matches,false);
+  const screen=section('function renderLoginScreen(){','function renderHubScreen(){');
+  assert.doesNotMatch(screen,/sb\.auth\.signUp|authName|authBranch/);
+  assert.match(screen,/sb\.auth\.signInWithPassword/);
+  assert.match(screen,/const email = isSignup \? ''/);
+  assert.match(screen,/가입 신청은 접수되지 않습니다/);
+});
+
 test('diagram editor is available only to staging admins and production cannot enter or save',async()=>{
   for(const env of ['staging','production']){
     for(const role of ['admin','staff']){

@@ -1982,6 +1982,7 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 .symptom-video-dialog::backdrop{background:#000b}.symptom-video-dialog iframe{display:block;width:100%;aspect-ratio:16/9;border:0;margin:14px 0}.symptom-video-dialog a{color:var(--text)}
 .replacement-guide{text-align:left;width:100%;margin-top:24px}.replacement-choices{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}.replacement-choice,.replacement-navigation button{font:inherit;color:inherit;background:var(--panel,#25262c);border:1px solid var(--border,#555);border-radius:12px;padding:12px 18px;cursor:pointer;min-height:44px}.replacement-choice[aria-pressed="true"]{border-color:#d4ec32;background:rgba(212,236,50,.12)}.replacement-step{padding:24px;border:1px solid var(--border,#555);border-radius:18px;background:rgba(128,128,128,.06)}.replacement-progress{font-size:13px;color:var(--muted,#aaa);margin:0 0 14px}.replacement-step h3{font-size:22px;margin:0 0 18px;line-height:1.4}.replacement-step h3:focus-visible{outline:2px solid #d4ec32;outline-offset:4px}.replacement-body{white-space:pre-line;line-height:1.85;font-size:16px;overflow-wrap:anywhere;margin:0;min-height:100px}.replacement-navigation{display:flex;justify-content:space-between;gap:12px;margin-top:26px}.replacement-navigation .replacement-next{background:#d4ec32;color:#16190c;font-weight:700}.replacement-navigation button:disabled{opacity:.35;cursor:default}.replacement-video-note{line-height:1.7;color:var(--muted,#aaa)}@media(max-width:600px){.replacement-step{padding:18px}.replacement-step h3{font-size:20px}.replacement-body{font-size:15px}.replacement-choice{flex:1;min-width:120px}.replacement-navigation button{padding:12px 15px}}
 .replacement-media{text-align:left;margin-top:24px}.replacement-media-card{margin:16px 0;padding:16px;border:1px solid var(--border);border-radius:12px}.replacement-media-card img{display:block;max-width:100%;height:auto;cursor:zoom-in}.replacement-media-card h4{margin:0 0 12px}
+.signup-dialog{box-sizing:border-box;width:min(520px,90vw);max-height:80vh;overflow:auto;background:var(--panel,#25262c);color:var(--text);border:1px solid var(--border);border-radius:18px;padding:24px}.signup-dialog::backdrop{background:#0009}.signup-dialog p{line-height:1.7}.signup-store-option{padding:12px 16px;margin-top:10px;border:1px solid var(--border);border-radius:10px;background:transparent;color:inherit;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 </head>
@@ -7626,6 +7627,24 @@ const PRIVACY_CONSENT_HTML =
     '</div>' +
   '</div>';
 
+function signupPasswordState(password,confirmation){
+ const empty=!confirmation;
+ const matches=!empty&&password===confirmation;
+ return {empty,matches,message:empty?'비밀번호를 한 번 더 입력해주세요.':matches?'비밀번호가 일치합니다.':'비밀번호가 일치하지 않습니다.'};
+}
+function showSharedAccountPolicy(){
+ return new Promise(resolve=>{
+  const dialog=document.createElement('dialog');dialog.className='signup-dialog';
+  dialog.setAttribute('aria-labelledby','sharedAccountTitle');
+  dialog.innerHTML='<h2 id="sharedAccountTitle">매장 계정 이용 안내</h2><p>매장당 계정은 <strong>1개만 승인됩니다.</strong></p><p>점주 또는 관리자가 여러 명인 경우, 해당 매장 계정을 공동으로 사용해주세요.</p><button type="button" class="login-submit" id="sharedAccountContinue">확인하고 계속</button><button type="button" class="signup-store-option" id="sharedAccountCancel">취소</button>';
+  let accepted=false;
+  dialog.addEventListener('close',()=>{dialog.remove();resolve(accepted);},{once:true});
+  dialog.querySelector('#sharedAccountContinue').onclick=()=>{accepted=true;dialog.close();};
+  dialog.querySelector('#sharedAccountCancel').onclick=()=>dialog.close();
+  document.body.appendChild(dialog);dialog.showModal();
+ });
+}
+
 function renderLoginScreen(){
   const area = document.getElementById('chatArea');
   const isSignup = authMode === 'signup';
@@ -7705,15 +7724,14 @@ function renderLoginScreen(){
 
   wrap.innerHTML =
     '<div class="hub-title">'+(isSignup ? '회원가입' : '로그인')+'</div>' +
-    '<div class="hub-sub">'+(isSignup ? 'PHOTOISM 헬퍼 계정을 만들어주세요.' : 'PHOTOISM 헬퍼에 로그인해주세요.')+'</div>' +
+    '<div class="hub-sub">'+(isSignup ? 'CMS ID로 이용하는 새 가입 화면입니다.' : 'PHOTOISM 헬퍼에 로그인해주세요.')+'</div>' +
     (authNotice ? '<div class="'+(authNotice.type==='error'?'login-error':'login-notice')+'">'+authNotice.text+'</div>' : '') +
     '<form id="authForm">' +
-      (isSignup ? '<div class="login-field"><label>이름</label><input type="text" id="authName" autocomplete="name" required></div>' : '') +
-      (isSignup ? '<div class="login-field"><label>지점명</label><input type="text" id="authBranch" placeholder="예: 충남 천안 신부점" required><span class="field-hint">지점명 기준으로 적어주세요. (예: 충남 천안 신부점)</span></div>' : '') +
-      '<div class="login-field"><label>이메일</label><input type="email" id="authEmail" autocomplete="email" value="'+(isSignup ? '' : escapeHtml(getRememberedEmail()))+'" required></div>' +
+      (isSignup ? '<div class="login-notice" role="status">새 회원가입을 준비 중입니다. 현재 입력한 정보는 전송·저장되지 않으며 가입 신청은 접수되지 않습니다.</div><div class="login-field"><label for="authCmsId">CMS ID</label><input type="text" id="authCmsId" autocomplete="username" maxlength="100" required></div>' : '<div class="login-field"><label for="authEmail">이메일</label><input type="email" id="authEmail" autocomplete="email" value="'+escapeHtml(getRememberedEmail())+'" required></div>') +
       '<div class="login-field"><label>비밀번호</label><input type="password" id="authPassword" autocomplete="'+(isSignup?'new-password':'current-password')+'" minlength="6" required></div>' +
+      (isSignup ? '<div class="login-field"><label for="authPasswordConfirm">비밀번호 확인</label><input type="password" id="authPasswordConfirm" aria-describedby="passwordMatchStatus" autocomplete="new-password" minlength="6" required><span class="field-hint" id="passwordMatchStatus" role="status" aria-live="polite">비밀번호를 한 번 더 입력해주세요.</span></div>' : '') +
       (!isSignup ? '<label class="remember-email-row"><input type="checkbox" id="authRememberEmail" checked> 다음에도 이메일 기억하기</label>' : '') +
-      (isSignup ? PRIVACY_CONSENT_HTML : '') +
+      '' +
       '<button type="submit" class="login-submit" id="authSubmitBtn">'+(isSignup ? '회원가입' : '로그인')+'</button>' +
     '</form>' +
     (!isSignup ? '<div class="login-switch"><button id="authForgotBtn">비밀번호를 잊으셨나요?</button></div>' : '') +
@@ -7739,12 +7757,21 @@ function renderLoginScreen(){
   }
 
   if (isSignup) {
-    document.getElementById('privacyDetailToggle').onclick = (e)=>{
-      const box = document.getElementById('privacyDetailBox');
-      const isHidden = box.style.display === 'none';
-      box.style.display = isHidden ? 'block' : 'none';
-      e.currentTarget.textContent = isHidden ? '자세히 보기 ▴' : '자세히 보기 ▾';
+    const confirmPassword=document.getElementById('authPasswordConfirm');
+    const firstPassword=document.getElementById('authPassword');
+    const checkPasswords=()=>{
+      const state=signupPasswordState(firstPassword.value,confirmPassword.value);
+      const status=document.getElementById('passwordMatchStatus');
+      status.textContent=state.message;
+      status.style.color=state.empty?'':state.matches?'#4ade80':'#ff8080';
+      confirmPassword.setCustomValidity(state.matches?'':state.message);
+      confirmPassword.setAttribute('aria-invalid',String(!state.empty&&!state.matches));
+      document.getElementById('authSubmitBtn').disabled=!state.matches;
     };
+    confirmPassword.addEventListener('input',checkPasswords);
+    firstPassword.addEventListener('input',checkPasswords);
+    checkPasswords();
+
   }
 
   document.getElementById('authForm').onsubmit = async (e)=>{
@@ -7755,34 +7782,16 @@ function renderLoginScreen(){
       return;
     }
     const submitBtn = document.getElementById('authSubmitBtn');
-    const email = document.getElementById('authEmail').value.trim();
+    const email = isSignup ? '' : document.getElementById('authEmail').value.trim();
     const password = document.getElementById('authPassword').value;
     submitBtn.disabled = true;
     submitBtn.textContent = '처리 중...';
     authNotice = null;
 
     if (isSignup) {
-      const name = document.getElementById('authName').value.trim();
-      const branchName = document.getElementById('authBranch').value.trim();
-      const { data, error } = await sb.auth.signUp({
-        email, password,
-        options: { data: { display_name: name, branch_name: branchName } }
-      });
-      if (error) {
-        authNotice = { type:'error', text: error.message };
-        render();
-        return;
-      }
-      if (data.session) {
-        await loadProfile(data.session.user);
-        appState = 'hub';
-        updateUserInfoBar();
-        render();
-      } else {
-        authNotice = { type:'info', text: '가입 확인 이메일을 보냈어요. 메일함을 확인한 뒤 로그인해주세요.' };
-        authMode = 'login';
-        render();
-      }
+      const accepted = await showSharedAccountPolicy();
+      submitBtn.disabled=false;submitBtn.textContent='회원가입';
+      if(accepted)showToast('안내','회원가입 준비 중입니다. 입력한 정보는 저장되지 않았습니다.');
     } else {
       const { data, error } = await sb.auth.signInWithPassword({ email, password });
       if (error) {
