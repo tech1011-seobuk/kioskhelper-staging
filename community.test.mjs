@@ -28,3 +28,19 @@ test('embedded community source matches editable source',()=>{
  const html=readFileSync(new URL('index.html',import.meta.url),'utf8');
  assert.ok(html.includes('/* HELPER COMMUNITY START */\n'+source+'\n/* HELPER COMMUNITY END */'));
 });
+
+function popupHarness({seen=false,failWrite=false}={}){
+ const buttons=new Map(),calls=[],dialogs=[];
+ const c=vm.createContext({currentUser:{id:'u'},appState:'hub',navigator:{onLine:true},escapeHtml:s=>s,
+  document:{body:{appendChild(){}},createElement(){const d={setAttribute(){},innerHTML:'',querySelector(key){if(!buttons.has(key))buttons.set(key,{});return buttons.get(key);},showModal(){d.shown=true;},addEventListener(name,fn){d[name+'Handler']=fn;},close(){d.closed=true;d.closeHandler?.();},remove(){}};dialogs.push(d);return d;}},
+  sb:{from(table){const query={select(){return this;},eq(){return this;},lte(){return this;},or(){return this;},order(){return this;},limit(){return this;},in(){return this;},insert(payload){calls.push({table,payload});this.writing=true;return this;},then(resolve){return Promise.resolve(resolve(this.writing?{error:failWrite?{code:'offline'}:null}:{data:table==='helper_announcements'?[{id:'notice',title:'제목',body:'내용',kind:'안내'}]:seen?[{notice_id:'notice'}]:[]}));}};return query;}}
+ });vm.runInContext(source,c);return {c,dialogs,buttons,calls};
+}
+test('confirmed notices do not open; unread notice opens once per login and saves only after confirmation',async()=>{
+ const seen=popupHarness({seen:true});await seen.c.helperCheckNotices();assert.equal(seen.dialogs.length,0);
+ const h=popupHarness();await h.c.helperCheckNotices();await h.c.helperCheckNotices();assert.equal(h.dialogs.length,1);assert.equal(h.calls.length,0);
+ const button=h.buttons.get('[data-read]');await button.onclick({currentTarget:button});assert.equal(h.calls[0].table,'helper_notice_reads');assert.equal(h.calls[0].payload.notice_id,'notice');assert.equal(h.dialogs[0].closed,true);
+});
+test('failed notice acknowledgement stays open and can be retried',async()=>{
+ const h=popupHarness({failWrite:true});await h.c.helperCheckNotices();const button=h.buttons.get('[data-read]');await button.onclick({currentTarget:button});assert.notEqual(h.dialogs[0].closed,true);assert.equal(button.disabled,false);assert.match(h.buttons.get('[role=status]').textContent,/저장하지 못/);
+});

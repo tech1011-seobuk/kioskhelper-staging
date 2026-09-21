@@ -217,3 +217,10 @@ v81 본 서버 apply35563630502 성공(48초). 본 서버 신규 탭에서 회�
 - community-storage.sql applied to STAGING mjzhljlhjsbnnxyekmwy only; uses existing is_admin, RLS and column grants. No changes to auth/profiles/CMS signup or diagnosis content. Production requires this reviewed schema migration before promoting these features.
 - v2 event detail carries per-attempt UUID; latest ending counted once, info separated, CMS clicks are not actual inquiries. New dashboard excludes legacy events from outcome KPIs; historical detail remains collapsible. Median uses paired solved attempts within 1h; feedback is store-account satisfaction, not end-customer satisfaction.
 - 52 automated tests passed, including deduplication, missing outcomes, rating/account matching and existing flows. UI and deployed verification pending below.
+
+### v82 verification / v83 refinement
+- Staging commit 3409e23d1705ab124bfad7c4d973971253995018, Pages run 35568460168 succeeded. Verified authenticated dashboard, announcement archive + draft save, and suggestions empty state; no browser runtime errors.
+- SQL transactional checks passed: published/draft visibility, private suggestion isolation, nonadmin write denial, protected owner/timestamp columns, anonymous denial; authenticated notice create/edit/read-receipt, suggestion create/reply, score bounds and uniqueness. Test fixtures were rolled back, not retained.
+- One real update announcement saved as an ADMIN-ONLY DRAFT, not published. No notifications sent. Login popup behavior (read suppression, one per session, failed acknowledgement retry) covered by tests.
+- v83: three-column KPI layout, styled period control, admin popup preview, and reads restricted to the 30 fetched notices to avoid read-receipt pagination loss. 54 tests total passing across existing suites and added community tests.
+- Actual phone not inspected (IAB viewport override unsupported); responsive CSS included. CMS mapping/signup activation and actual ChannelTalk inquiry correlation remain separate outstanding work.

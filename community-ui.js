@@ -24,7 +24,7 @@ function helperInit(){
     .helper-panel button:disabled{opacity:.55;cursor:wait}.helper-error{color:#ffb2a8;white-space:pre-wrap}
     .helper-dialog{max-width:560px;width:calc(100% - 32px);box-sizing:border-box;border:1px solid #555;border-radius:18px;background:#22252a;color:#fff;padding:24px;max-height:85vh;overflow:auto}
     .helper-dialog::backdrop{background:#0009}.helper-rating{margin:18px 0;padding:18px;border:1px solid var(--border);border-radius:14px}.helper-rating button{margin:4px;min-width:44px}
-    .helper-kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}.helper-kpis .helper-card{margin:0}.helper-value{font-size:27px;font-weight:800;margin:10px 0}
+    .helper-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.helper-kpis .helper-card{margin:0;word-break:keep-all}.helper-filters select{background:#24272d;color:#eee;padding:10px 14px;border:1px solid var(--border);border-radius:9px;font:inherit}.helper-value{font-size:27px;font-weight:800;margin:10px 0}
     .helper-card summary{cursor:pointer;font-weight:700}.helper-filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.helper-filters select{width:auto}
     @media(max-width:540px){.helper-panel{padding:12px}.helper-card{padding:16px}.helper-kpis{grid-template-columns:1fr 1fr}.helper-value{font-size:23px}}
   `;document.head.appendChild(style);
@@ -82,10 +82,16 @@ function helperNoticeEditor(content,row={}){
   const owner=currentUser.id;
   content.querySelector('form')?.remove();
   const form=document.createElement('form');form.className='helper-card';
-  form.innerHTML='<h2>공지 '+(row.id?'수정':'작성')+'</h2><label>유형<select name="kind">'+helperOptions(helperKinds,row.kind)+'</select></label><label>제목<input name="title" maxlength="120" required></label><label>내용<textarea name="body" maxlength="10000" required></textarea></label><label>게시 시작<input type="datetime-local" name="start" required></label><label>게시 종료 (선택)<input type="datetime-local" name="end"></label><label><input type="checkbox" name="important"> 로그인 후 팝업으로 알리기</label><label><input type="checkbox" name="published"> 게시하기 (선택하지 않으면 초안)</label><p class="helper-small">게시 시작 전에는 예약 상태입니다. 팝업은 이 매장 계정이 확인하면 다시 뜨지 않습니다.</p><p class="helper-error" role="status"></p><div class="helper-actions"><button class="helper-primary" type="submit">저장</button><button type="button" data-cancel>취소</button></div>';
+  form.innerHTML='<h2>공지 '+(row.id?'수정':'작성')+'</h2><label>유형<select name="kind">'+helperOptions(helperKinds,row.kind)+'</select></label><label>제목<input name="title" maxlength="120" required></label><label>내용<textarea name="body" maxlength="10000" required></textarea></label><label>게시 시작<input type="datetime-local" name="start" required></label><label>게시 종료 (선택)<input type="datetime-local" name="end"></label><label><input type="checkbox" name="important"> 로그인 후 팝업으로 알리기</label><label><input type="checkbox" name="published"> 게시하기 (선택하지 않으면 초안)</label><p class="helper-small">게시 시작 전에는 예약 상태입니다. 팝업은 이 매장 계정이 확인하면 다시 뜨지 않습니다.</p><p class="helper-error" role="status"></p><div class="helper-actions"><button class="helper-primary" type="submit">저장</button><button type="button" data-preview>팝업 미리보기</button><button type="button" data-cancel>취소</button></div>';
   form.elements.title.value=row.title||'';form.elements.body.value=row.body||'';
   form.elements.start.value=helperLocalTime(row.starts_at);form.elements.end.value=row.ends_at?helperLocalTime(row.ends_at):'';
   form.elements.important.checked=!!row.important;form.elements.published.checked=!!row.published;
+  form.querySelector('[data-preview]').onclick=()=>{
+    const preview=document.createElement('dialog');preview.className='helper-dialog';
+    preview.setAttribute('aria-label','공지 팝업 미리보기');
+    preview.innerHTML='<p class="helper-small">미리보기 · 아직 게시되지 않았어요</p><h2>'+escapeHtml(form.elements.title.value||'공지 제목')+'</h2><div class="helper-body">'+escapeHtml(form.elements.body.value||'공지 내용')+'</div><div class="helper-actions"><button>닫기</button></div>';
+    document.body.appendChild(preview);preview.querySelector('button').onclick=()=>preview.close();preview.addEventListener('close',()=>preview.remove());preview.showModal();
+  };
   form.querySelector('[data-cancel]').onclick=()=>form.remove();content.prepend(form);form.elements.title.focus();
   form.onsubmit=async e=>{
     e.preventDefault();const msg=form.querySelector('[role=status]'),button=form.querySelector('[type=submit]');
@@ -102,10 +108,8 @@ async function helperCheckNotices(){
   const owner=currentUser.id;helperNoticeBusy=true;
   try{
     const now=new Date().toISOString();
-    const [notices,reads]=await Promise.all([
-      helperQuery(sb.from('helper_announcements').select('*').eq('published',true).eq('important',true).lte('starts_at',now).or('ends_at.is.null,ends_at.gt.'+now).order('starts_at',{ascending:false}).limit(30)),
-      helperQuery(sb.from('helper_notice_reads').select('notice_id').eq('user_id',owner))
-    ]);
+    const notices=await helperQuery(sb.from('helper_announcements').select('*').eq('published',true).eq('important',true).lte('starts_at',now).or('ends_at.is.null,ends_at.gt.'+now).order('starts_at',{ascending:false}).limit(30));
+    const reads=notices.length?await helperQuery(sb.from('helper_notice_reads').select('notice_id').eq('user_id',owner).in('notice_id',notices.map(x=>x.id))):[];
     if(!helperOwnerValid(owner,'hub'))return;
     const seen=new Set(reads.map(x=>x.notice_id));const row=notices.find(x=>!seen.has(x.id));helperNoticeOwner=owner;
     if(!row)return;
