@@ -232,3 +232,8 @@ v81 본 서버 apply35563630502 성공(48초). 본 서버 신규 탭에서 회�
 - Admin staging-only photo review uses current published diagnosis images plus replacement media; deduplicates photos and lists every use. Does not change diagnosis or save drafts. Not a complete source ChannelTalk archive.
 - 3D framing now measures all front-door swing positions to choose one fixed camera distance for both closed and open views. No view-switch camera translation.
 - Tests: existing 54 pass; added filter/cohort, priority evidence and image deduplication tests. Staging deploy and browser verification pending.
+
+- v84 staging deployed: 1b305307f84ba057fea92a0a7e93aa11793a1999; Pages run 35572400937 succeeded. Browser verified all 5 ChannelTalk photos load (10 total applied photos), search and usage details, statistics expansion/device filter, complete open-door silhouette, and no console errors. All 57 automated tests passed. Production unchanged.
+
+## v85 item-based photo coverage
+- Photo review defaults to symptom/replacement rows, image-present/missing filters and expandable per-step preview. Replacement common reference images are explicitly not counted as step images. No automatic quality judgement; missing is review-needed, not mandatory. No database writes or source-manual completeness claim. 11 community tests passed; deployed UI verification pending.

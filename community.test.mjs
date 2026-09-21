@@ -65,3 +65,7 @@ test('photo catalog deduplicates source images and retains every use without inc
  const tree={X:{nodes:{n1:{text:'one',media:[{kind:'image',url,name:'사진'},{kind:'video',url:'https://example.org/v.mp4'}]},n2:{text:'two',media:[{kind:'image',url,name:'사진'}]}}}};
  const rows=ctx.helperPhotoCatalog(tree,{printer:[['교체','video','a']]});assert.equal(rows.length,1);assert.equal(rows[0].places.length,3);assert.equal(rows[0].channel,true);
 });
+test('coverage keeps missing steps and distinguishes replacement reference photos',()=>{
+ const rows=ctx.helperPhotoCoverage({X:{nodes:{a:{text:'connect'},b:{text:'inspect',media:[{kind:'image',url:'https://example.org/a'}]}}}},{printer:[['reference','v','photo']]},{printer:[{label:'printer',steps:[['remove','unplug'],['install','attach']]}]});
+ assert.equal(rows[0].total,2);assert.equal(rows[0].withPhoto,1);assert.equal(rows[1].count,1);assert.equal(rows[1].withPhoto,0);assert.equal(rows[1].total,2);assert.equal(rows[1].reference.length,1);
+});

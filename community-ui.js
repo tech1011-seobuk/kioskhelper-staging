@@ -62,12 +62,42 @@ function helperPhotoCatalog(trees,replacements){
   for(const [key,items] of Object.entries(replacements))for(const [name,,image] of items)if(image)add({kind:'image',name,url:'https://cf.channel.io/document/spaces/8576/'+(image.includes('/')?image:'usermedia/'+image)},'장비 교체 · '+key+' · '+name);
   return [...photos.values()];
 }
+function helperPhotoCoverage(trees,replacements,guides){
+  const rows=[];
+  for(const [id,tree] of Object.entries(trees)){
+    if(id==='PRT-13')continue;
+    const steps=Object.entries(tree.nodes||{}).map(([key,node])=>({key,text:node.text||'',media:[...(node.media||[]).filter(m=>m.kind==='image'),...(node.images||(node.image?[node.image]:[])).map(url=>({kind:'image',url,name:'조치 사진'}))]}));
+    rows.push({id,title:typeof SYMPTOM_LABEL==='undefined'?id:SYMPTOM_LABEL[id]||id,type:'증상 조치',steps});
+  }
+  for(const key of new Set([...Object.keys(replacements),...Object.keys(guides)])){
+    const media=(replacements[key]||[]).filter(r=>r[2]).map(([name,,image])=>({kind:'image',name,url:'https://cf.channel.io/document/spaces/8576/'+(image.includes('/')?image:'usermedia/'+image)}));
+    const steps=(guides[key]||[]).flatMap(g=>(g.steps||[]).map(([title,text],i)=>({key:g.label+' · '+(i+1),text:title+' — '+text,media:[]})));
+    rows.push({id:key,title:key,type:'장비 교체',steps,reference:media});
+  }
+  return rows.map(r=>({...r,total:r.steps.length,withPhoto:r.steps.filter(s=>s.media.length).length,count:r.steps.reduce((n,s)=>n+s.media.length,0)+(r.reference||[]).length}));
+}
+function helperRenderPhotoCoverage(host,rows){
+  host.innerHTML='<div class="helper-card"><label>항목 검색<input type="search" placeholder="증상명, 장비명, 단계 내용"></label><label>사진 상태<select><option value="all">전체 항목</option><option value="none">사진 없는 항목</option><option value="some">사진 있는 항목 · 수정 검토</option></select></label><p role="status" class="helper-small"></p><p class="helper-small">사진 없음은 추가 검토 대상이며, 모든 질문에 사진이 필수라는 뜻은 아니에요. 화질·내용의 적합성은 사진을 펼쳐 확인해 주세요. 현재 게시된 안내 기준이며 채널톡 원문 전체와의 대조는 아직 하지 않았어요.</p></div><div class="helper-coverage-list"></div>';
+  const draw=()=>{
+    const q=host.querySelector('input').value.trim().toLowerCase(),filter=host.querySelector('select').value;
+    const matched=rows.filter(r=>(filter==='all'||(filter==='none'?r.count===0:r.count>0))&&[r.title,r.id,...r.steps.map(s=>s.text)].join(' ').toLowerCase().includes(q));
+    host.querySelector('[role=status]').textContent='전체 '+rows.length+'항목 · 사진 없음 '+rows.filter(r=>!r.count).length+'항목 · 사진 있음 '+rows.filter(r=>r.count).length+'항목 · 검색 결과 '+matched.length+'항목';
+    const list=host.querySelector('.helper-coverage-list');list.innerHTML='';
+    matched.forEach(row=>{
+      const card=document.createElement('details');card.className='helper-card';
+      card.innerHTML='<summary>'+escapeHtml(row.type+' · '+row.title)+'<span class="helper-small" style="display:block;margin-top:8px">'+escapeHtml(row.id)+' · '+(row.count?'🖼️ 사진 있음 · 수정 검토':'📷 사진 없음 · 추가 검토')+' · 단계 사진 '+row.withPhoto+'/'+row.total+'</span></summary><div class="helper-coverage-body"></div>';
+      let loaded=false;card.ontoggle=()=>{if(!card.open||loaded)return;loaded=true;const body=card.querySelector('.helper-coverage-body');
+        body.innerHTML=(row.reference?.length?'<h3 style="margin-top:20px">공통 참고 사진 (단계별 사진 아님)</h3>'+renderDiagnosisMedia({media:row.reference}):'')+row.steps.map(step=>'<section style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px"><strong>'+escapeHtml(step.key)+'</strong><p class="helper-body">'+escapeHtml(step.text)+'</p>'+(step.media.length?renderDiagnosisMedia({media:step.media}):'<p class="helper-small">📷 이 단계에 연결된 사진 없음</p>')+'</section>').join('')+(!row.steps.length?'<p>단계별 안내 없음 · 사진 추가 위치도 검토가 필요해요.</p>':'');hydrateDiagnosisMedia();};list.appendChild(card);
+    });if(!matched.length)list.textContent='해당 조건의 항목이 없어요.';
+  };host.querySelector('input').oninput=draw;host.querySelector('select').onchange=draw;draw();
+}
 async function renderPhotoReviewScreen(){
   if(APP_ENV!=='staging'||currentUser?.role!=='admin'){appState='hub';render();return;}
   const owner=currentUser.id,content=helperShell('🖼️ 사진 모아보기','현재 적용된 사진을 중복 없이 모았습니다. 사진을 누르면 확대되고, 아래에서 적용된 증상·단계를 확인할 수 있어요.');
   try{
     if(!await loadPublishedDiagnosis())throw new Error('published photos unavailable');if(!helperOwnerValid(owner,'photoReview'))return;
     const photos=helperPhotoCatalog(TREES,REPLACEMENT_MEDIA);
+    const coverage=helperPhotoCoverage(TREES,REPLACEMENT_MEDIA,REPLACEMENT_GUIDES);
     content.innerHTML='<div class="helper-card"><label>사진 검색<input id="helperPhotoSearch" type="search" placeholder="카메라, 프린터, 증상 번호 등"></label><label>출처<select id="helperPhotoSource"><option value="channel">채널톡 사진</option><option value="all">현재 적용된 모든 사진</option></select></label><p id="helperPhotoCount" class="helper-small" role="status"></p><p class="helper-small">채널톡 원문 전체 보관함이 아니라, 현재 앱에 연결된 사진 목록입니다. 이전에 제외한 사진은 포함하지 않습니다. 수정할 사진은 아래 번호나 증상·단계를 알려주세요.</p></div><div id="helperPhotoGrid" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(min(260px,100%),1fr));gap:14px"></div>';
     const draw=()=>{
       const q=content.querySelector('#helperPhotoSearch').value.trim().toLowerCase(),source=content.querySelector('#helperPhotoSource').value;
@@ -78,6 +108,10 @@ async function renderPhotoReviewScreen(){
       if(!rows.length)grid.textContent='해당 조건의 사진이 없어요.';
       hydrateDiagnosisMedia();
     };content.querySelector('#helperPhotoSearch').oninput=draw;content.querySelector('#helperPhotoSource').onchange=draw;draw();
+    const gallery=document.createElement('div');while(content.firstChild)gallery.appendChild(content.firstChild);content.appendChild(gallery);
+    const byItem=document.createElement('div');content.prepend(byItem);helperRenderPhotoCoverage(byItem,coverage);gallery.hidden=true;
+    const tabs=document.createElement('div');tabs.className='helper-actions';content.prepend(tabs);
+    [['항목별 사진 점검',true],['사진만 모아보기',false]].forEach(([label,item])=>{const b=document.createElement('button');b.textContent=label;b.setAttribute('aria-pressed',String(item));b.onclick=()=>{byItem.hidden=!item;gallery.hidden=item;tabs.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));};tabs.appendChild(b);});
   }catch{content.innerHTML='<p class="helper-error">사진 목록을 불러오지 못했어요.</p><button>다시 시도</button>';content.querySelector('button').onclick=renderPhotoReviewScreen;}
 }
 function helperErrorText(){return '저장소에 연결하지 못했어요. 인터넷 연결을 확인하고 다시 시도해주세요. 입력 내용은 유지됩니다.';}
