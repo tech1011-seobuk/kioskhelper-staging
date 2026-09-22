@@ -254,3 +254,8 @@ v86 deployment verified: staging remote commit a13b1bdd331406203fe9ac95f8ad173da
 - All SNAPISM hardware hotspots route to this flow. CMS keeps existing shared diagnosis. CX7600 and DS620 replacement procedures remain separated; related original sections (e.g. defect explanation + cleaning) grouped into one guide. All74 images remain reachable. Both source holds retained. No diagnosis DB or user draft changes.
 - Source/video/photo inventory unchanged; source text preserved. UI verification/deployment below.
 - v87 verification:61 automatic checks pass, including model separation, preservation of source holds and reachability of all74 photos. Chrome desktop and390px viewport confirmed category cards -> symptoms -> STEP1/STEP2, no horizontal overflow. Actual phone not tested. Production unchanged.
+
+- v87 deployed: remote commit defee78; Pages35678345895 succeeded54s. Live authenticated staging confirms CX7600 category cards ->12 symptom buttons -> single selected guide STEP1 with photo/Next. No console errors. Local961ed48; production unchanged.
+
+## v88 — Requested label edit
+Changed SNAPISM jam turn over title to 'jam turn over 오류 코드 조치 방법'. Steps and photos unchanged. Staging deployment pending.
