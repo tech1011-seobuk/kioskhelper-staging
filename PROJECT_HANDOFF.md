@@ -237,3 +237,12 @@ v81 본 서버 apply35563630502 성공(48초). 본 서버 신규 탭에서 회�
 
 ## v85 item-based photo coverage
 - Photo review defaults to symptom/replacement rows, image-present/missing filters and expandable per-step preview. Replacement common reference images are explicitly not counted as step images. No automatic quality judgement; missing is review-needed, not mandatory. No database writes or source-manual completeness claim. 11 community tests passed; deployed UI verification pending.
+
+- v85 deployed staging commit 651efb676235353692ec240f18e33309b0bab908, Pages35573833626 success. 58 tests passed. Live UI:52 symptom/replacement entries,48 no image,4 image-present; image filter and expanded ES-1 photo/missing steps verified, no runtime errors. Actual phone not inspected (IAB viewport unsupported in previous checks). Production unchanged.
+
+## 2026-09-22 v86 — SNAPISM equipment manuals
+- Reviewed 16 current equipment documents in ChannelTalk space 12234; excluded operating/settlement documents. Imported 74 distinct image URLs and two YouTube videos, source article/revision retained in snapism-manuals.json.
+- Held DS620/DS-RX1 mismatched internal image and both occurrences of CX7600 color ribbon replacement procedure (STEP3 says RT housing). Held procedures have no action cards; other guides remain available.
+- SNAPISM picker and relevant existing symptom screens link to searchable equipment manuals; formerly unavailable printer hotspots open model-related guides. Original diagnosis trees and drafts untouched. Manual cards have previous/next and native-ratio photos, inline video dialog. Admin photo catalog/coverage includes SNAPISM manuals.
+- Build: node sync-community.cjs embeds JSON/UI alongside community. import-snapism.cjs consumes reviewed local source JSON; raw export is not published. New snapism.test.mjs covers exclusions, matching, inventory and source URLs. 60 checks passed before final image-caption refinement; targeted rerun passed. Chrome 390px viewport and desktop cards/navigation, native 1600x900 photo ratio, YouTube inline player verified. Actual phone not tested.
+- Staging deployment pending verification. Production unchanged.

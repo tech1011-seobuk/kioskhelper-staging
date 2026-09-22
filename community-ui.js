@@ -60,6 +60,7 @@ function helperPhotoCatalog(trees,replacements){
     for(const url of node.images|| (node.image?[node.image]:[]))add({kind:'image',url,name:'조치 사진'},place);
   }
   for(const [key,items] of Object.entries(replacements))for(const [name,,image] of items)if(image)add({kind:'image',name,url:'https://cf.channel.io/document/spaces/8576/'+(image.includes('/')?image:'usermedia/'+image)},'장비 교체 · '+key+' · '+name);
+  if(typeof SNAPISM_MANUALS!=='undefined')for(const m of SNAPISM_MANUALS)for(const s of m.sections)for(const c of s.cards)for(const url of c.images)add({kind:'image',url,name:s.title},'스내피즘 · '+m.title+' · '+s.title+' · '+c.text);
   return [...photos.values()];
 }
 function helperPhotoCoverage(trees,replacements,guides){
@@ -74,6 +75,7 @@ function helperPhotoCoverage(trees,replacements,guides){
     const steps=(guides[key]||[]).flatMap(g=>(g.steps||[]).map(([title,text],i)=>({key:g.label+' · '+(i+1),text:title+' — '+text,media:[]})));
     rows.push({id:key,title:key,type:'장비 교체',steps,reference:media});
   }
+  if(typeof SNAPISM_MANUALS!=='undefined')for(const m of SNAPISM_MANUALS)rows.push({id:'SNAP-MANUAL-'+m.id,title:m.title,type:'스내피즘 매뉴얼',steps:m.sections.flatMap(s=>s.cards.map((c,i)=>({key:s.title+' · '+(i+1),text:c.text,media:c.images.map(url=>({kind:'image',url,name:s.title}))})))});
   return rows.map(r=>({...r,total:r.steps.length,withPhoto:r.steps.filter(s=>s.media.length).length,count:r.steps.reduce((n,s)=>n+s.media.length,0)+(r.reference||[]).length}));
 }
 function helperRenderPhotoCoverage(host,rows){
