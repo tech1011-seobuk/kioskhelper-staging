@@ -27,6 +27,30 @@ test('all 42 builtin trees satisfy publication validation, including legitimate 
  const c=harness(); assert.equal(Object.keys(c.api.TREES).length,42);
  for(const tree of Object.values(c.api.TREES)) c.api.validateDiagnosisTree(tree);
 });
+
+test('cross-symptom choices remain editable without changing their route or metadata',()=>{
+ const c=harness();vm.runInContext(section('function setDiagramOptionRoute(', 'function openEdgePopover('),c);
+ let count=0;
+ for(const [sid,tree] of Object.entries(c.api.TREES))for(const [nid,node] of Object.entries(tree.nodes))for(const option of node.options)if(option.jump){
+  const opt={label:'수정한 선택지',type:'jump',jump:option.jump};
+  c.setDiagramOptionRoute(opt,'jump',option.jump);assert.equal(opt.jump,option.jump);assert.equal(opt.type,'jump');assert.equal(opt.target,null);
+  const copy=JSON.parse(JSON.stringify(tree));copy.nodes[nid].options[node.options.indexOf(option)]={...option,label:opt.label,jump:opt.jump};c.api.validateDiagnosisTree(copy);count++;
+ }
+ assert.ok(count>0);
+ const opt={type:'jump',jump:'CAM-2'};c.setDiagramOptionRoute(opt,'next','n2');assert.equal(opt.jump,null);assert.equal(opt.target,'n2');
+ c.setDiagramOptionRoute(opt,'solved','n2');assert.equal(opt.target,null);assert.equal(opt.jump,null);
+});
+
+test('deleting any choice keeps surviving notes/attachments and records undo',()=>{
+ const c=harness();c.redrawDiagramLines=()=>{};vm.runInContext(section('function setDiagramOptionRoute(', 'function openEdgePopover('),c);
+ const sid='CAM-1',draft=c.api.getDiagramDraft(sid),nid=draft.tree.start;
+ draft.tree.nodes[nid].options=[{label:'예',jump:'CAM-2',note:'첫 안내'},{label:'아니오',end:'as',note:'둘째 안내',attachment:'둘째 첨부'}];
+ c.diagramOptState[sid]={[nid]:[{label:'예',type:'jump',jump:'CAM-2'},{label:'아니오',type:'as'}]};
+ c.removeDiagramOption(sid,nid,0);
+ assert.equal(draft.tree.nodes[nid].options.length,1);assert.equal(draft.tree.nodes[nid].options[0].note,'둘째 안내');assert.equal(draft.tree.nodes[nid].options[0].attachment,'둘째 첨부');assert.equal(draft.tree.nodes[nid].options[0].end,'as');
+ c.removeDiagramOption(sid,nid,0);assert.equal(draft.tree.nodes[nid].options.length,1);
+ c.currentUser.role='staff';c.removeDiagramOption(sid,nid,0);assert.equal(draft.tree.nodes[nid].options.length,1);
+});
 test('invalid connections, trapped loops and unsupported markup fields are rejected',()=>{
  const c=harness();
  const tree={start:'n1',nodes:{n1:{text:'안내',options:[{label:'반복',next:'n1'}]}}};

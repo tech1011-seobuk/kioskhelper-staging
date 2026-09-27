@@ -8923,16 +8923,16 @@ function refreshDiagramPhotoLibrary(sid){
   const choices=document.createElement('section');choices.className='list-choice-editor';const choiceTitle=document.createElement('h5');choiceTitle.textContent='선택지와 다음 단계';choices.appendChild(choiceTitle);
   (diagramOptState[sid][nid]||[]).forEach((opt,index)=>{
    const line=document.createElement('div');line.className='list-choice-line';
-   const name=document.createElement('input');name.value=opt.label;name.setAttribute('aria-label',nid+' 선택지 '+(index+1)+' 문구');name.placeholder='예: 동일합니다 / 해결되었습니다';name.disabled=diagramSaving||mediaUploading||opt.type==='jump';
+   const name=document.createElement('input');name.value=opt.label;name.setAttribute('aria-label',nid+' 선택지 '+(index+1)+' 문구');name.placeholder='예: 동일합니다 / 해결되었습니다';name.disabled=diagramSaving||mediaUploading;
    name.oninput=()=>{if(diagramSaving||mediaUploading||currentUser?.role!=='admin')return;opt.label=name.value;captureDiagramDraft(sid);};
    const target=document.createElement('select');target.setAttribute('aria-label',nid+' 선택지 '+(index+1)+' 이동');target.disabled=name.disabled;
    const add=(value,label)=>{const o=document.createElement('option');o.value=value;o.textContent=label;target.appendChild(o);};
    for(const row of endingChoices())add('end:'+row.id,row.label);
    for(const [id,n] of Object.entries(tree.nodes))add('next:'+id,'다음 단계 '+id+' · '+(n.text||'새 안내').slice(0,35));
-   if(opt.type==='jump')add('jump:'+opt.jump,'다른 증상: '+opt.jump);
+   for(const id of Object.keys(BUILTIN_TREES))add('jump:'+id,'다른 증상: '+id+' · '+(SYMPTOM_LABEL[id]||''));
    target.value=opt.type==='next'?'next:'+opt.target:opt.type==='jump'?'jump:'+opt.jump:'end:'+opt.type;
-   target.onchange=()=>{if(diagramSaving||mediaUploading||currentUser?.role!=='admin')return;const [kind,id]=target.value.split(':');opt.type=kind==='next'?'next':id;opt.target=kind==='next'?id:null;opt.jump=null;captureDiagramDraft(sid);};
-   line.append(name,target);choices.appendChild(line);
+   target.onchange=()=>{if(diagramSaving||mediaUploading||currentUser?.role!=='admin')return;const [kind,id]=target.value.split(':');setDiagramOptionRoute(opt,kind==='end'?id:kind,id);captureDiagramDraft(sid);};
+   const remove=document.createElement('button');remove.type='button';remove.textContent='선택지 삭제';remove.setAttribute('aria-label',nid+' 선택지 '+(index+1)+' 삭제');remove.disabled=diagramSaving||mediaUploading;remove.onclick=()=>removeDiagramOption(sid,nid,index);line.append(name,target,remove);choices.appendChild(line);
   });
   const actions=document.createElement('div');actions.className='list-edit-actions';
   for(const [kind,label] of [['option','＋ 선택지 추가'],['step','＋ 다음 안내 추가']]){const btn=document.createElement('button');btn.type='button';btn.textContent=label;btn.disabled=diagramSaving||mediaUploading;btn.onclick=()=>{diagramPhotoFilter='all';diagramPhotoSearch='';addDiagramItem(sid,nid,kind);};actions.appendChild(btn);}
@@ -9385,45 +9385,52 @@ function closeEdgePopover(){
   if (pop) pop.style.display = 'none';
 }
 
+function setDiagramOptionRoute(opt,type,target){
+  opt.type=type;opt.target=type==='next'?target:null;opt.jump=type==='jump'?target:null;
+}
+
+function removeDiagramOption(sid,nid,index){
+  if(diagramSaving||mediaUploading||currentUser?.role!=='admin')return;
+  const options=diagramOptState[sid]?.[nid];if(!options?.[index])return;
+  if(options.length<=1){updateDiagramSaveStatus(sid,'선택지는 한 개 이상 필요합니다. 새 선택지를 추가하거나 현재 선택지의 문구와 연결을 바꿔주세요.',true);return;}
+  const draft=captureDiagramDraft(sid);
+  // Keep each surviving choice's note/attachment with that choice after deletion.
+  draft.tree.nodes[nid].options.splice(index,1);options.splice(index,1);
+  captureDiagramDraft(sid);closeEdgePopover();redrawDiagramLines(sid);
+}
+
 function openEdgePopover(sid, nid, optIdx, chipEl){
-  if (diagramSaving) return;
-  const pop = document.getElementById('edgePopover');
-  const opt = diagramOptState[sid][nid][optIdx];
-  const nodeIds = Object.keys(getDiagramDraft(sid).tree.nodes);
-  document.getElementById('edgePopLabel').value = opt.label;
-  const typeSel = document.getElementById('edgePopType');
-  const targetSel = document.getElementById('edgePopTarget');
-  typeSel.innerHTML='<option value="next">➡️ 다음 단계로</option>'+endingChoices().map(r=>'<option value="'+r.id+'">'+escapeHtml(r.label)+'</option>').join('');
-  typeSel.value = opt.type === 'jump' ? 'next' : opt.type;
-  targetSel.innerHTML = nodeIds.map(id=>{
-    const preview = getDiagramDraft(sid).tree.nodes[id].text.slice(0,18);
-    return '<option value="'+id+'">'+id+' — '+escapeHtml(preview)+(getDiagramDraft(sid).tree.nodes[id].text.length>18?'…':'')+'</option>';
-  }).join('');
-  targetSel.value = opt.target;
-  targetSel.style.display = typeSel.value === 'next' ? 'inline-block' : 'none';
-
-
-  const chipRect = chipEl.getBoundingClientRect();
-  const mainRect = document.getElementById('diagramEditorMain').getBoundingClientRect();
-  pop.style.left = Math.max(8,Math.min(chipRect.left-mainRect.left,mainRect.width-320)) + 'px';
-  pop.style.top = Math.max(8,Math.min(chipRect.bottom+6,window.innerHeight-270)-mainRect.top) + 'px';
-  pop.style.display = 'flex';
-
-  const commit = ()=>{
-    if (diagramSaving) return;
-    opt.label = document.getElementById('edgePopLabel').value.trim();
-    opt.type = typeSel.value;
-    opt.target = targetSel.value;
-    captureDiagramDraft(sid);
-    redrawDiagramLines(sid);
+  if(diagramSaving||mediaUploading||currentUser?.role!=='admin')return;
+  const pop=document.getElementById('edgePopover'),opt=diagramOptState[sid][nid][optIdx];
+  const tree=getDiagramDraft(sid).tree;
+  document.getElementById('edgePopLabel').value=opt.label;
+  const typeSel=document.getElementById('edgePopType'),targetSel=document.getElementById('edgePopTarget');
+  typeSel.innerHTML='<option value="next">➡️ 다음 단계로</option><option value="jump">↗ 다른 증상으로</option>'+endingChoices().map(r=>'<option value="'+r.id+'">'+escapeHtml(r.label)+'</option>').join('');
+  typeSel.value=opt.type;
+  function renderTargets(){
+    const jump=typeSel.value==='jump',ids=jump?Object.keys(BUILTIN_TREES):Object.keys(tree.nodes);
+    targetSel.innerHTML=ids.map(id=>'<option value="'+id+'">'+id+' — '+escapeHtml(jump?(SYMPTOM_LABEL[id]||id):tree.nodes[id].text.slice(0,35))+'</option>').join('');
+    const selected=jump?opt.jump:opt.target;if(ids.includes(selected))targetSel.value=selected;
+    targetSel.style.display=['next','jump'].includes(typeSel.value)?'inline-block':'none';
+    targetSel.setAttribute('aria-label',jump?'연결할 증상':'연결할 단계');
+  }
+  renderTargets();
+  const chipRect=chipEl.getBoundingClientRect(),mainRect=document.getElementById('diagramEditorMain').getBoundingClientRect();
+  pop.style.left=Math.max(8,Math.min(chipRect.left-mainRect.left,mainRect.width-320))+'px';
+  pop.style.top=Math.max(8,Math.min(chipRect.bottom+6,window.innerHeight-270)-mainRect.top)+'px';
+  pop.style.display='flex';
+  const commit=()=>{
+    if(diagramSaving||mediaUploading||currentUser?.role!=='admin')return;
+    opt.label=document.getElementById('edgePopLabel').value.trim();
+    setDiagramOptionRoute(opt,typeSel.value,targetSel.value);
+    captureDiagramDraft(sid);redrawDiagramLines(sid);
   };
-  document.getElementById('edgePopLabel').oninput = commit;
-  typeSel.onchange = ()=>{ targetSel.style.display = typeSel.value === 'next' ? 'inline-block' : 'none'; commit(); };
-  targetSel.onchange = commit;
-  document.getElementById('edgePopNewCard').onclick=()=>{if(diagramSaving)return;commit();addStandaloneDiagramCard(sid,nid,optIdx);};
-  document.getElementById('edgePopPick').onclick=()=>{commit();closeEdgePopover();diagramConnectFrom={sid,nid,index:optIdx};document.getElementById('diagramCanvas').classList.add('connecting');document.querySelector('.diagram-canvas-wrap').focus();updateDiagramSaveStatus(sid,'연결할 카드를 클릭하세요. Esc를 누르면 취소합니다.');};
-  document.getElementById('edgePopDelete').onclick=()=>{if(diagramSaving||mediaUploading)return;if(diagramOptState[sid][nid].length<=1){updateDiagramSaveStatus(sid,'선택지는 한 개 이상 필요합니다.',true);return;}diagramOptState[sid][nid].splice(optIdx,1);captureDiagramDraft(sid);closeEdgePopover();redrawDiagramLines(sid);};
-  document.getElementById('edgePopClose').onclick = ()=>{ commit(); closeEdgePopover(); };
+  document.getElementById('edgePopLabel').oninput=commit;
+  typeSel.onchange=()=>{renderTargets();commit();};targetSel.onchange=commit;
+  document.getElementById('edgePopNewCard').onclick=()=>{if(diagramSaving||mediaUploading)return;commit();addStandaloneDiagramCard(sid,nid,optIdx);};
+  document.getElementById('edgePopPick').onclick=()=>{if(diagramSaving||mediaUploading)return;commit();closeEdgePopover();diagramConnectFrom={sid,nid,index:optIdx};document.getElementById('diagramCanvas').classList.add('connecting');document.querySelector('.diagram-canvas-wrap').focus();updateDiagramSaveStatus(sid,'연결할 카드를 클릭하세요. Esc를 누르면 취소합니다.');};
+  document.getElementById('edgePopDelete').onclick=()=>removeDiagramOption(sid,nid,optIdx);
+  document.getElementById('edgePopClose').onclick=()=>{commit();closeEdgePopover();};
 }
 
 function getOrCreateEndNode(sid, canvas, endType){
@@ -9466,8 +9473,8 @@ function redrawDiagramLines(sid){
       const target=document.createElement('span'); target.className='diagram-result';
       target.textContent=opt.type==='next' ? '↓ '+opt.target : opt.type==='jump' ? '↗ '+opt.jump : labels[opt.type] || opt.type;
       row.append(label,target); options.appendChild(row);
-      if(opt.type==='jump') { row.title='다른 증상으로 이동하는 기존 연결'; row.disabled=true; }
-      else row.onclick=e=>{e.stopPropagation();openEdgePopover(sid,nid,i,row);};
+      if(opt.type==='jump') row.title='다른 증상으로 이동 · 눌러서 문구와 연결 수정';
+      row.disabled=diagramSaving||mediaUploading;row.onclick=e=>{e.stopPropagation();openEdgePopover(sid,nid,i,row);};
     });
     buildDiagramMediaControls(sid,nid,box);
     canvas.appendChild(options);
