@@ -1985,7 +1985,7 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 .signup-dialog{box-sizing:border-box;width:min(520px,90vw);max-height:80vh;overflow:auto;background:var(--panel,#25262c);color:var(--text);border:1px solid var(--border);border-radius:18px;padding:24px}.signup-dialog::backdrop{background:#0009}.signup-dialog p{line-height:1.7}.signup-store-option{padding:12px 16px;margin-top:10px;border:1px solid var(--border);border-radius:10px;background:transparent;color:inherit;cursor:pointer}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
-</head>
+<style>#endingGuideDialog label{display:flex;flex-direction:column;gap:6px;margin:14px 0}#endingGuideDialog input,#endingGuideDialog select,#endingGuideDialog textarea{box-sizing:border-box;width:100%;padding:10px;color:inherit;background:var(--panel,#24262c);border:1px solid #626773;border-radius:8px;font:inherit}#endingGuideDialog button{padding:10px;margin:6px 0;border-radius:8px;cursor:pointer}#endingGuideDialog::backdrop{background:#0009}#endingGuideDialog p{font-size:13px;line-height:1.6}</style></head>
 <body>
 
 <div id="bgFx">
@@ -6620,6 +6620,81 @@ function renderSnapManuals(){
 }
 
 /* SNAPISM MANUALS END */
+/* ENDING GUIDES START */
+let endingGuides={};
+let endingGuidesReady=false;
+function endingDefinition(id){
+ const row=endingGuides[id],base=END_META[id];
+ return row|| (base?{id,label:base.label,body:base.desc,result_type:id,device_notes:{},revision:0}:null);
+}
+function endingChoices(){return [...new Set([...Object.keys(END_META),...Object.keys(endingGuides)])].map(endingDefinition).filter(Boolean);}
+function endingDevice(sid){return DEVICES.find(d=>d.symptoms.includes(sid))?.name||selectedDevice||'';}
+function resolvedEnding(id,sid,note){
+ const item=endingDefinition(id);if(!item)return null;
+ const extra=item.device_notes[endingDevice(sid)]||'';
+ return {endType:item.result_type,endTitle:item.label,endNote:[note||item.body,extra].filter(Boolean).join('\n\n')};
+}
+async function loadEndingGuides(){
+ if(!sb||!currentUser)return false;
+ const owner=currentUser.id,key='endingGuides:'+SUPABASE_URL;
+ try{
+  const {data,error}=await sb.from('helper_ending_guides').select('id,label,body,result_type,device_notes,revision').order('id');
+  if(error)throw error;if(currentUser?.id!==owner)return false;
+  const rows={};for(const r of data||[]){validateEndingGuide(r);rows[r.id]=r;}
+  endingGuides=rows;endingGuidesReady=true;
+  try{localStorage.setItem(key,JSON.stringify(rows));}catch{}
+  return true;
+ }catch{
+  endingGuidesReady=false;
+  try{const rows=JSON.parse(localStorage.getItem(key)||'{}');Object.values(rows).forEach(validateEndingGuide);endingGuides=rows;}catch{}
+  return false;
+ }
+}
+function validateEndingGuide(row){
+ if(!row||!['solved','escalate','as','info'].includes(row.result_type)||typeof row.label!=='string'||!row.label.trim()||row.label.length>120||typeof row.body!=='string'||!row.body.trim()||row.body.length>10000||!row.device_notes||Array.isArray(row.device_notes)||typeof row.device_notes!=='object'||Object.entries(row.device_notes).some(([key,v])=>key.length>120||typeof v!=='string'||v.length>5000))throw Error('종료 안내의 제목·내용·장비별 추가 설명을 확인해주세요.');
+}
+function openEndingGuideManager(){
+ if(APP_ENV!=='staging'||currentUser?.role!=='admin'||diagramSaving||mediaUploading)return;
+ if(document.getElementById('endingGuideDialog'))return;
+ const dialog=document.createElement('dialog');dialog.id='endingGuideDialog';
+ dialog.style.cssText='width:min(680px,92vw);max-height:90vh;overflow:auto;border:1px solid var(--border);border-radius:16px;background:var(--panel,#24262c);color:var(--text,#fff);padding:24px';
+ dialog.innerHTML='<form method="dialog"><button style="float:right">닫기</button></form><h2>종료 안내 관리</h2><p>공통 안내와 장비별 추가 설명을 관리합니다. 새 안내는 결과 유형을 지정한 뒤 선택지에 연결하세요.</p><label>편집할 안내<select id="endingGuideSelect"></select></label><button id="endingGuideNew">＋ 새 종료 안내</button><div id="endingGuideForm"></div>';
+ document.body.appendChild(dialog);dialog.addEventListener('close',()=>dialog.remove());dialog.showModal();
+ let current=null,notes={},device='',dirty=false,busy=false;
+ const select=dialog.querySelector('#endingGuideSelect'),form=dialog.querySelector('#endingGuideForm');
+ function options(id){select.innerHTML=endingChoices().map(r=>'<option value="'+r.id+'">'+escapeHtml(r.label)+'</option>').join('');if(id)select.value=id;}
+ function draw(id){
+  current=endingDefinition(id)||{id:'custom_'+crypto.randomUUID().replaceAll('-',''),label:'',body:'',result_type:'info',device_notes:{},revision:0};notes={...current.device_notes};dirty=false;device='';
+  if(!current.revision&&!END_META[current.id]){const option=document.createElement('option');option.value=current.id;option.textContent='새 종료 안내 (미저장)';select.appendChild(option);select.value=current.id;}
+  form.innerHTML='<label>안내 이름<input id="endingLabel" maxlength="120"></label><label>결과 유형<select id="endingResult">'+Object.entries(END_META).map(([k,v])=>'<option value="'+k+'">'+escapeHtml(v.label)+'</option>').join('')+'</select></label><p>결과 유형은 해결 통계와 문의 버튼 동작에 사용됩니다. A/S 필요에는 문의 링크가 붙지 않습니다.</p><label>공통 안내 내용<textarea id="endingBody" rows="4" maxlength="10000"></textarea></label><label>추가 설명을 넣을 장비<select id="endingDevice"><option value="">장비 선택</option>'+[...new Set(DEVICES.map(d=>d.name))].map(n=>'<option>'+escapeHtml(n)+'</option>').join('')+'</select></label><textarea id="endingExtra" rows="3" maxlength="5000" placeholder="이 장비에서만 마지막 안내 아래에 덧붙일 내용" disabled></textarea><p>장비별 추가 설명은 해당 장비의 모든 증상에 적용됩니다. 선택지에 별도 안내가 있으면 공통 안내 대신 표시하며, 장비 설명은 함께 붙습니다.</p><button id="endingGuideSave">종료 안내 저장·적용</button><p id="endingGuideStatus" role="status"></p>';
+  form.querySelector('#endingLabel').value=current.label;form.querySelector('#endingBody').value=current.body;form.querySelector('#endingResult').value=current.result_type;form.querySelector('#endingResult').disabled=!!END_META[current.id]||current.revision>0;
+  form.oninput=()=>dirty=true;
+  form.querySelector('#endingDevice').onchange=e=>{if(device)notes[device]=form.querySelector('#endingExtra').value;device=e.target.value;form.querySelector('#endingExtra').disabled=!device;form.querySelector('#endingExtra').value=notes[device]||'';};
+  form.querySelector('#endingGuideSave').onclick=save;
+ }
+ async function save(){
+  if(busy)return;if(device)notes[device]=form.querySelector('#endingExtra').value;
+  const row={id:current.id,label:form.querySelector('#endingLabel').value.trim(),body:form.querySelector('#endingBody').value.trim(),result_type:form.querySelector('#endingResult').value,device_notes:notes};
+  const status=form.querySelector('#endingGuideStatus');
+  try{validateEndingGuide(row);}catch(e){status.textContent=e.message;return;}
+  busy=true;dialog.querySelectorAll('button,input,textarea,select').forEach(e=>e.disabled=true);const owner=currentUser.id;
+  try{
+   const {data,error}=await sb.rpc('save_ending_guide',{p_id:row.id,p_label:row.label,p_body:row.body,p_result_type:row.result_type,p_device_notes:row.device_notes,p_expected_revision:current.revision});if(error)throw error;
+   if(currentUser?.id!==owner){dialog.close();return;}validateEndingGuide(data);endingGuides[data.id]=data;current=data;dirty=false;options(data.id);
+   status.textContent='저장 완료 · 테스트 사이트에 적용했습니다. 다이어그램 선택지에서 이 안내를 고를 수 있어요.';
+   if(diagramSelectedSid&&document.getElementById('diagramCanvas')){captureDiagramDraft(diagramSelectedSid);openDiagram(diagramSelectedSid);}
+  }catch(e){status.textContent='저장하지 못했습니다. 입력 내용은 유지됩니다. '+(e.message||'연결을 확인해주세요.');}
+  finally{busy=false;dialog.querySelectorAll('button,input,textarea,select').forEach(e=>e.disabled=false);form.querySelector('#endingExtra').disabled=!device;form.querySelector('#endingResult').disabled=!!END_META[current.id]||current.revision>0;}
+ }
+ select.onchange=()=>{if(dirty&&!confirm('아직 저장하지 않은 종료 안내를 닫고 다른 안내를 볼까요?')){select.value=current.id;return;}draw(select.value);};
+ dialog.querySelector('#endingGuideNew').onclick=()=>{if(dirty&&!confirm('미저장 내용을 닫고 새 안내를 만들까요?'))return;options();draw(null);};
+ dialog.addEventListener('cancel',e=>{if(busy||(dirty&&!confirm('미저장 내용을 닫을까요?')))e.preventDefault();});
+ dialog.querySelector('form').onsubmit=e=>{if(busy||(dirty&&!confirm('미저장 내용을 닫을까요?')))e.preventDefault();};
+ dialog.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();e.stopPropagation();save();}});
+ options();draw('solved');
+}
+
+/* ENDING GUIDES END */
 /* HELPER COMMUNITY START */
 /* Embedded into index.html by sync-community.cjs. No independent script request. */
 let helperAttempt = null;
@@ -6991,6 +7066,8 @@ function resetAll(){
 
 function chooseOption(stepIndex, option){
   
+  const ending=option.end?resolvedEnding(option.end,path[stepIndex].symptomId,option.note):null;
+  if(option.end&&!ending){showToast('⚠️','종료 안내를 불러오지 못했습니다. 새로고침 후 다시 시도해주세요.');return;}
   path[stepIndex].chosen = option.label;
   path = path.slice(0, stepIndex+1);
 
@@ -7000,8 +7077,8 @@ function chooseOption(stepIndex, option){
     const targetTree = TREES[option.jump];
     path.push({symptomId: option.jump, nodeId: targetTree.start, chosen:null, jumpNote:option.jump});
   } else if(option.end){
-    path.push({end:true, endType:option.end, endNote:option.note, endAttachment: option.attachment, symptomId: path[stepIndex].symptomId});
-    logEvent('symptom_outcome', { brand: symptomSource, device: selectedDevice, symptomId: path[stepIndex].symptomId, outcome: option.end, detail:helperAttemptDetail() });
+    path.push({end:true, ...ending, endAttachment: option.attachment, symptomId: path[stepIndex].symptomId});
+    logEvent('symptom_outcome', { brand: symptomSource, device: selectedDevice, symptomId: path[stepIndex].symptomId, outcome: ending.endType, detail:helperAttemptDetail() });
   }
   renderChat();
 }
@@ -8412,7 +8489,7 @@ function validateDiagnosisTree(tree){
       if (routes.length !== 1) throw new Error('선택지마다 이동 단계나 종료 결과를 하나 선택해주세요.');
       if (routes[0] === 'next' && (!text(option.next, 40) || !Object.hasOwn(tree.nodes, option.next))) throw new Error('없는 단계로 연결되어 있습니다.');
       if (routes[0] === 'jump' && (!text(option.jump, 40) || !Object.hasOwn(BUILTIN_TREES, option.jump))) throw new Error('없는 증상으로 연결되어 있습니다.');
-      if (routes[0] === 'end' && !['solved','escalate','as','info'].includes(option.end)) throw new Error('종료 결과를 확인해주세요.');
+      if (routes[0] === 'end' && !['solved','escalate','as','info'].includes(option.end)&&!/^custom_[a-f0-9]{32}$/.test(option.end)) throw new Error('종료 결과를 확인해주세요.');
       for (const key of ['note','attachment']) if (Object.hasOwn(option, key) && !text(option[key], 20000, true)) throw new Error('부가 안내 형식을 확인해주세요.');
     }
   }
@@ -8455,6 +8532,7 @@ async function loadPublishedDiagnosis(){
   if (diagnosisStore.pending) return diagnosisStore.pending;
   const userId = currentUser.id;
   const task = (async () => {
+    if(typeof loadEndingGuides==='function')await loadEndingGuides();
     if (!diagnosisStore.online && !Object.keys(diagnosisStore.rows).length) {
       try {
         const cached = JSON.parse(localStorage.getItem(DIAGNOSIS_CACHE_KEY) || 'null');
@@ -8849,7 +8927,7 @@ function refreshDiagramPhotoLibrary(sid){
    name.oninput=()=>{if(diagramSaving||mediaUploading||currentUser?.role!=='admin')return;opt.label=name.value;captureDiagramDraft(sid);};
    const target=document.createElement('select');target.setAttribute('aria-label',nid+' 선택지 '+(index+1)+' 이동');target.disabled=name.disabled;
    const add=(value,label)=>{const o=document.createElement('option');o.value=value;o.textContent=label;target.appendChild(o);};
-   for(const [key,label] of [['solved','해결되었습니다'],['escalate','채널톡 문의하기'],['as','A/S 필요'],['info','안내 완료']])add('end:'+key,label);
+   for(const row of endingChoices())add('end:'+row.id,row.label);
    for(const [id,n] of Object.entries(tree.nodes))add('next:'+id,'다음 단계 '+id+' · '+(n.text||'새 안내').slice(0,35));
    if(opt.type==='jump')add('jump:'+opt.jump,'다른 증상: '+opt.jump);
    target.value=opt.type==='next'?'next:'+opt.target:opt.type==='jump'?'jump:'+opt.jump:'end:'+opt.type;
@@ -9046,7 +9124,7 @@ async function renderDiagramEditorScreen(){
   area.innerHTML='<nav class="diagram-step-nav" aria-label="다이어그램 편집 단계"><button class="btn" data-nav="brand">1. 브랜드 선택</button><span>›</span><button class="btn" data-nav="device" '+(!brand?'disabled':'')+'>2. '+(brand?escapeHtml(brandName())+' 장비 선택':'장비 선택')+'</button><span>›</span><span>'+(device?'3. '+escapeHtml(device.name)+' 증상 선택':'3. 증상 선택')+'</span></nav><div id="diagramNavigationBody"></div>';
   area.querySelector('[data-nav="brand"]').onclick=()=>{if(retain()){brand=null;device=null;renderBrands();}};
   area.querySelector('[data-nav="device"]').onclick=()=>{if(retain()){device=null;renderDevices();}};
-  const photos=document.createElement('button');photos.className='btn';photos.textContent='📷 항목별 사진 점검';photos.onclick=()=>{if(retain()){appState='photoReview';render();}};area.querySelector('nav').appendChild(photos);
+  const photos=document.createElement('button');photos.className='btn';photos.textContent='📷 항목별 사진 점검';photos.onclick=()=>{if(retain()){appState='photoReview';render();}};area.querySelector('nav').appendChild(photos);const endings=document.createElement('button');endings.className='btn';endings.textContent='⚙️ 종료 안내 관리';endings.onclick=openEndingGuideManager;area.querySelector('nav').appendChild(endings);
   return document.getElementById('diagramNavigationBody');
  }
  function renderBrands(){
@@ -9176,6 +9254,7 @@ function bindFreeDiagramCard(sid,nid,box){
 function fitDiagram(sid){const wrap=document.querySelector('.diagram-canvas-wrap'),start=document.getElementById('dn_'+getDiagramDraft(sid).tree.start);setDiagramZoom(1);wrap.scrollLeft=Math.max(0,(parseFloat(start?.style.left)||0)-32);wrap.scrollTop=Math.max(0,(parseFloat(start?.style.top)||0)-32);}
 function diagramKeyboardShortcut(e){
  if(APP_ENV!=='staging'||currentUser?.role!=='admin'||appState!=='diagramEditor'||!diagramSelectedSid||!document.getElementById('diagramCanvas'))return;
+ if(document.getElementById('endingGuideDialog')?.open)return;
  if(e.isComposing||e.altKey||e.shiftKey||!(e.ctrlKey||e.metaKey))return;
  const key=e.key.toLowerCase();if(key!=='s'&&key!=='z')return;
  if(key==='z'&&e.target?.closest?.('input,textarea,[contenteditable="true"]'))return;
@@ -9222,6 +9301,7 @@ function openDiagram(sid){
       '<button class="code-actions-single" id="diagramHistoryBtn" style="width:auto">이전 버전 복구</button><button class="code-actions-single" id="diagramReloadBtn" style="width:auto">최신 안내 불러오기</button>' +
       '<button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
     '</div>' +
+    '<button class="code-actions-single" id="endingGuideManage" style="width:auto">⚙️ 종료 안내 관리 · 장비별 추가 설명</button>' +
     '<section class="symptom-video-editor"><h3>🎬 증상별 영상 매뉴얼</h3><p>증상 선택 직후 첫 질문 위에 표시됩니다. 링크 등록 후 저장하고 적용을 눌러주세요.</p><label for="symptomVideoSelect">등록된 영상</label><select id="symptomVideoSelect"></select><label for="symptomVideoLabel">기종 또는 영상 구분 (공통이면 비워두세요)</label><input id="symptomVideoLabel" maxlength="80" placeholder="예: R10 · 850D"><label for="symptomVideoUrl">유튜브 영상 링크</label><input id="symptomVideoUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"><div class="symptom-video-actions"><button id="symptomVideoApply">링크 등록 / 변경</button><button id="symptomVideoPreview">미리보기</button><button id="symptomVideoRemove">링크 제거</button></div><p id="symptomVideoStatus" role="status">등록하지 않으면 영상 버튼이 표시되지 않습니다.</p></section>' +
     '<div id="diagramSaveStatus" role="status" aria-live="polite"></div>' +
     '<div class="diagram-note" style="margin:0 0 12px;">위에서 아래로 안내를 읽으세요 · 선택지(동일합니다 / 해결되었습니다 등)를 눌러 문구와 다음 단계를 수정 · 다음 단계 접기/펼치기 · 카드와 빈 배경을 끌어 이동</div>' +
@@ -9290,6 +9370,7 @@ function openDiagram(sid){
   document.getElementById('diagramNewCard').onclick=()=>addStandaloneDiagramCard(sid);
   const undo=document.getElementById('diagramUndoAddition');undo.disabled=diagramAdditionHistory[sid]?.at(-1)?.owner!==currentUser?.id;undo.onclick=()=>undoDiagramAddition(sid);
   bindDiagramPhotoLibrary(sid);
+  document.getElementById('endingGuideManage').onclick=openEndingGuideManager;
   bindManualReview(sid);
   bindSymptomVideoEditor(sid);
   document.getElementById('diagramSaveBtn').onclick = ()=>saveDiagram(sid);
@@ -9312,6 +9393,7 @@ function openEdgePopover(sid, nid, optIdx, chipEl){
   document.getElementById('edgePopLabel').value = opt.label;
   const typeSel = document.getElementById('edgePopType');
   const targetSel = document.getElementById('edgePopTarget');
+  typeSel.innerHTML='<option value="next">➡️ 다음 단계로</option>'+endingChoices().map(r=>'<option value="'+r.id+'">'+escapeHtml(r.label)+'</option>').join('');
   typeSel.value = opt.type === 'jump' ? 'next' : opt.type;
   targetSel.innerHTML = nodeIds.map(id=>{
     const preview = getDiagramDraft(sid).tree.nodes[id].text.slice(0,18);
@@ -9368,7 +9450,7 @@ function redrawDiagramLines(sid){
   const svg = document.getElementById('diagramSvg');
   if (!canvas || !svg || diagramSelectedSid !== sid) return;
   const tree = getDiagramDraft(sid).tree;
-  const labels = {solved:'해결', escalate:'채널톡 문의하기', as:'A/S 필요', info:'안내 완료'};
+  const labels = Object.fromEntries(endingChoices().map(r=>[r.id,r.label]));
   canvas.querySelectorAll('.diagram-options, .diagram-column-label, .diagram-add-actions, .diagram-media-editor').forEach(el=>el.remove());
   const positions = computeDiagramLayout(tree);
   const columns = new Map();
@@ -10812,7 +10894,7 @@ function renderChat(){
       const encourageHtml = (step.endType==='solved')
         ? '<div class="end-encourage">'+ENCOURAGE_LINES[Math.floor(Math.random()*ENCOURAGE_LINES.length)]+'</div>'
         : '';
-      card.innerHTML = '<div class="end-title">'+meta.icon+' '+meta.label+'</div><div class="end-desc">'+escapeHtml(desc)+'</div>' +
+      card.innerHTML = '<div class="end-title">'+meta.icon+' '+escapeHtml(step.endTitle||meta.label)+'</div><div class="end-desc">'+escapeHtml(desc)+'</div>' +
         (step.endType==='escalate' ? '<div class="end-desc">CMS에 접속한 뒤 채널톡으로 문의해주세요.</div>' : '') +
         encourageHtml +
         attachmentMarkup(step.endAttachment);
@@ -10936,7 +11018,7 @@ function buildHistoryText(){
   path.forEach(step=>{
     if(step.end){
       const meta = END_META[step.endType];
-      lines.push('▶ 결과: ' + meta.label);
+      lines.push('▶ 결과: ' + (step.endTitle||meta.label));
       if(step.endNote) lines.push('   (' + step.endNote + ')');
       return;
     }

@@ -8,6 +8,10 @@ const snapStart='/* SNAPISM MANUALS START */',snapEnd='/* SNAPISM MANUALS END */
 const snapBlock=snapStart+'\nconst SNAPISM_MANUALS = '+JSON.stringify(manuals).replace(/</g,'\\u003c')+';\n'+fs.readFileSync(path.join(root,'snapism-manuals-ui.js'),'utf8')+'\n'+snapEnd;
 if(html.includes(snapStart))html=html.slice(0,html.indexOf(snapStart))+snapBlock+html.slice(html.indexOf(snapEnd)+snapEnd.length);
 else html=html.replace(start,snapBlock+'\n'+start);
+const endingsStart='/* ENDING GUIDES START */',endingsEnd='/* ENDING GUIDES END */';
+const endingsBlock=endingsStart+'\n'+fs.readFileSync(path.join(root,'ending-guides-ui.js'),'utf8')+'\n'+endingsEnd;
+if(html.includes(endingsStart))html=html.slice(0,html.indexOf(endingsStart))+endingsBlock+html.slice(html.indexOf(endingsEnd)+endingsEnd.length);
+else html=html.replace(start,endingsBlock+'\n'+start);
 const block=start+'\n'+fs.readFileSync(path.join(root,'community-ui.js'),'utf8')+'\n'+end;
 if(html.includes(start))html=html.slice(0,html.indexOf(start))+block+html.slice(html.indexOf(end)+end.length);
 else html=html.replace('/* ============================= FLOW LOGIC ============================= */',block+'\n\n/* ============================= FLOW LOGIC ============================= */');
