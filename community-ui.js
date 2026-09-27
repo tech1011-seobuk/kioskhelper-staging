@@ -54,7 +54,7 @@ function helperPhotoCatalog(trees,replacements){
     if(!photos.has(key)){let channel=false;try{channel=new URL(item.url).hostname==='cf.channel.io';}catch{}photos.set(key,{item,channel,places:[]});}
     const row=photos.get(key);if(!row.places.includes(place))row.places.push(place);
   }
-  for(const [sid,tree] of Object.entries(trees))for(const [nid,node] of Object.entries(tree.nodes||{})){
+  for(const [sid,tree] of Object.entries(trees).filter(([id])=>typeof symptomActive!=='function'||symptomActive(id)))for(const [nid,node] of Object.entries(tree.nodes||{})){
     const place=sid+' · '+(typeof SYMPTOM_LABEL==='undefined'?sid:SYMPTOM_LABEL[sid]||sid)+' · 단계 '+nid+' — '+(node.text||'');
     for(const item of node.media||[])add(item,place);
     for(const url of node.images|| (node.image?[node.image]:[]))add({kind:'image',url,name:'조치 사진'},place);
@@ -66,7 +66,7 @@ function helperPhotoCatalog(trees,replacements){
 function helperPhotoCoverage(trees,replacements,guides){
   const rows=[];
   for(const [id,tree] of Object.entries(trees)){
-    if(id==='PRT-13')continue;
+    if(id==='PRT-13'||(typeof symptomActive==='function'&&!symptomActive(id)))continue;
     const steps=Object.entries(tree.nodes||{}).map(([key,node])=>({key,text:node.text||'',media:[...(node.media||[]).filter(m=>m.kind==='image'),...(node.images||(node.image?[node.image]:[])).map(url=>({kind:'image',url,name:'조치 사진'}))]}));
     rows.push({id,title:typeof SYMPTOM_LABEL==='undefined'?id:SYMPTOM_LABEL[id]||id,type:'증상 조치',steps});
   }

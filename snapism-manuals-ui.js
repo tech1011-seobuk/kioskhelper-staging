@@ -7,6 +7,7 @@ function snapEntries(device,category){
  const add=(title,id,indices)=>{const sections=snapSections(id,indices);entries.push({title,sections,cards:sections.flatMap(s=>s.cards),held:sections.find(s=>s.held)?.held});};
  const each=(id)=>snapSections(id).forEach((s,i)=>add(s.title.replace(/^[^가-힣A-Za-z]+/,''),id,[i]));
  if(category==='repair'){
+  if(typeof catalogSymptoms==='function'){const key=device==='CX7600'?'CX7600 프린터 (포토카드)':device==='DS620'?'DS620 프린터 (스티커)':device;for(const sid of catalogSymptoms(key,'snapism').filter(id=>id.startsWith('CUS-')))entries.push({title:hotTopicLabel(sid),sid,cards:[]});}
   if(device==='CX7600'){for(let i=1;i<9;i++)add(snapSections(194833)[i].title.replace(/^◼\s*/,''),194833,[i]);for(const [title,ids]of [['하얀 이물질이 출력돼요',[0,1]],['먼지 모양이 출력돼요',[2,3]],['찍힘·구김이 보여요',[4,5]],['가로줄·세로줄이 보여요',[6,7,8]]])add(title,194882,ids);}
   if(device==='DS620')each(194826);
   if(device==='모니터')each(194891);
@@ -60,5 +61,5 @@ function renderSnapManuals(){
  function card(title,icon,desc,click){const b=document.createElement('button');b.className=snapStage==='list'?'symptom-card':'tool-card';b.innerHTML=snapStage==='list'?'<span>'+escapeHtml(title)+'</span>':'<span class="tc-icon">'+icon+'</span><div class="tc-title">'+escapeHtml(title)+'</div><div class="tc-desc">'+escapeHtml(desc)+'</div>';b.onclick=click;grid.appendChild(b);}
  if(snapStage==='devices')for(const [name,icon]of Object.entries(SNAP_DEVICE_ICONS))card(name,icon,'조치·교체 항목 선택',()=>{snapManualFilter=name;snapStage='categories';render();});
  if(snapStage==='categories')for(const [key,icon,title,desc]of categories)if(snapEntries(snapManualFilter,key).length)card(title,icon,desc,()=>{snapCategory=key;snapStage='list';render();});
- if(snapStage==='list')for(const entry of snapEntries(snapManualFilter,snapCategory))card(entry.title,'','',()=>{snapEntry=entry;snapStep=0;snapStage='guide';render();});
+ if(snapStage==='list')for(const entry of snapEntries(snapManualFilter,snapCategory))card(entry.title,'','',()=>{if(entry.sid){selectedDevice=snapManualFilter;startSymptom(entry.sid);return;}snapEntry=entry;snapStep=0;snapStage='guide';render();});
 }

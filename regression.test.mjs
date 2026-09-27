@@ -56,7 +56,7 @@ test('recent symptoms include non-hot topics, deduplicate QR aliases and skip un
   const list={innerHTML:'',querySelectorAll(){return [];}},wrap={style:{}};
   const query={select(){return this},eq(){return this},in(){return this},order(){return this},async limit(){return {data:rows}}};
   const c=vm.createContext({sb:{from(){return query}},currentUser:{id:'u'},appState:'picker',TREES:{'ES-1':{},'CL-2':{},'PRT-7':{}},SYMPTOM_LABEL:{},escapeHtml:s=>s,document:{getElementById:id=>id==='recentSymptomsList'?list:wrap}});
-  vm.runInContext(section('async function loadRecentSymptoms(', 'function goToAdminDashboard('),c);
+  vm.runInContext(readFileSync(resolve(root,'symptom-catalog.js'),'utf8')+section('async function loadRecentSymptoms(', 'function goToAdminDashboard('),c);
   await c.loadRecentSymptoms('photoism');
   assert.match(list.innerHTML,/ES-1/);assert.match(list.innerHTML,/CL-2/);
   assert.equal((list.innerHTML.match(/PRT-7/g)||[]).length,1);assert.doesNotMatch(list.innerHTML,/missing|PRT-13/);
@@ -64,14 +64,14 @@ test('recent symptoms include non-hot topics, deduplicate QR aliases and skip un
 
 test('historical QR entry opens the maintained QR guide',async()=>{
  const c=vm.createContext({currentUser:{id:'u'},appState:'symptoms',TREES:{'PRT-7':{start:'n1'},'PRT-13':{start:'old'}},helperStartAttempt(){},helperAttemptDetail(){return null;},path:[],selectedDevice:'프린터',symptomSource:'photoism',async loadPublishedDiagnosis(){},render(){},logEvent(){}});
- vm.runInContext(section('async function startSymptom(', 'function resetAll('),c);await c.startSymptom('PRT-13');
+ vm.runInContext(readFileSync(resolve(root,'symptom-catalog.js'),'utf8')+section('async function startSymptom(', 'function resetAll('),c);await c.startSymptom('PRT-13');
  assert.equal(c.path[0].symptomId,'PRT-7');assert.equal(c.path[0].nodeId,'n1');
 });
 
 test('non-hot-topic symptoms load their published guide before opening the chat',async()=>{
   for(const sid of ['ES-1','ES-2','CL-1','CL-2']){
     const c=vm.createContext({currentUser:{id:'tester'},appState:'symptoms',TREES:{},helperStartAttempt(){},helperAttemptDetail(){return null;},path:[],selectedDevice:'light',symptomSource:'photoism',render(){c.rendered=true;},logEvent(){},isHotTopic(){return false;},showToast(){throw new Error('Unexpected blocked symptom');},async loadPublishedDiagnosis(){c.TREES[sid]={start:'published-start'};}});
-    vm.runInContext(section('async function startSymptom(', 'function resetAll('),c);
+    vm.runInContext(readFileSync(resolve(root,'symptom-catalog.js'),'utf8')+section('async function startSymptom(', 'function resetAll('),c);
     await c.startSymptom(sid);
     assert.equal(c.appState,'chat');
     assert.equal(c.path[0].nodeId,'published-start');
@@ -155,9 +155,9 @@ test('only channel inquiry outcomes show the CMS link; AS retains its handoff su
   }
 });
 test('diagram brand categories reuse common data and keep dedicated printers separate',()=>{
- const c=vm.createContext({});vm.runInContext(section('const DEVICES = [','const EQUIP_REPLACE_DEVICES')+section('function diagramDevicesForBrand','async function renderDiagramEditorScreen'),c);
+ const c=vm.createContext({});vm.runInContext(section('const DEVICES = [','const EQUIP_REPLACE_DEVICES')+readFileSync(resolve(root,'symptom-catalog.js'),'utf8')+section('function diagramDevicesForBrand','async function renderDiagramEditorScreen'),c);
  for(const name of ['모니터','카드리더기','PC','CMS']){
-  assert.equal(vm.runInContext(`diagramDevicesForBrand('photoism').find(d=>d.name==='${name}')===diagramDevicesForBrand('snapism').find(d=>d.name==='${name}')`,c),true);
+  assert.equal(vm.runInContext(`JSON.stringify(diagramDevicesForBrand('photoism').find(d=>d.name==='${name}').symptoms)===JSON.stringify(diagramDevicesForBrand('snapism').find(d=>d.name==='${name}').symptoms)`,c),true);
  }
  assert.equal(vm.runInContext("diagramDevicesForBrand('photoism').some(d=>d.symptoms.includes('SNAP-COIN-1'))",c),false);
  assert.equal(vm.runInContext("diagramDevicesForBrand('snapism').some(d=>d.symptoms.includes('SNAP-COIN-1'))",c),true);

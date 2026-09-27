@@ -19,4 +19,6 @@ else html=html.replace(start,reviewBlock+'\n'+start);
 const block=start+'\n'+fs.readFileSync(path.join(root,'community-ui.js'),'utf8')+'\n'+end;
 if(html.includes(start))html=html.slice(0,html.indexOf(start))+block+html.slice(html.indexOf(end)+end.length);
 else html=html.replace('/* ============================= FLOW LOGIC ============================= */',block+'\n\n/* ============================= FLOW LOGIC ============================= */');
+const catalogStart='/* SYMPTOM CATALOG START */',catalogEnd='/* SYMPTOM CATALOG END */';
+html=html.slice(0,html.indexOf(catalogStart))+catalogStart+'\n'+fs.readFileSync(path.join(root,'symptom-catalog.js'),'utf8')+'\n'+catalogEnd+html.slice(html.indexOf(catalogEnd)+catalogEnd.length);
 fs.writeFileSync(file,html);

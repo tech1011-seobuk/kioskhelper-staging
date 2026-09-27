@@ -149,3 +149,14 @@ test('CAM-4 single-shot manuals use isolated three-step model routes and origina
  assert.match(tree.nodes.cm50_2.text,/6번 페이지/);
  assert.match(html,/'CAM-4':'고속연사 촬영 \/ 촬영 후 동일사진 노출'/);
 });
+
+test('catalog hides requested symptoms, restores them, and accepts custom trees without losing built-ins',()=>{
+ const c=harness();
+ assert.equal(c.catalogSymptoms('프린터','photoism').length,9);
+ assert.deepEqual(Array.from(c.catalogSymptoms('PC','photoism')),['PC-1','PC-2']);
+ const id='CUS-'+ 'A'.repeat(32),starter={start:'n1',nodes:{n1:{text:'새 안내',options:[{label:'확인',end:'info'}]}}};
+ c.applySymptomCatalog([{symptom_id:id,label:'새 증상',device:'카메라',scope:'photoism',active:true,revision:1},{symptom_id:'PRT-9',label:'복원한 여백',device:'프린터',scope:'photoism',active:true,revision:2}]);
+ assert.ok(c.catalogSymptoms('카메라','photoism').includes(id));assert.ok(!c.catalogSymptoms('카메라','snapism').includes(id));assert.ok(c.symptomActive('PRT-9'));
+ c.api.applyPublishedRows([{symptom_id:id,revision:1,tree:starter}],'server');assert.equal(c.api.getDiagramDraft(id).tree.nodes.n1.text,'새 안내');assert.ok(c.api.TREES['CAM-4']);
+ c.applySymptomCatalog([{symptom_id:id,label:'바뀐 이름',device:'카메라',scope:'photoism',active:false,revision:2}]);assert.ok(!c.catalogSymptoms('카메라','photoism').includes(id));assert.equal(c.api.TREES[id].nodes.n1.text,'새 안내');
+});

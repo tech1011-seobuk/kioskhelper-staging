@@ -5,7 +5,7 @@ function endingDefinition(id){
  return row|| (base?{id,label:base.label,body:base.desc,result_type:id,device_notes:{},revision:0}:null);
 }
 function endingChoices(){return [...new Set([...Object.keys(END_META),...Object.keys(endingGuides)])].map(endingDefinition).filter(Boolean);}
-function endingDevice(sid){return DEVICES.find(d=>d.symptoms.includes(sid))?.name||selectedDevice||'';}
+function endingDevice(sid){return (typeof symptomCatalog!=='undefined'?symptomCatalog[sid]?.device:null)||DEVICES.find(d=>d.symptoms.includes(sid))?.name||selectedDevice||'';}
 function resolvedEnding(id,sid,note){
  const item=endingDefinition(id);if(!item)return null;
  const extra=item.device_notes[endingDevice(sid)]||'';

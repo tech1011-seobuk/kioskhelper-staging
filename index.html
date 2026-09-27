@@ -6560,6 +6560,7 @@ function snapEntries(device,category){
  const add=(title,id,indices)=>{const sections=snapSections(id,indices);entries.push({title,sections,cards:sections.flatMap(s=>s.cards),held:sections.find(s=>s.held)?.held});};
  const each=(id)=>snapSections(id).forEach((s,i)=>add(s.title.replace(/^[^가-힣A-Za-z]+/,''),id,[i]));
  if(category==='repair'){
+  if(typeof catalogSymptoms==='function'){const key=device==='CX7600'?'CX7600 프린터 (포토카드)':device==='DS620'?'DS620 프린터 (스티커)':device;for(const sid of catalogSymptoms(key,'snapism').filter(id=>id.startsWith('CUS-')))entries.push({title:hotTopicLabel(sid),sid,cards:[]});}
   if(device==='CX7600'){for(let i=1;i<9;i++)add(snapSections(194833)[i].title.replace(/^◼\s*/,''),194833,[i]);for(const [title,ids]of [['하얀 이물질이 출력돼요',[0,1]],['먼지 모양이 출력돼요',[2,3]],['찍힘·구김이 보여요',[4,5]],['가로줄·세로줄이 보여요',[6,7,8]]])add(title,194882,ids);}
   if(device==='DS620')each(194826);
   if(device==='모니터')each(194891);
@@ -6613,7 +6614,7 @@ function renderSnapManuals(){
  function card(title,icon,desc,click){const b=document.createElement('button');b.className=snapStage==='list'?'symptom-card':'tool-card';b.innerHTML=snapStage==='list'?'<span>'+escapeHtml(title)+'</span>':'<span class="tc-icon">'+icon+'</span><div class="tc-title">'+escapeHtml(title)+'</div><div class="tc-desc">'+escapeHtml(desc)+'</div>';b.onclick=click;grid.appendChild(b);}
  if(snapStage==='devices')for(const [name,icon]of Object.entries(SNAP_DEVICE_ICONS))card(name,icon,'조치·교체 항목 선택',()=>{snapManualFilter=name;snapStage='categories';render();});
  if(snapStage==='categories')for(const [key,icon,title,desc]of categories)if(snapEntries(snapManualFilter,key).length)card(title,icon,desc,()=>{snapCategory=key;snapStage='list';render();});
- if(snapStage==='list')for(const entry of snapEntries(snapManualFilter,snapCategory))card(entry.title,'','',()=>{snapEntry=entry;snapStep=0;snapStage='guide';render();});
+ if(snapStage==='list')for(const entry of snapEntries(snapManualFilter,snapCategory))card(entry.title,'','',()=>{if(entry.sid){selectedDevice=snapManualFilter;startSymptom(entry.sid);return;}snapEntry=entry;snapStep=0;snapStage='guide';render();});
 }
 
 /* SNAPISM MANUALS END */
@@ -6625,7 +6626,7 @@ function endingDefinition(id){
  return row|| (base?{id,label:base.label,body:base.desc,result_type:id,device_notes:{},revision:0}:null);
 }
 function endingChoices(){return [...new Set([...Object.keys(END_META),...Object.keys(endingGuides)])].map(endingDefinition).filter(Boolean);}
-function endingDevice(sid){return DEVICES.find(d=>d.symptoms.includes(sid))?.name||selectedDevice||'';}
+function endingDevice(sid){return (typeof symptomCatalog!=='undefined'?symptomCatalog[sid]?.device:null)||DEVICES.find(d=>d.symptoms.includes(sid))?.name||selectedDevice||'';}
 function resolvedEnding(id,sid,note){
  const item=endingDefinition(id);if(!item)return null;
  const extra=item.device_notes[endingDevice(sid)]||'';
@@ -6784,7 +6785,7 @@ function helperPhotoCatalog(trees,replacements){
     if(!photos.has(key)){let channel=false;try{channel=new URL(item.url).hostname==='cf.channel.io';}catch{}photos.set(key,{item,channel,places:[]});}
     const row=photos.get(key);if(!row.places.includes(place))row.places.push(place);
   }
-  for(const [sid,tree] of Object.entries(trees))for(const [nid,node] of Object.entries(tree.nodes||{})){
+  for(const [sid,tree] of Object.entries(trees).filter(([id])=>typeof symptomActive!=='function'||symptomActive(id)))for(const [nid,node] of Object.entries(tree.nodes||{})){
     const place=sid+' · '+(typeof SYMPTOM_LABEL==='undefined'?sid:SYMPTOM_LABEL[sid]||sid)+' · 단계 '+nid+' — '+(node.text||'');
     for(const item of node.media||[])add(item,place);
     for(const url of node.images|| (node.image?[node.image]:[]))add({kind:'image',url,name:'조치 사진'},place);
@@ -6796,7 +6797,7 @@ function helperPhotoCatalog(trees,replacements){
 function helperPhotoCoverage(trees,replacements,guides){
   const rows=[];
   for(const [id,tree] of Object.entries(trees)){
-    if(id==='PRT-13')continue;
+    if(id==='PRT-13'||(typeof symptomActive==='function'&&!symptomActive(id)))continue;
     const steps=Object.entries(tree.nodes||{}).map(([key,node])=>({key,text:node.text||'',media:[...(node.media||[]).filter(m=>m.kind==='image'),...(node.images||(node.image?[node.image]:[])).map(url=>({kind:'image',url,name:'조치 사진'}))]}));
     rows.push({id,title:typeof SYMPTOM_LABEL==='undefined'?id:SYMPTOM_LABEL[id]||id,type:'증상 조치',steps});
   }
@@ -7083,7 +7084,7 @@ async function startSymptom(symptomId){
   await loadPublishedDiagnosis();
   if (!currentUser || currentUser.id !== owner || appState !== previousState) return;
   const tree = TREES[symptomId];
-  if(!tree){ return; }
+  if(!tree||!symptomActive(symptomId)){showToast('안내','목록에서 삭제된 증상입니다. 다른 항목을 선택해주세요.'); return; }
   
   helperStartAttempt(symptomId);
   path = [{symptomId, nodeId: tree.start, chosen:null}];
@@ -7368,7 +7369,7 @@ function handleAchievements(symptomId){
   }
   completedSymptoms.add(symptomId);
   const dev = DEVICES.find(d => d.symptoms.includes(symptomId));
-  if(dev && dev.symptoms.every(sid => completedSymptoms.has(sid))){
+  if(dev && catalogSymptoms(dev.name,symptomSource||'photoism').every(sid => completedSymptoms.has(sid))){
     setTimeout(()=> showToast('🎉', dev.name+' 증상 다 둘러봤어요!'), 900);
   }
 }
@@ -8384,7 +8385,7 @@ async function loadRecentSymptoms(brand){
       let key;
       if (e.event_type === 'symptom_click') {
         if(e.symptom_id==='PRT-13')e.symptom_id='PRT-7';
-        if (!e.symptom_id || !TREES[e.symptom_id]) continue;
+        if (!e.symptom_id || !TREES[e.symptom_id] || !symptomActive(e.symptom_id)) continue;
         key = 'symptom:'+e.symptom_id;
       } else {
         if (!e.device || !e.detail) continue; // 세부항목 없는 단순 부위 클릭은 표시 안 함
@@ -8488,6 +8489,43 @@ function goToAdminDashboard(){
 
 /* ============================= PUBLISHED DIAGNOSIS ============================= */
 const BUILTIN_TREES = JSON.parse(JSON.stringify(TREES));
+/* SYMPTOM CATALOG START */
+let symptomCatalog={},symptomCatalogReady=false;
+const REMOVED_SYMPTOMS=['PRT-9','PRT-11','PRT-12','PRT-14','PC-3'];
+function symptomActive(sid){return symptomCatalog[sid]?.active??!REMOVED_SYMPTOMS.includes(sid);}
+function knownSymptom(sid){return Object.hasOwn(BUILTIN_TREES,sid)||Object.hasOwn(symptomCatalog,sid);}
+function symptomDefaults(sid){const device=DEVICES.find(d=>d.symptoms.includes(sid))?.name||'지폐투입기';return {symptom_id:sid,label:DIAGRAM_HOT_TOPICS.find(t=>t.sid===sid)?.label||SYMPTOM_LABEL[sid]||sid,device,scope:['모니터','PC','카드리더기','CMS'].includes(device)?'shared':device==='서비스코인'?'snapism':'photoism',active:symptomActive(sid),revision:0};}
+function catalogSymptoms(device,brand){const base=DEVICES.find(d=>d.name===device)?.symptoms||[];return [...new Set([...base,...Object.keys(symptomCatalog).filter(id=>symptomCatalog[id].device===device)])].filter(id=>{const row=symptomCatalog[id];return symptomActive(id)&&(!row||row.scope==='shared'||row.scope===brand);});}
+function applySymptomCatalog(rows){
+ const next={};for(const r of rows){if(!/^[A-Z][A-Z0-9-]{0,39}$/.test(r.symptom_id)||typeof r.label!=='string'||!r.label.trim()||r.label.length>120||typeof r.device!=='string'||!['photoism','snapism','shared'].includes(r.scope)||typeof r.active!=='boolean'||!Number.isInteger(r.revision)||r.revision<1)throw Error('항목 목록 형식을 확인해주세요.');next[r.symptom_id]=r;}
+ symptomCatalog=next;for(const r of rows)SYMPTOM_LABEL[r.symptom_id]=r.label;
+}
+async function loadSymptomCatalog(){
+ const owner=currentUser?.id,key='symptomCatalog:'+SUPABASE_URL;symptomCatalogReady=false;
+ try{const rows=[];let after=null;while(true){let q=sb.from('helper_symptom_catalog').select('*').order('symptom_id').limit(100);if(after)q=q.gt('symptom_id',after);const {data,error}=await q;if(error)throw error;if(!data?.length)break;rows.push(...data);after=data.at(-1).symptom_id;}
+ if(currentUser?.id!==owner)return false;applySymptomCatalog(rows);symptomCatalogReady=true;try{localStorage.setItem(key,JSON.stringify(rows));}catch{}return true;
+ }catch{try{if(currentUser?.id===owner)applySymptomCatalog(JSON.parse(localStorage.getItem(key)||'[]'));}catch{}return false;}
+}
+async function openSymptomManager(device,brand,onChange){
+ if(APP_ENV!=='staging'||currentUser?.role!=='admin'||diagramSaving||mediaUploading)return;
+ const owner=currentUser.id;if(!await loadPublishedDiagnosis()){showToast('안내','항목 목록을 불러오지 못했습니다. 다시 시도해주세요.');return;}if(currentUser?.id!==owner||appState!=='diagramEditor')return;
+ const dialog=document.createElement('dialog');dialog.style.cssText='width:min(680px,92vw);max-height:85vh;overflow:auto;background:var(--panel,#24262c);color:var(--text,#fff);border:1px solid var(--border);border-radius:16px;padding:20px';
+ dialog.innerHTML='<button data-close style="float:right">닫기</button><h2>증상 항목 관리</h2><p></p><label>새 항목 이름<input maxlength="120" aria-label="새 항목 이름"></label><button data-add>＋ 항목 추가</button><p role="status"></p><div data-list></div>';
+ dialog.querySelector('p').textContent=device+' · 이름 변경은 바로 반영됩니다. 삭제해도 조치 내용은 보관되며 복구할 수 있습니다. 새 항목은 추가 후 내용 편집에서 안내를 작성해주세요.';
+ document.body.appendChild(dialog);dialog.showModal();dialog.onclose=()=>dialog.remove();dialog.querySelector('[data-close]').onclick=()=>dialog.close();let busy=false;
+ function rows(){return [...new Set([...(DEVICES.find(d=>d.name===device)?.symptoms||[]),...Object.keys(symptomCatalog)])].map(id=>symptomCatalog[id]||symptomDefaults(id)).filter(r=>r.device===device&&(r.scope==='shared'||r.scope===brand));}
+ function draw(){const list=dialog.querySelector('[data-list]');list.innerHTML='';for(const r of rows()){const box=document.createElement('section');box.className='helper-card';const label=document.createElement('input');label.value=r.label;label.maxLength=120;label.setAttribute('aria-label',r.symptom_id+' 항목 이름');box.appendChild(label);const state=document.createElement('p');state.textContent=r.active?r.symptom_id:'삭제됨 · '+r.symptom_id;box.appendChild(state);for(const [text,action]of [['이름 저장',()=>save({...r,label:label.value})],[r.active?'항목 삭제':'복구',()=>save({...r,active:!r.active})],['내용 편집',()=>{dialog.close();onChange(r.symptom_id);} ]]){const b=document.createElement('button');b.textContent=text;b.onclick=action;box.appendChild(b);}list.appendChild(box);}}
+ async function save(row){
+ if(busy)return;const status=dialog.querySelector('[role=status]');if(!row.label.trim()){status.textContent='항목 이름을 입력해주세요.';return;}
+ busy=true;dialog.querySelectorAll('button,input').forEach(x=>x.disabled=true);const owner=currentUser.id;
+ try{if(!symptomCatalogReady)throw Error('서버 목록을 먼저 불러와주세요.');const {error}=await sb.rpc('save_symptom_catalog',{p_id:row.symptom_id,p_label:row.label.trim(),p_device:row.device,p_scope:row.scope,p_active:row.active,p_revision:row.revision});if(error)throw error;if(currentUser?.id!==owner){dialog.close();return;}
+ if(!await loadPublishedDiagnosis())throw Error('저장은 완료됐지만 목록을 다시 불러오지 못했습니다. 창을 다시 열어주세요.');status.textContent='저장했습니다. 테스트 사이트에 적용됐어요.';dialog.querySelector('input[aria-label="새 항목 이름"]').value='';draw();onChange();
+ }catch(e){status.textContent=e.message||'저장하지 못했습니다. 입력 내용은 유지됩니다.';}finally{busy=false;dialog.querySelectorAll('button,input').forEach(x=>x.disabled=false);}}
+ dialog.querySelector('[data-add]').onclick=()=>save({symptom_id:'CUS-'+crypto.randomUUID().replaceAll('-','').toUpperCase(),label:dialog.querySelector('input[aria-label="새 항목 이름"]').value,device,scope:['모니터','PC','카드리더기','CMS'].includes(device)?'shared':brand,active:true,revision:0});
+ dialog.addEventListener('cancel',e=>{if(busy)e.preventDefault();});draw();
+}
+
+/* SYMPTOM CATALOG END */
 const DIAGNOSIS_CACHE_KEY = 'kioskHelperPublished:' + SUPABASE_URL;
 const diagnosisStore = { rows: {}, source: 'builtin', online: false, pending: null };
 const diagramDrafts = {};
@@ -8521,7 +8559,7 @@ function validateDiagnosisTree(tree){
       const routes = ['next','jump','end'].filter(key => Object.hasOwn(option, key));
       if (routes.length !== 1) throw new Error('선택지마다 이동 단계나 종료 결과를 하나 선택해주세요.');
       if (routes[0] === 'next' && (!text(option.next, 40) || !Object.hasOwn(tree.nodes, option.next))) throw new Error('없는 단계로 연결되어 있습니다.');
-      if (routes[0] === 'jump' && (!text(option.jump, 40) || !Object.hasOwn(BUILTIN_TREES, option.jump))) throw new Error('없는 증상으로 연결되어 있습니다.');
+      if (routes[0] === 'jump' && (!text(option.jump, 40) || !knownSymptom(option.jump))) throw new Error('없는 증상으로 연결되어 있습니다.');
       if (routes[0] === 'end' && !['solved','escalate','as','info'].includes(option.end)&&!/^custom_[a-f0-9]{32}$/.test(option.end)) throw new Error('종료 결과를 확인해주세요.');
       for (const key of ['note','attachment']) if (Object.hasOwn(option, key) && !text(option[key], 20000, true)) throw new Error('부가 안내 형식을 확인해주세요.');
     }
@@ -8541,12 +8579,12 @@ function validateDiagnosisTree(tree){
 function applyPublishedRows(rows, source){
   const next = {};
   for (const row of rows) {
-    if (!Object.hasOwn(BUILTIN_TREES, row.symptom_id) || !Number.isInteger(row.revision) || row.revision < 1) throw new Error('저장된 안내 형식을 확인해주세요.');
+    if (!knownSymptom(row.symptom_id) || !Number.isInteger(row.revision) || row.revision < 1) throw new Error('저장된 안내 형식을 확인해주세요.');
     validateDiagnosisTree(row.tree);
     next[row.symptom_id] = cloneDiagnosis(row);
   }
   // All rows are validated before replacing any in-memory tree.
-  for (const sid of Object.keys(BUILTIN_TREES)) TREES[sid] = cloneDiagnosis(next[sid]?.tree || BUILTIN_TREES[sid]);
+  for (const sid of new Set([...Object.keys(BUILTIN_TREES),...Object.keys(next)])) TREES[sid] = cloneDiagnosis(next[sid]?.tree || BUILTIN_TREES[sid]);
   diagnosisStore.rows = next;
   diagnosisStore.source = rows.length ? source : 'builtin';
 }
@@ -8565,6 +8603,7 @@ async function loadPublishedDiagnosis(){
   if (diagnosisStore.pending) return diagnosisStore.pending;
   const userId = currentUser.id;
   const task = (async () => {
+    const catalogLoaded=await loadSymptomCatalog();
     if(typeof loadEndingGuides==='function')await loadEndingGuides();
     if (!diagnosisStore.online && !Object.keys(diagnosisStore.rows).length) {
       try {
@@ -8573,7 +8612,7 @@ async function loadPublishedDiagnosis(){
       } catch { /* Invalid local copies never become the published source. */ }
     }
     try {
-      if (!navigator.onLine) throw new Error('offline');
+      if (!navigator.onLine||!catalogLoaded) throw new Error('offline');
       const rows = [];
       let after = null;
       for (;;) {
@@ -8588,7 +8627,7 @@ async function loadPublishedDiagnosis(){
       }
       if (!currentUser || currentUser.id !== userId) return false;
       // An incomplete initialization must not silently enable publication.
-      if (rows.length !== Object.keys(BUILTIN_TREES).length) throw new Error('안내 초기 설정이 완료되지 않았습니다.');
+      if (Object.keys(BUILTIN_TREES).some(id=>!rows.some(r=>r.symptom_id===id))) throw new Error('안내 초기 설정이 완료되지 않았습니다.');
       applyPublishedRows(rows, 'server');
       diagnosisStore.online = true;
       try { localStorage.setItem(DIAGNOSIS_CACHE_KEY, JSON.stringify(rows)); } catch { /* Cache is optional. */ }
@@ -8962,7 +9001,7 @@ function refreshDiagramPhotoLibrary(sid){
    const add=(value,label)=>{const o=document.createElement('option');o.value=value;o.textContent=label;target.appendChild(o);};
    for(const row of endingChoices())add('end:'+row.id,row.label);
    for(const [id,n] of Object.entries(tree.nodes))add('next:'+id,'다음 단계 '+id+' · '+(n.text||'새 안내').slice(0,35));
-   for(const id of Object.keys(BUILTIN_TREES))add('jump:'+id,'다른 증상: '+id+' · '+(SYMPTOM_LABEL[id]||''));
+   for(const id of Object.keys(TREES).filter(symptomActive))add('jump:'+id,'다른 증상: '+id+' · '+(SYMPTOM_LABEL[id]||''));
    target.value=opt.type==='next'?'next:'+opt.target:opt.type==='jump'?'jump:'+opt.jump:'end:'+opt.type;
    target.onchange=()=>{if(diagramSaving||mediaUploading||currentUser?.role!=='admin')return;const [kind,id]=target.value.split(':');setDiagramOptionRoute(opt,kind==='end'?id:kind,id);captureDiagramDraft(sid);};
    const remove=document.createElement('button');remove.type='button';remove.textContent='선택지 삭제';remove.setAttribute('aria-label',nid+' 선택지 '+(index+1)+' 삭제');remove.disabled=diagramSaving||mediaUploading;remove.onclick=()=>removeDiagramOption(sid,nid,index);line.append(name,target,remove);choices.appendChild(line);
@@ -9111,14 +9150,14 @@ const DIAGRAM_HOT_TOPICS = [
   }
 ];
 function isHotTopic(sid){return DIAGRAM_HOT_TOPICS.some(t=>t.sid===sid);}
-function hotTopicLabel(sid){return DIAGRAM_HOT_TOPICS.find(t=>t.sid===sid)?.label || SYMPTOM_LABEL[sid] || sid;}
+function hotTopicLabel(sid){return symptomCatalog[sid]?.label || DIAGRAM_HOT_TOPICS.find(t=>t.sid===sid)?.label || SYMPTOM_LABEL[sid] || sid;}
 function diagramDevicesForBrand(brand){
- if(brand==='photoism')return DEVICES.filter(d=>d.name!=='서비스코인');
+ if(brand==='photoism')return DEVICES.filter(d=>d.name!=='서비스코인').map(d=>({...d,symptoms:catalogSymptoms(d.name,brand)}));
  if(brand!=='snapism')return [];
  return ['모니터','카드리더기','PC','서비스코인','CMS'].map(name=>DEVICES.find(d=>d.name===name)).filter(Boolean).concat([
   {name:'CX7600 프린터 (포토카드)',icon:'🖨️',symptoms:[]},
   {name:'DS620 프린터 (스티커)',icon:'🖨️',symptoms:[]}
- ]);
+ ]).map(d=>({...d,symptoms:catalogSymptoms(d.name,brand)}));
 }
 function diagramCategoryShared(name){return diagramDevicesForBrand('photoism').some(d=>d.name===name)&&diagramDevicesForBrand('snapism').some(d=>d.name===name);}
 
@@ -9146,7 +9185,8 @@ async function renderDiagramEditorScreen(){
  if(APP_ENV !== 'staging'||currentUser?.role!=='admin'){appState=currentUser?'hub':'login';render();return;}
  const area=document.getElementById('chatArea');
  const reviewOwner=currentUser.id;area.textContent='검수 기록을 불러오는 중…';
- const loaded=await loadManualReviews();if(currentUser?.id!==reviewOwner||appState!=='diagramEditor')return;
+ const catalogOk=await loadPublishedDiagnosis();
+ const loaded=catalogOk&&await loadManualReviews();if(currentUser?.id!==reviewOwner||appState!=='diagramEditor')return;
  if(!loaded){area.innerHTML='<p>검수 기록을 불러오지 못했습니다. 기존 기록은 유지됩니다.</p><button id=reviewRetry>다시 시도</button>';area.querySelector('button').onclick=renderDiagramEditorScreen;return;}
  let brand=null,device=null,hot=false;
  const brandName=()=>brand==='photoism'?'포토이즘':'스내피즘';
@@ -9173,8 +9213,10 @@ async function renderDiagramEditorScreen(){
   body.querySelectorAll('[data-diagram-device]').forEach(b=>b.onclick=()=>{device=devices[Number(b.dataset.diagramDevice)];hot=false;renderSymptoms();});
  }
  function renderSymptoms(){
+  device={...device,symptoms:catalogSymptoms(device.name,brand)};
   const body=frame(),shared=diagramCategoryShared(device.name);
   body.innerHTML='<p class="hot-topic-context">'+(shared?'공통 카테고리입니다. 저장한 내용과 사진은 포토이즘·스내피즘에 함께 적용됩니다.':escapeHtml(brandName())+' 전용 카테고리입니다.')+'</p><div class="diagram-editor-screen"><aside class="diagram-editor-sidebar"><div class="hot-topic-tabs"><button class="btn" id="allTopicTab" aria-pressed="true">전체 증상</button><button class="btn" id="hotTopicTab" aria-pressed="false">🔥 핫토픽</button></div><input type="search" class="diagram-side-search" id="diagramSideSearch" placeholder="선택한 장비의 증상 검색" aria-label="작업할 증상 검색"><label>검수 상태 <select id="manualStatusFilter"><option value="">전체</option><option>검토 전</option><option>업데이트 중</option><option>픽스</option></select></label><p style="font-size:12px">검수 상태·메모는 계정에 저장됩니다. 이전 브라우저에서 이 화면을 열면 기존 기록도 자동으로 옮깁니다.</p><div id="diagramSideList"></div></aside><div class="diagram-editor-main" id="diagramEditorMain"></div></div>';
+  const manage=document.createElement('button');manage.className='btn';manage.textContent='⚙️ 증상 항목 관리 · 추가/이름/삭제';manage.onclick=()=>{if(retain())openSymptomManager(device.name,brand,sid=>{renderSymptoms();if(sid)choose(sid);});};body.prepend(manage);
   const side=document.getElementById('diagramSideList'),main=document.getElementById('diagramEditorMain'),search=document.getElementById('diagramSideSearch');
   function choose(sid){if(!retain())return;diagramEditingList=false;diagramPhotoLibraryOpen=false;diagramPhotoFilter='all';diagramPhotoSearch='';openDiagram(sid);side.querySelectorAll('[data-sid]').forEach(b=>b.classList.toggle('active',b.dataset.sid===sid));}
   function list(){
@@ -9444,7 +9486,7 @@ function openEdgePopover(sid, nid, optIdx, chipEl){
   typeSel.innerHTML='<option value="next">➡️ 다음 단계로</option><option value="jump">↗ 다른 증상으로</option>'+endingChoices().map(r=>'<option value="'+r.id+'">'+escapeHtml(r.label)+'</option>').join('');
   typeSel.value=opt.type;
   function renderTargets(){
-    const jump=typeSel.value==='jump',ids=jump?Object.keys(BUILTIN_TREES):Object.keys(tree.nodes);
+    const jump=typeSel.value==='jump',ids=jump?Object.keys(TREES).filter(symptomActive):Object.keys(tree.nodes);
     targetSel.innerHTML=ids.map(id=>'<option value="'+id+'">'+id+' — '+escapeHtml(jump?(SYMPTOM_LABEL[id]||id):tree.nodes[id].text.slice(0,35))+'</option>').join('');
     const selected=jump?opt.jump:opt.target;if(ids.includes(selected))targetSel.value=selected;
     targetSel.style.display=['next','jump'].includes(typeSel.value)?'inline-block':'none';
@@ -9539,7 +9581,7 @@ function setDiagramZoom(value){
 
 function copyDiagramContent(sid, tree, btn){
   const label = SYMPTOM_LABEL[sid] || '';
-  let out = '['+sid+' · '+label+'] 수정된 내용\n\n';
+  let out = '['+sid+' · '+escapeHtml(label)+'] 수정된 내용\n\n';
   document.querySelectorAll('.dnode-step').forEach(box=>{
     const textEl = box.querySelector('.dnode-text');
     const nid = textEl.dataset.nid;
@@ -9792,7 +9834,7 @@ function renderAdminDashboardContent(events, profiles){
     '<table class="admin-table"><thead><tr><th></th><th>증상</th><th>클릭수</th></tr></thead><tbody>' +
     top5.map(([sid, count], i) => {
       const label = (typeof SYMPTOM_LABEL !== 'undefined' && SYMPTOM_LABEL[sid]) ? SYMPTOM_LABEL[sid] : '';
-      return '<tr><td style="font-size:15px;">'+medals[i]+'</td><td>'+sid+(label ? ' <span style="color:var(--muted); font-size:11.5px;">'+label+'</span>' : '')+'</td><td>'+count+'</td></tr>';
+      return '<tr><td style="font-size:15px;">'+medals[i]+'</td><td>'+sid+(label ? ' <span style="color:var(--muted); font-size:11.5px;">'+escapeHtml(label)+'</span>' : '')+'</td><td>'+count+'</td></tr>';
     }).join('') + '</tbody></table>'
     : '<div class="admin-empty">아직 기록이 없어요.</div>';
 
@@ -9802,7 +9844,7 @@ function renderAdminDashboardContent(events, profiles){
     worstUnresolvedRows.map(([sid, s, rate], i) => {
       const label = (typeof SYMPTOM_LABEL !== 'undefined' && SYMPTOM_LABEL[sid]) ? SYMPTOM_LABEL[sid] : '';
       const rateClass = rate >= 60 ? 'admin-rate-bad' : (rate < 30 ? 'admin-rate-good' : '');
-      return '<tr><td style="font-size:15px;">'+(i+1)+'</td><td>'+sid+(label ? ' <span style="color:var(--muted); font-size:11.5px;">'+label+'</span>' : '')+'</td>' +
+      return '<tr><td style="font-size:15px;">'+(i+1)+'</td><td>'+sid+(label ? ' <span style="color:var(--muted); font-size:11.5px;">'+escapeHtml(label)+'</span>' : '')+'</td>' +
         '<td class="'+rateClass+'">'+rate+'%</td><td>'+s.escalate+'</td><td>'+s.as+'</td><td>'+s.total+'</td></tr>';
     }).join('') + '</tbody></table>'
     : '<div class="admin-empty">아직 판단할 만한 기록(증상당 2건 이상)이 부족해요.</div>';
@@ -9838,7 +9880,7 @@ function renderAdminDashboardContent(events, profiles){
       const label = (typeof SYMPTOM_LABEL !== 'undefined' && SYMPTOM_LABEL[sid]) ? SYMPTOM_LABEL[sid] : '';
       const rateClass = rate >= 60 ? 'admin-rate-good' : (rate < 30 ? 'admin-rate-bad' : '');
       const unresolvedClass = unresolvedRate >= 60 ? 'admin-rate-bad' : (unresolvedRate < 30 ? 'admin-rate-good' : '');
-      return '<tr><td>'+sid+(label ? ' <span style="color:var(--muted); font-size:11.5px;">'+label+'</span>' : '')+'</td>' +
+      return '<tr><td>'+sid+(label ? ' <span style="color:var(--muted); font-size:11.5px;">'+escapeHtml(label)+'</span>' : '')+'</td>' +
         '<td>'+(symptomClickCounts[sid]||0)+'</td>' +
         '<td>'+s.total+'</td><td>'+s.solved+'</td><td>'+(s.escalate+s.as)+'</td>' +
         '<td class="'+rateClass+'">'+rate+'%</td><td class="'+unresolvedClass+'">'+unresolvedRate+'%</td></tr>';
@@ -9895,7 +9937,7 @@ function renderAdminDashboardContent(events, profiles){
       const tagText = e.outcome === 'as' ? 'A/S 필요' : '채널톡 문의하기';
       const when = new Date(e.created_at).toLocaleString('ko-KR', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
       return '<div class="admin-recent-item">' +
-        '<div><b>'+(profileMap[e.user_id] || '(알수없음)')+'</b> · '+(e.device||'')+' · '+label+'<div style="color:var(--muted); font-size:11.5px;">'+when+'</div></div>' +
+        '<div><b>'+(profileMap[e.user_id] || '(알수없음)')+'</b> · '+(e.device||'')+' · '+escapeHtml(label)+'<div style="color:var(--muted); font-size:11.5px;">'+when+'</div></div>' +
         '<span class="admin-recent-tag '+tagClass+'">'+tagText+'</span>' +
       '</div>';
     }).join('')
@@ -9907,7 +9949,7 @@ function renderAdminDashboardContent(events, profiles){
       const label = (typeof SYMPTOM_LABEL !== 'undefined' && SYMPTOM_LABEL[e.symptom_id]) ? SYMPTOM_LABEL[e.symptom_id] : (e.symptom_id||'');
       const when = new Date(e.created_at).toLocaleString('ko-KR', {month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit'});
       return '<div class="admin-recent-item" style="display:block;">' +
-        '<div style="color:var(--muted); font-size:11.5px; margin-bottom:4px;">'+(profileMap[e.user_id] || '(알수없음)')+' · '+(e.device||'')+' · '+label+' · '+when+'</div>' +
+        '<div style="color:var(--muted); font-size:11.5px; margin-bottom:4px;">'+(profileMap[e.user_id] || '(알수없음)')+' · '+(e.device||'')+' · '+escapeHtml(label)+' · '+when+'</div>' +
         '<div>'+escapeHtml(e.feedback)+'</div>' +
       '</div>';
     }).join('')
@@ -10751,7 +10793,7 @@ function renderSymptomsScreen(){
   area.appendChild(wrap);
 
   const grid = document.getElementById('symptomsGrid');
-  dev.symptoms.forEach((sid, i)=>{
+  catalogSymptoms(dev.name,symptomSource||'photoism').forEach((sid, i)=>{
     const card = document.createElement('button');
     card.className = 'symptom-card';
     card.style.animationDelay = (i*0.05)+'s';
@@ -10921,7 +10963,7 @@ function renderChat(){
   const first = path[0];
   if(symptomSource==='snapism')appendSnapManualLink(inner,selectedDevice,'chat');
   appendSymptomVideoButtons(inner,TREES[first.symptomId]);
-  crumb.innerHTML = '<b>'+first.symptomId+'</b><span class="sep">·</span>'+SYMPTOM_LABEL[first.symptomId];
+  crumb.innerHTML = '<b>'+first.symptomId+'</b><span class="sep">·</span>'+escapeHtml(SYMPTOM_LABEL[first.symptomId]||first.symptomId);
 
   let stepCounter = 0;
   const enterFrom = path.length - 2;
