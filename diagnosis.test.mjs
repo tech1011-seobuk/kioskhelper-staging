@@ -160,3 +160,12 @@ test('catalog hides requested symptoms, restores them, and accepts custom trees 
  c.api.applyPublishedRows([{symptom_id:id,revision:1,tree:starter}],'server');assert.equal(c.api.getDiagramDraft(id).tree.nodes.n1.text,'새 안내');assert.ok(c.api.TREES['CAM-4']);
  c.applySymptomCatalog([{symptom_id:id,label:'바뀐 이름',device:'카메라',scope:'photoism',active:false,revision:2}]);assert.ok(!c.catalogSymptoms('카메라','photoism').includes(id));assert.equal(c.api.TREES[id].nodes.n1.text,'새 안내');
 });
+
+test('import copies media and branches independently, preserving destination history for undo',()=>{
+ const c=harness();c.symptomActive=id=>id!=='PRT-9';vm.runInContext('globalThis.importApi={copyDiagnosisForImport,persistDiagramDrafts,diagramAdditionHistory};',c);
+ const source=c.api.TREES['CAM-4'],original=JSON.stringify(source),copy=c.importApi.copyDiagnosisForImport(source,'PC-1');
+ assert.equal(JSON.stringify(copy),original);copy.nodes[copy.start].text='edited';assert.equal(JSON.stringify(source),original);
+ const d=c.api.getDiagramDraft('PC-1'),before=JSON.stringify(d.tree),revision=d.revision;d.tree=copy;d.dirty=true;c.importApi.persistDiagramDrafts();assert.equal(d.revision,revision);assert.equal(JSON.stringify(c.importApi.diagramAdditionHistory['PC-1'].at(-1).tree),before);
+ const jump={start:'n1',nodes:{n1:{text:'test',options:[{label:'go',jump:'PC-1'}]}}};assert.throws(()=>c.importApi.copyDiagnosisForImport(jump,'PC-1'),/현재 증상/);
+ jump.nodes.n1.options[0].jump='PRT-9';assert.throws(()=>c.importApi.copyDiagnosisForImport(jump,'PC-1'),/삭제된/);
+});

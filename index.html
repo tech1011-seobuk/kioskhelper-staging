@@ -8766,6 +8766,35 @@ function recordDiagramUndo(sid,draft){
  diagramUndoBaselines[sid]={owner:draft.owner,tree:cloneDiagnosis(draft.tree)};
  const button=document.getElementById('diagramUndoAddition');if(button&&diagramSelectedSid===sid)button.disabled=!diagramAdditionHistory[sid]?.length;
 }
+function copyDiagnosisForImport(tree,targetSid){
+ const copy=cloneDiagnosis(tree);validateDiagnosisTree(copy);
+ for(const node of Object.values(copy.nodes))for(const o of node.options)if(o.jump){
+  if(o.jump===targetSid)throw Error('이 안내에는 현재 증상으로 돌아오는 연결이 있어 가져올 수 없습니다. 원본 연결을 먼저 확인해주세요.');
+  if(!symptomActive(o.jump))throw Error('삭제된 증상으로 연결되는 안내가 있어 가져올 수 없습니다.');
+ }
+ return copy;
+}
+async function openDiagramImport(sid){
+ if(APP_ENV!=='staging'||currentUser?.role!=='admin'||diagramSaving||mediaUploading)return;
+ captureDiagramDraft(sid);const owner=currentUser.id,{dialog,body}=openHelperDialog('다른 증상 다이어그램 가져오기');
+ const help=document.createElement('p');help.textContent='선택한 증상의 저장된 안내·선택지·사진·영상을 복사합니다. 현재 증상의 이름과 검수 기록은 유지됩니다. 원본은 바뀌지 않으며, 가져온 뒤 저장하고 적용을 눌러야 반영됩니다.';body.appendChild(help);
+ const search=document.createElement('input');search.type='search';search.placeholder='장비 또는 증상 검색';search.setAttribute('aria-label','가져올 증상 검색');body.appendChild(search);
+ const select=document.createElement('select');select.setAttribute('aria-label','가져올 증상');select.style.width='100%';body.appendChild(select);
+ const status=document.createElement('p');status.setAttribute('role','status');status.textContent='저장된 안내를 불러오는 중...';body.appendChild(status);
+ const preview=document.createElement('textarea');preview.readOnly=true;preview.rows=9;preview.style.cssText='width:100%;box-sizing:border-box';preview.setAttribute('aria-label','가져올 안내 미리보기');body.appendChild(preview);
+ const agree=document.createElement('label'),check=document.createElement('input');check.type='checkbox';agree.append(check,document.createTextNode(' 현재 편집 내용을 선택한 안내로 교체합니다. (Ctrl+Z로 되돌리기 가능)'));body.appendChild(agree);
+ const apply=document.createElement('button');apply.textContent='현재 증상으로 가져오기';apply.disabled=true;body.appendChild(apply);let selected=null;
+ if(!await loadPublishedDiagnosis()){status.textContent='서버 안내를 불러오지 못했습니다. 현재 수정본은 유지됩니다.';return;}
+ if(!dialog.isConnected||currentUser?.id!==owner)return;
+ const entries=Object.keys(TREES).filter(id=>id!==sid&&symptomActive(id)).map(id=>({id,label:(symptomCatalog[id]||symptomDefaults(id)).device+' · '+(SYMPTOM_LABEL[id]||id)+' ('+id+')',tree:cloneDiagnosis(TREES[id])}));
+ function pick(){selected=null;check.checked=false;apply.disabled=true;preview.value='';const row=entries.find(e=>e.id===select.value);if(!row){status.textContent='가져올 증상을 선택해주세요.';return;}
+  try{selected=copyDiagnosisForImport(row.tree,sid);preview.value=describeDiagnosisVersion(selected);const jumps=Object.values(selected.nodes).flatMap(n=>n.options).filter(o=>o.jump).length;status.textContent='안내 카드 '+Object.keys(selected.nodes).length+'개 · 사진/영상 포함'+(jumps?' · 다른 증상 연결 '+jumps+'개는 원래 연결을 유지합니다.':'');}catch(e){status.textContent=e.message;}}
+ function list(){select.replaceChildren(new Option('증상을 선택해주세요',''));const q=search.value.trim().toLowerCase();for(const row of entries)if(row.label.toLowerCase().includes(q))select.add(new Option(row.label,row.id));pick();}
+ search.oninput=list;select.onchange=pick;check.onchange=()=>apply.disabled=!selected||!check.checked;list();
+ apply.onclick=()=>{if(!selected||!check.checked||currentUser?.id!==owner||currentUser?.role!=='admin'||diagramSelectedSid!==sid||diagramSaving||mediaUploading)return;
+  const draft=captureDiagramDraft(sid);draft.tree=cloneDiagnosis(selected);draft.dirty=!sameDiagnosis(draft.tree,diagnosisStore.rows[sid]?.tree||BUILTIN_TREES[sid]);persistDiagramDrafts();dialog.close();openDiagram(sid);updateDiagramSaveStatus(sid,'다른 증상 안내를 가져왔습니다. 내용을 수정한 뒤 저장하고 적용을 눌러주세요. Ctrl+Z로 되돌릴 수 있습니다.');};
+}
+
 function extendDiagnosisTree(tree, nid, kind){
   const copy=cloneDiagnosis(tree), node=copy.nodes[nid];
   if(!node) throw new Error('추가할 단계를 찾지 못했습니다.');
@@ -9377,7 +9406,7 @@ function openDiagram(sid){
       '<h3>'+sid+' · '+escapeHtml(label)+'</h3>' +
       '<button class="code-actions-single" id="diagramSaveBtn" title="저장하고 적용 (Ctrl+S)" style="width:auto">저장하고 적용</button>' +
       '<button class="code-actions-single" id="diagramHistoryBtn" style="width:auto">이전 버전 복구</button><button class="code-actions-single" id="diagramReloadBtn" style="width:auto">최신 안내 불러오기</button>' +
-      '<button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
+      '<button class="code-actions-single" id="diagramImportBtn" style="width:auto">다른 증상 다이어그램 가져오기</button><button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
     '</div>' +
     '<button class="code-actions-single" id="endingGuideManage" style="width:auto">⚙️ 종료 안내 관리 · 장비별 추가 설명</button>' +
     '<section class="symptom-video-editor"><h3>🎬 증상별 영상 매뉴얼</h3><p>증상 선택 직후 첫 질문 위에 표시됩니다. 링크 등록 후 저장하고 적용을 눌러주세요.</p><label for="symptomVideoSelect">등록된 영상</label><select id="symptomVideoSelect"></select><label for="symptomVideoLabel">기종 또는 영상 구분 (공통이면 비워두세요)</label><input id="symptomVideoLabel" maxlength="80" placeholder="예: R10 · 850D"><label for="symptomVideoUrl">유튜브 영상 링크</label><input id="symptomVideoUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"><div class="symptom-video-actions"><button id="symptomVideoApply">링크 등록 / 변경</button><button id="symptomVideoPreview">미리보기</button><button id="symptomVideoRemove">링크 제거</button></div><p id="symptomVideoStatus" role="status">등록하지 않으면 영상 버튼이 표시되지 않습니다.</p></section>' +
@@ -9453,6 +9482,7 @@ function openDiagram(sid){
   bindSymptomVideoEditor(sid);
   document.getElementById('diagramSaveBtn').onclick = ()=>saveDiagram(sid);
   document.getElementById('diagramHistoryBtn').onclick=()=>openDiagnosisHistory(sid);
+  document.getElementById('diagramImportBtn').onclick=()=>openDiagramImport(sid);
   document.getElementById('diagramReloadBtn').onclick = ()=>reloadDiagramPublished(sid);
   updateDiagramSaveStatus(sid);
   document.getElementById('diagramCopyContentBtn').onclick = (e)=> copyDiagramContent(sid, tree, e.currentTarget);
