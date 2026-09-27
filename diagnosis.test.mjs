@@ -140,3 +140,12 @@ test('model-specific manuals coexist and updating one preserves other media and 
  vm.runInContext("globalThis.multi=withSymptomVideo(withSymptomVideo(tree,'https://youtu.be/dTV-i1ClNHA','R10'),'https://youtu.be/eAnRZeqV14A','M50');globalThis.only=withSymptomVideo(multi,'','R10');",c);
  assert.equal(JSON.stringify(c.tree),before);assert.equal(c.multi.nodes[c.multi.start].media.length,2);assert.equal(c.only.nodes[c.only.start].media.length,1);assert.match(c.only.nodes[c.only.start].media[0].name,/M50/);c.api.validateDiagnosisTree(c.multi);
 });
+
+test('CAM-4 single-shot manuals use isolated three-step model routes and original images',()=>{
+ const c=harness(),tree=c.api.TREES['CAM-4'];
+ assert.equal(JSON.stringify(tree),JSON.stringify(JSON.parse(readFileSync(new URL('camera-single-shot.json',import.meta.url),'utf8'))));
+ assert.deepEqual(Array.from(tree.nodes.n1.options,o=>o.label),['850D','M50','R10']);
+ for(const opt of tree.nodes.n1.options){let node=tree.nodes[opt.next],steps=0,photos=0;while(node){steps++;assert.ok(node.text.startsWith(opt.label));photos+=(node.media||[]).length;const route=node.options[0];if(route.end){assert.equal(route.end,'info');break;}node=tree.nodes[route.next];}assert.equal(steps,3);assert.equal(photos,1);}
+ assert.match(tree.nodes.cm50_2.text,/6번 페이지/);
+ assert.match(html,/'CAM-4':'고속연사 촬영 \/ 촬영 후 동일사진 노출'/);
+});
