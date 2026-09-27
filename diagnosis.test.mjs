@@ -13,6 +13,16 @@ function harness(rpc){
  vm.runInContext(section('const SYMPTOM_LABEL =','/* ============================= STATE')+'\n'+section('/* ============================= PUBLISHED DIAGNOSIS','/* ============================= END PUBLISHED DIAGNOSIS')+'\nglobalThis.api={TREES,validateDiagnosisTree,applyPublishedRows,diagnosisStore,getDiagramDraft,saveDiagram};',ctx);
  return ctx;
 }
+test('undo records content and media changes without duplicate snapshots or crossing owners',()=>{
+ const c=harness();vm.runInContext('globalThis.undoApi={persistDiagramDrafts,diagramAdditionHistory,diagramUndoBaselines};',c);
+ const draft=c.api.getDiagramDraft('CAM-3'),before=JSON.stringify(draft.tree);
+ draft.tree.nodes.n1.text='changed';draft.dirty=true;c.undoApi.persistDiagramDrafts();
+ assert.equal(c.undoApi.diagramAdditionHistory['CAM-3'].length,1);
+ assert.equal(JSON.stringify(c.undoApi.diagramAdditionHistory['CAM-3'][0].tree),before);
+ c.undoApi.persistDiagramDrafts();assert.equal(c.undoApi.diagramAdditionHistory['CAM-3'].length,1);
+ draft.tree.nodes.n1.media=[{kind:'image',url:'https://example.com/photo.jpg'}];c.undoApi.persistDiagramDrafts();assert.equal(c.undoApi.diagramAdditionHistory['CAM-3'].length,2);
+ c.currentUser={id:'other',role:'admin'};c.api.getDiagramDraft('CAM-3');assert.equal(c.undoApi.diagramAdditionHistory['CAM-3'].length,0);
+});
 test('all 42 builtin trees satisfy publication validation, including legitimate retry loops',()=>{
  const c=harness(); assert.equal(Object.keys(c.api.TREES).length,42);
  for(const tree of Object.values(c.api.TREES)) c.api.validateDiagnosisTree(tree);

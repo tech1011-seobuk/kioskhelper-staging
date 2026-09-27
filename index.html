@@ -8496,7 +8496,7 @@ function diagramDraftKey(){ return 'kioskHelperDrafts:' + SUPABASE_URL + ':' + (
 
 function getDiagramDraft(sid){
   const owner = currentUser?.id;
-  if (diagramDrafts[sid]?.owner === owner && (diagramDrafts[sid].dirty || diagramDrafts[sid].revision === diagnosisStore.rows[sid]?.revision)) return diagramDrafts[sid];
+  if (diagramDrafts[sid]?.owner === owner && (diagramDrafts[sid].dirty || diagramDrafts[sid].revision === (diagnosisStore.rows[sid]?.revision || 0))) return diagramDrafts[sid];
   const row = diagnosisStore.rows[sid];
   let draft = { owner, tree:cloneDiagnosis(TREES[sid]), revision:row?.revision || 0, dirty:false };
   try {
@@ -8505,13 +8505,15 @@ function getDiagramDraft(sid){
         && saved.dirty) { validateDiagnosisTree(saved.tree); draft = saved; }
   } catch { /* Start from the published copy if a local draft is unreadable. */ }
   diagramDrafts[sid] = draft;
+  diagramUndoBaselines[sid]={owner,tree:cloneDiagnosis(draft.tree)};
+  diagramAdditionHistory[sid]=[];
   return draft;
 }
 
 function persistDiagramDrafts(){
   try {
     const mine = JSON.parse(localStorage.getItem(diagramDraftKey()) || '{}');
-    for(const [sid,draft] of Object.entries(diagramDrafts)) if(draft.owner===currentUser?.id){if(draft.dirty)mine[sid]=draft;else delete mine[sid];}
+    for(const [sid,draft] of Object.entries(diagramDrafts)) if(draft.owner===currentUser?.id){recordDiagramUndo(sid,draft);if(draft.dirty)mine[sid]=draft;else delete mine[sid];}
     localStorage.setItem(diagramDraftKey(), JSON.stringify(mine));
   } catch { showToast('⚠️', '임시 보관 공간이 부족합니다. 저장 버튼으로 반영해주세요.'); }
 }
@@ -8605,6 +8607,15 @@ async function reloadDiagramPublished(sid){
 }
 
 const diagramAdditionHistory = {};
+const diagramUndoBaselines = {};
+function recordDiagramUndo(sid,draft){
+ const previous=diagramUndoBaselines[sid];
+ if(previous?.owner===draft.owner&&!sameDiagnosis(previous.tree,draft.tree)){
+  const history=diagramAdditionHistory[sid] ||= [];history.push(previous);if(history.length>50)history.shift();
+ }
+ diagramUndoBaselines[sid]={owner:draft.owner,tree:cloneDiagnosis(draft.tree)};
+ const button=document.getElementById('diagramUndoAddition');if(button&&diagramSelectedSid===sid)button.disabled=!diagramAdditionHistory[sid]?.length;
+}
 function extendDiagnosisTree(tree, nid, kind){
   const copy=cloneDiagnosis(tree), node=copy.nodes[nid];
   if(!node) throw new Error('추가할 단계를 찾지 못했습니다.');
@@ -8623,8 +8634,7 @@ function addDiagramItem(sid,nid,kind){
   const draft=captureDiagramDraft(sid);
   try{
     const next=extendDiagnosisTree(draft.tree,nid,kind);
-    const history=diagramAdditionHistory[sid] ||= [];
-    history.push({owner:currentUser.id,tree:cloneDiagnosis(draft.tree)});if(history.length>20)history.shift();
+
     draft.tree=next;draft.dirty=true;persistDiagramDrafts();
     const wrap=document.querySelector('.diagram-canvas-wrap'), scroll={x:wrap.scrollLeft,y:wrap.scrollTop};
     const zoom=Number(document.getElementById('diagramCanvas').style.zoom||1);
@@ -8640,7 +8650,8 @@ function undoDiagramAddition(sid){
   if(diagramSaving || mediaUploading || currentUser?.role!=='admin')return;
   const history=diagramAdditionHistory[sid], previous=history?.at(-1);
   if(!previous || previous.owner!==currentUser.id)return;
-  history.pop();const draft=getDiagramDraft(sid);draft.tree=previous.tree;
+  history.pop();const draft=getDiagramDraft(sid);draft.tree=cloneDiagnosis(previous.tree);
+  diagramUndoBaselines[sid]={owner:draft.owner,tree:cloneDiagnosis(draft.tree)};
   draft.dirty=!sameDiagnosis(draft.tree,diagnosisStore.rows[sid]?.tree||BUILTIN_TREES[sid]);
   persistDiagramDrafts();openDiagram(sid);
 }
@@ -8669,7 +8680,7 @@ function addStandaloneDiagramCard(sid,nid,index){
   const origin=nid&&document.getElementById('dn_'+nid);if(origin){x=parseFloat(origin.style.left);y=parseFloat(origin.style.top)+origin.offsetHeight+250;}
   while(Object.entries(positions).some(([id,p])=>{const box=document.getElementById('dn_'+id);return draft.tree.nodes[id]&&x<p.x+360&&x+360>p.x&&y<p.y+(box?.offsetHeight||450)+40&&y+450>p.y;}))x+=400;
   positions[added.id]={x,y};rememberDiagramWorkspace(sid);
-  const history=diagramAdditionHistory[sid] ||= [];history.push({owner:currentUser.id,tree:cloneDiagnosis(draft.tree)});if(history.length>20)history.shift();
+
   draft.tree=added.tree;draft.dirty=true;persistDiagramDrafts();closeEdgePopover();openDiagram(sid);
   requestAnimationFrame(()=>{
    const newField=diagramEditingList?document.querySelector('[data-photo-node="'+added.id+'"] textarea'):null;if(newField){newField.scrollIntoView({block:'center'});newField.focus();}
@@ -9159,10 +9170,21 @@ function bindFreeDiagramCard(sid,nid,box){
   if(draft.tree.start===nid){updateDiagramSaveStatus(sid,'시작 카드는 삭제할 수 없습니다. 다른 카드를 시작으로 지정해주세요.',true);return;}
   if(Object.values(draft.tree.nodes).some(n=>n.options.some(o=>o.next===nid))){updateDiagramSaveStatus(sid,'이 카드로 들어오는 연결을 다른 카드나 종료 결과로 바꾼 뒤 삭제해주세요.',true);return;}
   if(!confirm('이 안내 카드를 삭제할까요? 저장하기 전에는 되돌릴 수 있습니다.'))return;
-  (diagramAdditionHistory[sid] ||= []).push({owner:currentUser.id,tree:cloneDiagnosis(draft.tree)});delete draft.tree.nodes[nid];draft.dirty=true;persistDiagramDrafts();openDiagram(sid);
+  delete draft.tree.nodes[nid];draft.dirty=true;persistDiagramDrafts();openDiagram(sid);
  };tools.appendChild(remove);box.appendChild(tools);
 }
 function fitDiagram(sid){const wrap=document.querySelector('.diagram-canvas-wrap'),start=document.getElementById('dn_'+getDiagramDraft(sid).tree.start);setDiagramZoom(1);wrap.scrollLeft=Math.max(0,(parseFloat(start?.style.left)||0)-32);wrap.scrollTop=Math.max(0,(parseFloat(start?.style.top)||0)-32);}
+function diagramKeyboardShortcut(e){
+ if(APP_ENV!=='staging'||currentUser?.role!=='admin'||appState!=='diagramEditor'||!diagramSelectedSid||!document.getElementById('diagramCanvas'))return;
+ if(e.isComposing||e.altKey||e.shiftKey||!(e.ctrlKey||e.metaKey))return;
+ const key=e.key.toLowerCase();if(key!=='s'&&key!=='z')return;
+ if(key==='z'&&e.target?.closest?.('input,textarea,[contenteditable="true"]'))return;
+ e.preventDefault();
+ if(e.repeat||diagramSaving||mediaUploading)return;
+ if(key==='s')saveDiagram(diagramSelectedSid);
+ else undoDiagramAddition(diagramSelectedSid);
+}
+document.addEventListener('keydown',diagramKeyboardShortcut);
 function bindDiagramPan(sid){
  const wrap=document.querySelector('.diagram-canvas-wrap');wrap.onpointerdown=e=>{if(e.button!==0||e.target.closest('.dnode, .diagram-options'))return;e.preventDefault();wrap.setPointerCapture(e.pointerId);const x=e.clientX,y=e.clientY,sx=wrap.scrollLeft,sy=wrap.scrollTop;wrap.classList.add('panning');wrap.onpointermove=p=>{wrap.scrollLeft=sx+x-p.clientX;wrap.scrollTop=sy+y-p.clientY;};const stop=()=>{wrap.onpointermove=null;wrap.classList.remove('panning');};wrap.onpointerup=stop;wrap.onpointercancel=stop;};
  wrap.onkeydown=e=>{if(e.key==='Escape'){diagramConnectFrom=null;document.getElementById('diagramCanvas').classList.remove('connecting');closeEdgePopover();updateDiagramSaveStatus(sid);}};wrap.tabIndex=0;
@@ -9196,14 +9218,14 @@ function openDiagram(sid){
   main.innerHTML =
     '<div class="diagram-header">' +
       '<h3>'+sid+' · '+escapeHtml(label)+'</h3>' +
-      '<button class="code-actions-single" id="diagramSaveBtn" style="width:auto">저장하고 적용</button>' +
+      '<button class="code-actions-single" id="diagramSaveBtn" title="저장하고 적용 (Ctrl+S)" style="width:auto">저장하고 적용</button>' +
       '<button class="code-actions-single" id="diagramHistoryBtn" style="width:auto">이전 버전 복구</button><button class="code-actions-single" id="diagramReloadBtn" style="width:auto">최신 안내 불러오기</button>' +
       '<button class="code-actions-single" id="diagramCopyContentBtn" style="width:auto; margin:0; padding:8px 14px; font-size:11.5px;">📋 수정 내용 복사하기</button>' +
     '</div>' +
     '<section class="symptom-video-editor"><h3>🎬 증상별 영상 매뉴얼</h3><p>증상 선택 직후 첫 질문 위에 표시됩니다. 링크 등록 후 저장하고 적용을 눌러주세요.</p><label for="symptomVideoSelect">등록된 영상</label><select id="symptomVideoSelect"></select><label for="symptomVideoLabel">기종 또는 영상 구분 (공통이면 비워두세요)</label><input id="symptomVideoLabel" maxlength="80" placeholder="예: R10 · 850D"><label for="symptomVideoUrl">유튜브 영상 링크</label><input id="symptomVideoUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"><div class="symptom-video-actions"><button id="symptomVideoApply">링크 등록 / 변경</button><button id="symptomVideoPreview">미리보기</button><button id="symptomVideoRemove">링크 제거</button></div><p id="symptomVideoStatus" role="status">등록하지 않으면 영상 버튼이 표시되지 않습니다.</p></section>' +
     '<div id="diagramSaveStatus" role="status" aria-live="polite"></div>' +
     '<div class="diagram-note" style="margin:0 0 12px;">위에서 아래로 안내를 읽으세요 · 선택지(동일합니다 / 해결되었습니다 등)를 눌러 문구와 다음 단계를 수정 · 다음 단계 접기/펼치기 · 카드와 빈 배경을 끌어 이동</div>' +
-    '<div class="diagram-toolbar"><button id="diagramEditListBtn" aria-pressed="false">✏️ 목록으로 편집</button><button id="diagramFlowBtn">흐름도 보기</button><button id="diagramListToggle">목록 접기 / 펼치기</button><span>원본 크기 · 100% 고정</span><button id="diagramPhotoLibraryBtn" aria-expanded="false" aria-controls="diagramPhotoLibrary">📷 사진 필요한 항목</button><button id="diagramNewCard">＋ 새 안내 카드</button><button id="diagramFit">시작 카드로 이동</button><button id="diagramAutoLayout">세로 자동 정렬</button><button id="diagramUndoAddition">추가·삭제 되돌리기</button><span>배치는 이 브라우저에 자동 보관됩니다</span></div>' +
+    '<div class="diagram-toolbar"><button id="diagramEditListBtn" aria-pressed="false">✏️ 목록으로 편집</button><button id="diagramFlowBtn">흐름도 보기</button><button id="diagramListToggle">목록 접기 / 펼치기</button><span>원본 크기 · 100% 고정</span><button id="diagramPhotoLibraryBtn" aria-expanded="false" aria-controls="diagramPhotoLibrary">📷 사진 필요한 항목</button><button id="diagramNewCard">＋ 새 안내 카드</button><button id="diagramFit">시작 카드로 이동</button><button id="diagramAutoLayout">세로 자동 정렬</button><button id="diagramUndoAddition">편집 되돌리기 (Ctrl+Z)</button><span>배치는 이 브라우저에 자동 보관됩니다</span></div>' +
     '<section id="diagramPhotoLibrary" class="photo-library" hidden><div class="list-editor-heading"><div><h3>안내 내용 편집</h3><p>안내 문구 → 선택지와 이동 단계 → 사진 순서로 편집하세요.</p></div><button id="listNewGuide">＋ 새 안내 추가</button></div><p>수정 내용은 다이어그램에도 연결됩니다. 완료하면 위의 <strong>저장하고 적용</strong>을 누르세요.</p><div class="photo-library-controls"><label>표시 <select aria-label="사진 항목 표시"><option value="missing">사진 없는 항목만</option><option value="all">전체 항목</option></select></label><input type="search" aria-label="사진 항목 검색" placeholder="안내 문구 또는 단계 검색"><button id="photoSearchClear" type="button">검색 지우기</button><span class="photo-library-summary" role="status"></span></div><div class="photo-library-list"></div></section>' +
     '<div class="diagram-canvas-wrap"><div class="diagram-canvas" id="diagramCanvas"><svg class="diagram-svg" id="diagramSvg"></svg></div></div>' +
     '<div class="edge-popover" id="edgePopover" style="display:none;">' +
