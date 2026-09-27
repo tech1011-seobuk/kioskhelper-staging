@@ -6695,6 +6695,41 @@ function openEndingGuideManager(){
 }
 
 /* ENDING GUIDES END */
+/* MANUAL REVIEWS START */
+let manualReviewRows={},manualReviewOwner='',manualReviewReady=false;
+function legacyManualReview(sid){try{return JSON.parse(localStorage.getItem(diagramDraftKey()+':review:'+sid))||{};}catch{return {};}}
+function reviewRecord(row){return {...row,content:typeof row.content==='string'?row.content:JSON.stringify(row.content)};}
+async function loadManualReviews(){
+ const owner=currentUser?.id;if(!sb||!owner||currentUser.role!=='admin')return false;
+ manualReviewReady=false;manualReviewRows={};manualReviewOwner=owner;
+ try{
+  const rows={};let offset=0;
+  while(true){const {data,error}=await sb.from('helper_manual_reviews').select('symptom_id,status,note,content,revision,updated_at').range(offset,offset+499);if(error)throw error;for(const r of data||[])rows[r.symptom_id]=reviewRecord(r);if((data||[]).length<500)break;offset+=500;}
+  const prefix=diagramDraftKey()+':review:',keys=[];
+  try{for(let i=0;i<localStorage.length;i++){const key=localStorage.key(i);if(key?.startsWith(prefix))keys.push(key);}}catch{/* Server storage remains usable if browser storage is unavailable. */}
+  for(const key of keys){
+   if(currentUser?.id!==owner)return false;
+   const sid=key.slice(prefix.length),old=legacyManualReview(sid);
+   if(rows[sid]||!['검토 전','업데이트 중','픽스'].includes(old.status))continue;
+   let content;try{content=JSON.parse(old.content);}catch{continue;}if(!content||Array.isArray(content)||typeof content!=='object')continue;
+   const {data,error}=await sb.rpc('save_manual_review',{p_sid:sid,p_status:old.status,p_note:old.note||'',p_content:content,p_revision:0,p_import:true});if(error)throw error;rows[sid]=reviewRecord(data);
+  }
+  if(currentUser?.id!==owner)return false;
+  manualReviewRows=rows;manualReviewReady=true;return true;
+ }catch{return false;}
+}
+async function saveManualReview(sid,status,note,source){
+ const owner=currentUser?.id;
+ if(!manualReviewReady||manualReviewOwner!==owner||currentUser?.role!=='admin')throw Error('검수 기록을 먼저 불러와주세요.');
+ const revision=manualReviewRows[sid]?.revision||0;
+ const {data,error}=await sb.rpc('save_manual_review',{p_sid:sid,p_status:status,p_note:note,p_content:source,p_revision:revision,p_import:false});if(error)throw error;
+ if(currentUser?.id!==owner)throw Error('계정이 변경되었습니다.');
+ manualReviewRows[sid]=reviewRecord(data);
+ // Keep the original browser record intact as a recovery backup.
+ return manualReviewRows[sid];
+}
+
+/* MANUAL REVIEWS END */
 /* HELPER COMMUNITY START */
 /* Embedded into index.html by sync-community.cjs. No independent script request. */
 let helperAttempt = null;
@@ -6777,7 +6812,7 @@ function helperPhotoCoverage(trees,replacements,guides){
   return rows.map(r=>({...r,total:r.steps.length,withPhoto:r.steps.filter(s=>s.media.length).length,count:r.steps.reduce((n,s)=>n+s.media.length,0)+(r.reference||[]).length}));
 }
 function helperRenderPhotoCoverage(host,rows){
-  host.innerHTML='<div class="helper-card"><label>항목 검색<input type="search" placeholder="증상명, 장비명, 단계 내용"></label><label>사진 상태<select><option value="all">전체 항목</option><option value="none">사진 없는 항목</option><option value="some">사진 있는 항목 · 수정 검토</option></select></label><label>검수 상태<select id="coverageReviewFilter"><option value="">전체</option><option>검토 전</option><option>업데이트 중</option><option>픽스</option></select></label><p role="status" class="helper-small"></p><p class="helper-small">검수 상태·메모는 이 브라우저에 저장됩니다.</p><p class="helper-small">사진 없음은 추가 검토 대상이며, 모든 질문에 사진이 필수라는 뜻은 아니에요. 화질·내용의 적합성은 사진을 펼쳐 확인해 주세요. 현재 게시된 안내 기준이며 채널톡 원문 전체와의 대조는 아직 하지 않았어요.</p></div><div class="helper-coverage-list"></div>';
+  host.innerHTML='<div class="helper-card"><label>항목 검색<input type="search" placeholder="증상명, 장비명, 단계 내용"></label><label>사진 상태<select><option value="all">전체 항목</option><option value="none">사진 없는 항목</option><option value="some">사진 있는 항목 · 수정 검토</option></select></label><label>검수 상태<select id="coverageReviewFilter"><option value="">전체</option><option>검토 전</option><option>업데이트 중</option><option>픽스</option></select></label><p role="status" class="helper-small"></p><p class="helper-small">검수 상태·메모는 계정에 저장되어 다른 브라우저에서도 이어집니다.</p><p class="helper-small">사진 없음은 추가 검토 대상이며, 모든 질문에 사진이 필수라는 뜻은 아니에요. 화질·내용의 적합성은 사진을 펼쳐 확인해 주세요. 현재 게시된 안내 기준이며 채널톡 원문 전체와의 대조는 아직 하지 않았어요.</p></div><div class="helper-coverage-list"></div>';
   const draw=()=>{
     const q=host.querySelector('input').value.trim().toLowerCase(),filter=host.querySelector('select').value;
     const review=r=>manualReviewState(r.id,TREES[r.id]||r);
@@ -6793,7 +6828,7 @@ function helperRenderPhotoCoverage(host,rows){
         const controls=document.createElement('section');controls.className='helper-card';const saved=review(row);
         controls.innerHTML='<label>검수 상태<select aria-label="검수 상태">'+['검토 전','업데이트 중','픽스'].map(s=>'<option'+(s===saved.status?' selected':'')+'>'+s+'</option>').join('')+'</select></label><label>검수 메모<input maxlength="500" placeholder="교체할 사진·추가할 내용"></label><button type="button">검수 기록 저장</button><p role="status"></p>';
         controls.querySelector('input').value=saved.note||'';
-        controls.querySelector('button').onclick=()=>{try{localStorage.setItem(diagramDraftKey()+':review:'+row.id,JSON.stringify({status:controls.querySelector('select').value,note:controls.querySelector('input').value,content:JSON.stringify(TREES[row.id]||row),updatedAt:new Date().toISOString()}));draw();}catch{controls.querySelector('[role=status]').textContent='저장에 실패했습니다. 입력한 메모를 보관하고 다시 시도해주세요.';}};
+        controls.querySelector('button').onclick=async()=>{const button=controls.querySelector('button');button.disabled=true;try{await saveManualReview(row.id,controls.querySelector('select').value,controls.querySelector('input').value,TREES[row.id]||row);draw();}catch(e){controls.querySelector('[role=status]').textContent='저장하지 못했습니다. 입력 내용은 유지됩니다. '+(e.message||'연결을 확인해주세요.');}finally{button.disabled=false;}};
         if(TREES[row.id]){const edit=document.createElement('button');edit.textContent='🗺️ 이 증상 다이어그램 편집';edit.onclick=()=>{manualRequestedSid=row.id;appState='diagramEditor';render();};controls.appendChild(edit);}
         body.prepend(controls);hydrateDiagnosisMedia();};list.appendChild(card);
     });if(!matched.length)list.textContent='해당 조건의 항목이 없어요.';
@@ -6803,6 +6838,7 @@ async function renderPhotoReviewScreen(){
   if(APP_ENV!=='staging'||currentUser?.role!=='admin'){appState='hub';render();return;}
   const owner=currentUser.id,content=helperShell('🗂️ 매뉴얼 관리 · 사진 점검','현재 적용된 사진을 중복 없이 모았습니다. 사진을 누르면 확대되고, 아래에서 적용된 증상·단계를 확인할 수 있어요.');
   try{
+    if(!await loadManualReviews())throw Error('review unavailable');if(!helperOwnerValid(owner,'photoReview'))return;
     if(!await loadPublishedDiagnosis())throw new Error('published photos unavailable');if(!helperOwnerValid(owner,'photoReview'))return;
     const photos=helperPhotoCatalog(TREES,REPLACEMENT_MEDIA);
     const coverage=helperPhotoCoverage(TREES,REPLACEMENT_MEDIA,REPLACEMENT_GUIDES);
@@ -9091,7 +9127,7 @@ function diagramCategoryShared(name){return diagramDevicesForBrand('photoism').s
 
 let manualRequestedSid=null;
 function manualReviewState(sid,source){
- let row={};try{row=JSON.parse(localStorage.getItem(diagramDraftKey()+':review:'+sid))||{};}catch{}
+ const row=manualReviewReady&&manualReviewOwner===currentUser?.id?(manualReviewRows[sid]||{}):legacyManualReview(sid);
  const content=source||getDiagramDraft(sid).tree;
  let previous=null;try{previous=JSON.parse(row.content||'null');}catch{}
  const changed=row.status==='픽스'&&!sameDiagnosis(previous,content);
@@ -9099,19 +9135,22 @@ function manualReviewState(sid,source){
 }
 function bindManualReview(sid){
  const row=manualReviewState(sid),box=document.createElement('section');box.className='diagram-note';
- box.innerHTML='<label>검수 상태 <select aria-label="증상 검수 상태">'+['검토 전','업데이트 중','픽스'].map(s=>'<option'+(s===row.status?' selected':'')+'>'+s+'</option>').join('')+'</select></label> <input aria-label="검수 메모" maxlength="500" placeholder="수정할 사진·추가할 내용 메모"><button type="button">검수 기록 저장</button><p role="status">'+(row.changed?'픽스 이후 내용이 바뀌어 업데이트 중으로 표시됩니다.':'검수 기록은 이 브라우저에 저장됩니다. 조치 내용 배포와는 별개입니다.')+'</p>';
+ box.innerHTML='<label>검수 상태 <select aria-label="증상 검수 상태">'+['검토 전','업데이트 중','픽스'].map(s=>'<option'+(s===row.status?' selected':'')+'>'+s+'</option>').join('')+'</select></label> <input aria-label="검수 메모" maxlength="500" placeholder="수정할 사진·추가할 내용 메모"><button type="button">검수 기록 저장</button><p role="status">'+(row.changed?'픽스 이후 내용이 바뀌어 업데이트 중으로 표시됩니다.':'검수 기록은 계정에 저장되어 다른 브라우저에서도 이어집니다. 조치 내용 배포와는 별개입니다.')+'</p>';
  box.querySelector('input').value=row.note||'';
  document.querySelector('.diagram-header').after(box);
- box.querySelector('button').onclick=()=>{
+ box.querySelector('button').onclick=async()=>{
   if(diagramSaving||mediaUploading)return;
-  captureDiagramDraft(sid);
-  try{localStorage.setItem(diagramDraftKey()+':review:'+sid,JSON.stringify({status:box.querySelector('select').value,note:box.querySelector('input').value,content:JSON.stringify(getDiagramDraft(sid).tree),updatedAt:new Date().toISOString()}));box.querySelector('[role=status]').textContent='검수 기록을 저장했습니다. (이 브라우저)';document.getElementById('diagramSideList')?.dispatchEvent(new Event('manualreviewchange'));}catch{box.querySelector('[role=status]').textContent='검수 기록 저장에 실패했습니다. 브라우저 저장 공간을 확인해주세요.';}
+  captureDiagramDraft(sid);const button=box.querySelector('button');button.disabled=true;
+  try{await saveManualReview(sid,box.querySelector('select').value,box.querySelector('input').value,getDiagramDraft(sid).tree);box.querySelector('[role=status]').textContent='검수 기록을 서버에 저장했습니다.';document.getElementById('diagramSideList')?.dispatchEvent(new Event('manualreviewchange'));}catch(e){box.querySelector('[role=status]').textContent='저장하지 못했습니다. 입력 내용은 유지됩니다. '+(e.message||'연결을 확인해주세요.');}finally{button.disabled=false;}
  };
 }
 
 async function renderDiagramEditorScreen(){
  if(APP_ENV !== 'staging'||currentUser?.role!=='admin'){appState=currentUser?'hub':'login';render();return;}
  const area=document.getElementById('chatArea');
+ const reviewOwner=currentUser.id;area.textContent='검수 기록을 불러오는 중…';
+ const loaded=await loadManualReviews();if(currentUser?.id!==reviewOwner||appState!=='diagramEditor')return;
+ if(!loaded){area.innerHTML='<p>검수 기록을 불러오지 못했습니다. 기존 기록은 유지됩니다.</p><button id=reviewRetry>다시 시도</button>';area.querySelector('button').onclick=renderDiagramEditorScreen;return;}
  let brand=null,device=null,hot=false;
  const brandName=()=>brand==='photoism'?'포토이즘':'스내피즘';
  function retain(){
@@ -9138,7 +9177,7 @@ async function renderDiagramEditorScreen(){
  }
  function renderSymptoms(){
   const body=frame(),shared=diagramCategoryShared(device.name);
-  body.innerHTML='<p class="hot-topic-context">'+(shared?'공통 카테고리입니다. 저장한 내용과 사진은 포토이즘·스내피즘에 함께 적용됩니다.':escapeHtml(brandName())+' 전용 카테고리입니다.')+'</p><div class="diagram-editor-screen"><aside class="diagram-editor-sidebar"><div class="hot-topic-tabs"><button class="btn" id="allTopicTab" aria-pressed="true">전체 증상</button><button class="btn" id="hotTopicTab" aria-pressed="false">🔥 핫토픽</button></div><input type="search" class="diagram-side-search" id="diagramSideSearch" placeholder="선택한 장비의 증상 검색" aria-label="작업할 증상 검색"><label>검수 상태 <select id="manualStatusFilter"><option value="">전체</option><option>검토 전</option><option>업데이트 중</option><option>픽스</option></select></label><p style="font-size:12px">검수 상태·메모는 이 브라우저에 저장됩니다.</p><div id="diagramSideList"></div></aside><div class="diagram-editor-main" id="diagramEditorMain"></div></div>';
+  body.innerHTML='<p class="hot-topic-context">'+(shared?'공통 카테고리입니다. 저장한 내용과 사진은 포토이즘·스내피즘에 함께 적용됩니다.':escapeHtml(brandName())+' 전용 카테고리입니다.')+'</p><div class="diagram-editor-screen"><aside class="diagram-editor-sidebar"><div class="hot-topic-tabs"><button class="btn" id="allTopicTab" aria-pressed="true">전체 증상</button><button class="btn" id="hotTopicTab" aria-pressed="false">🔥 핫토픽</button></div><input type="search" class="diagram-side-search" id="diagramSideSearch" placeholder="선택한 장비의 증상 검색" aria-label="작업할 증상 검색"><label>검수 상태 <select id="manualStatusFilter"><option value="">전체</option><option>검토 전</option><option>업데이트 중</option><option>픽스</option></select></label><p style="font-size:12px">검수 상태·메모는 계정에 저장됩니다. 이전 브라우저에서 이 화면을 열면 기존 기록도 자동으로 옮깁니다.</p><div id="diagramSideList"></div></aside><div class="diagram-editor-main" id="diagramEditorMain"></div></div>';
   const side=document.getElementById('diagramSideList'),main=document.getElementById('diagramEditorMain'),search=document.getElementById('diagramSideSearch');
   function choose(sid){if(!retain())return;diagramEditingList=false;diagramPhotoLibraryOpen=false;diagramPhotoFilter='all';diagramPhotoSearch='';openDiagram(sid);side.querySelectorAll('[data-sid]').forEach(b=>b.classList.toggle('active',b.dataset.sid===sid));}
   function list(){

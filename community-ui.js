@@ -79,7 +79,7 @@ function helperPhotoCoverage(trees,replacements,guides){
   return rows.map(r=>({...r,total:r.steps.length,withPhoto:r.steps.filter(s=>s.media.length).length,count:r.steps.reduce((n,s)=>n+s.media.length,0)+(r.reference||[]).length}));
 }
 function helperRenderPhotoCoverage(host,rows){
-  host.innerHTML='<div class="helper-card"><label>항목 검색<input type="search" placeholder="증상명, 장비명, 단계 내용"></label><label>사진 상태<select><option value="all">전체 항목</option><option value="none">사진 없는 항목</option><option value="some">사진 있는 항목 · 수정 검토</option></select></label><label>검수 상태<select id="coverageReviewFilter"><option value="">전체</option><option>검토 전</option><option>업데이트 중</option><option>픽스</option></select></label><p role="status" class="helper-small"></p><p class="helper-small">검수 상태·메모는 이 브라우저에 저장됩니다.</p><p class="helper-small">사진 없음은 추가 검토 대상이며, 모든 질문에 사진이 필수라는 뜻은 아니에요. 화질·내용의 적합성은 사진을 펼쳐 확인해 주세요. 현재 게시된 안내 기준이며 채널톡 원문 전체와의 대조는 아직 하지 않았어요.</p></div><div class="helper-coverage-list"></div>';
+  host.innerHTML='<div class="helper-card"><label>항목 검색<input type="search" placeholder="증상명, 장비명, 단계 내용"></label><label>사진 상태<select><option value="all">전체 항목</option><option value="none">사진 없는 항목</option><option value="some">사진 있는 항목 · 수정 검토</option></select></label><label>검수 상태<select id="coverageReviewFilter"><option value="">전체</option><option>검토 전</option><option>업데이트 중</option><option>픽스</option></select></label><p role="status" class="helper-small"></p><p class="helper-small">검수 상태·메모는 계정에 저장되어 다른 브라우저에서도 이어집니다.</p><p class="helper-small">사진 없음은 추가 검토 대상이며, 모든 질문에 사진이 필수라는 뜻은 아니에요. 화질·내용의 적합성은 사진을 펼쳐 확인해 주세요. 현재 게시된 안내 기준이며 채널톡 원문 전체와의 대조는 아직 하지 않았어요.</p></div><div class="helper-coverage-list"></div>';
   const draw=()=>{
     const q=host.querySelector('input').value.trim().toLowerCase(),filter=host.querySelector('select').value;
     const review=r=>manualReviewState(r.id,TREES[r.id]||r);
@@ -95,7 +95,7 @@ function helperRenderPhotoCoverage(host,rows){
         const controls=document.createElement('section');controls.className='helper-card';const saved=review(row);
         controls.innerHTML='<label>검수 상태<select aria-label="검수 상태">'+['검토 전','업데이트 중','픽스'].map(s=>'<option'+(s===saved.status?' selected':'')+'>'+s+'</option>').join('')+'</select></label><label>검수 메모<input maxlength="500" placeholder="교체할 사진·추가할 내용"></label><button type="button">검수 기록 저장</button><p role="status"></p>';
         controls.querySelector('input').value=saved.note||'';
-        controls.querySelector('button').onclick=()=>{try{localStorage.setItem(diagramDraftKey()+':review:'+row.id,JSON.stringify({status:controls.querySelector('select').value,note:controls.querySelector('input').value,content:JSON.stringify(TREES[row.id]||row),updatedAt:new Date().toISOString()}));draw();}catch{controls.querySelector('[role=status]').textContent='저장에 실패했습니다. 입력한 메모를 보관하고 다시 시도해주세요.';}};
+        controls.querySelector('button').onclick=async()=>{const button=controls.querySelector('button');button.disabled=true;try{await saveManualReview(row.id,controls.querySelector('select').value,controls.querySelector('input').value,TREES[row.id]||row);draw();}catch(e){controls.querySelector('[role=status]').textContent='저장하지 못했습니다. 입력 내용은 유지됩니다. '+(e.message||'연결을 확인해주세요.');}finally{button.disabled=false;}};
         if(TREES[row.id]){const edit=document.createElement('button');edit.textContent='🗺️ 이 증상 다이어그램 편집';edit.onclick=()=>{manualRequestedSid=row.id;appState='diagramEditor';render();};controls.appendChild(edit);}
         body.prepend(controls);hydrateDiagnosisMedia();};list.appendChild(card);
     });if(!matched.length)list.textContent='해당 조건의 항목이 없어요.';
@@ -105,6 +105,7 @@ async function renderPhotoReviewScreen(){
   if(APP_ENV!=='staging'||currentUser?.role!=='admin'){appState='hub';render();return;}
   const owner=currentUser.id,content=helperShell('🗂️ 매뉴얼 관리 · 사진 점검','현재 적용된 사진을 중복 없이 모았습니다. 사진을 누르면 확대되고, 아래에서 적용된 증상·단계를 확인할 수 있어요.');
   try{
+    if(!await loadManualReviews())throw Error('review unavailable');if(!helperOwnerValid(owner,'photoReview'))return;
     if(!await loadPublishedDiagnosis())throw new Error('published photos unavailable');if(!helperOwnerValid(owner,'photoReview'))return;
     const photos=helperPhotoCatalog(TREES,REPLACEMENT_MEDIA);
     const coverage=helperPhotoCoverage(TREES,REPLACEMENT_MEDIA,REPLACEMENT_GUIDES);

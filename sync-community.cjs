@@ -12,6 +12,10 @@ const endingsStart='/* ENDING GUIDES START */',endingsEnd='/* ENDING GUIDES END 
 const endingsBlock=endingsStart+'\n'+fs.readFileSync(path.join(root,'ending-guides-ui.js'),'utf8')+'\n'+endingsEnd;
 if(html.includes(endingsStart))html=html.slice(0,html.indexOf(endingsStart))+endingsBlock+html.slice(html.indexOf(endingsEnd)+endingsEnd.length);
 else html=html.replace(start,endingsBlock+'\n'+start);
+const reviewStart='/* MANUAL REVIEWS START */',reviewEnd='/* MANUAL REVIEWS END */';
+const reviewBlock=reviewStart+'\n'+fs.readFileSync(path.join(root,'manual-reviews.js'),'utf8')+'\n'+reviewEnd;
+if(html.includes(reviewStart))html=html.slice(0,html.indexOf(reviewStart))+reviewBlock+html.slice(html.indexOf(reviewEnd)+reviewEnd.length);
+else html=html.replace(start,reviewBlock+'\n'+start);
 const block=start+'\n'+fs.readFileSync(path.join(root,'community-ui.js'),'utf8')+'\n'+end;
 if(html.includes(start))html=html.slice(0,html.indexOf(start))+block+html.slice(html.indexOf(end)+end.length);
 else html=html.replace('/* ============================= FLOW LOGIC ============================= */',block+'\n\n/* ============================= FLOW LOGIC ============================= */');
