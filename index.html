@@ -2024,7 +2024,7 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
         <button class="speak-toggle-btn" id="autoSpeakBtn" style="display:none;" title="음성으로 자동 읽어주기">🔈 자동 읽기 켜기</button>
         <button class="speak-toggle-btn" id="voiceSettingsBtn" style="display:none;" title="목소리 설정">🎙️</button>
         <button class="admin-nav-btn" id="adminDashBtn" style="display:none;" title="관리자 대시보드">📊 관리자</button>
-        <button class="admin-nav-btn" id="diagramEditorBtn" style="display:none;" title="진단 다이어그램">🗺️ 다이어그램</button>
+        <button class="admin-nav-btn" id="diagramEditorBtn" style="display:none;" title="매뉴얼 관리">🗂️ 매뉴얼 관리</button>
         <span id="userInfo" style="display:none; font-size:12px; color:var(--muted); margin-right:4px;"></span>
         <button class="home-btn" id="logoutBtn" style="display:none;" title="로그아웃">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
@@ -6666,7 +6666,7 @@ function helperNavigation(){
   nav.hidden=!currentUser;nav.style.display=currentUser?'flex':'none';
   let photos=document.getElementById('helperPhotoReviewButton');
   if(!photos){photos=document.createElement('button');photos.id='helperPhotoReviewButton';photos.textContent='🖼️ 사진 모아보기';photos.onclick=()=>{appState='photoReview';render();};nav.appendChild(photos);}
-  photos.hidden=!currentUser||currentUser.role!=='admin'||APP_ENV!=='staging';
+  photos.hidden=true;
   if(!currentUser){helperNoticeOwner=null;helperAttempt=null;helperNoticeDialog?.close();helperNoticeDialog?.remove();helperNoticeDialog=null;}
 }
 function helperPhotoCatalog(trees,replacements){
@@ -6702,23 +6702,31 @@ function helperPhotoCoverage(trees,replacements,guides){
   return rows.map(r=>({...r,total:r.steps.length,withPhoto:r.steps.filter(s=>s.media.length).length,count:r.steps.reduce((n,s)=>n+s.media.length,0)+(r.reference||[]).length}));
 }
 function helperRenderPhotoCoverage(host,rows){
-  host.innerHTML='<div class="helper-card"><label>항목 검색<input type="search" placeholder="증상명, 장비명, 단계 내용"></label><label>사진 상태<select><option value="all">전체 항목</option><option value="none">사진 없는 항목</option><option value="some">사진 있는 항목 · 수정 검토</option></select></label><p role="status" class="helper-small"></p><p class="helper-small">사진 없음은 추가 검토 대상이며, 모든 질문에 사진이 필수라는 뜻은 아니에요. 화질·내용의 적합성은 사진을 펼쳐 확인해 주세요. 현재 게시된 안내 기준이며 채널톡 원문 전체와의 대조는 아직 하지 않았어요.</p></div><div class="helper-coverage-list"></div>';
+  host.innerHTML='<div class="helper-card"><label>항목 검색<input type="search" placeholder="증상명, 장비명, 단계 내용"></label><label>사진 상태<select><option value="all">전체 항목</option><option value="none">사진 없는 항목</option><option value="some">사진 있는 항목 · 수정 검토</option></select></label><label>검수 상태<select id="coverageReviewFilter"><option value="">전체</option><option>검토 전</option><option>업데이트 중</option><option>픽스</option></select></label><p role="status" class="helper-small"></p><p class="helper-small">검수 상태·메모는 이 브라우저에 저장됩니다.</p><p class="helper-small">사진 없음은 추가 검토 대상이며, 모든 질문에 사진이 필수라는 뜻은 아니에요. 화질·내용의 적합성은 사진을 펼쳐 확인해 주세요. 현재 게시된 안내 기준이며 채널톡 원문 전체와의 대조는 아직 하지 않았어요.</p></div><div class="helper-coverage-list"></div>';
   const draw=()=>{
     const q=host.querySelector('input').value.trim().toLowerCase(),filter=host.querySelector('select').value;
-    const matched=rows.filter(r=>(filter==='all'||(filter==='none'?r.count===0:r.count>0))&&[r.title,r.id,...r.steps.map(s=>s.text)].join(' ').toLowerCase().includes(q));
-    host.querySelector('[role=status]').textContent='전체 '+rows.length+'항목 · 사진 없음 '+rows.filter(r=>!r.count).length+'항목 · 사진 있음 '+rows.filter(r=>r.count).length+'항목 · 검색 결과 '+matched.length+'항목';
+    const review=r=>manualReviewState(r.id,TREES[r.id]||r);
+    const statusFilter=host.querySelector('#coverageReviewFilter').value;
+    const matched=rows.filter(r=>(!statusFilter||review(r).status===statusFilter)&&(filter==='all'||(filter==='none'?r.count===0:r.count>0))&&[r.title,r.id,...r.steps.map(s=>s.text)].join(' ').toLowerCase().includes(q));
+    host.querySelector('[role=status]').textContent='전체 '+rows.length+'항목 · 픽스 '+rows.filter(r=>review(r).status==='픽스').length+'항목 · 사진 없음 '+rows.filter(r=>!r.count).length+'항목 · 사진 있음 '+rows.filter(r=>r.count).length+'항목 · 검색 결과 '+matched.length+'항목';
     const list=host.querySelector('.helper-coverage-list');list.innerHTML='';
     matched.forEach(row=>{
       const card=document.createElement('details');card.className='helper-card';
-      card.innerHTML='<summary>'+escapeHtml(row.type+' · '+row.title)+'<span class="helper-small" style="display:block;margin-top:8px">'+escapeHtml(row.id)+' · '+(row.count?'🖼️ 사진 있음 · 수정 검토':'📷 사진 없음 · 추가 검토')+' · 단계 사진 '+row.withPhoto+'/'+row.total+'</span></summary><div class="helper-coverage-body"></div>';
+      card.innerHTML='<summary>'+escapeHtml(row.type+' · '+row.title)+'<span class="helper-small" style="display:block;margin-top:8px">'+escapeHtml(row.id)+' · '+review(row).status+' · '+(row.count?'🖼️ 사진 있음 · 수정 검토':'📷 사진 없음 · 추가 검토')+' · 단계 사진 '+row.withPhoto+'/'+row.total+'</span></summary><div class="helper-coverage-body"></div>';
       let loaded=false;card.ontoggle=()=>{if(!card.open||loaded)return;loaded=true;const body=card.querySelector('.helper-coverage-body');
-        body.innerHTML=(row.reference?.length?'<h3 style="margin-top:20px">공통 참고 사진 (단계별 사진 아님)</h3>'+renderDiagnosisMedia({media:row.reference}):'')+row.steps.map(step=>'<section style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px"><strong>'+escapeHtml(step.key)+'</strong><p class="helper-body">'+escapeHtml(step.text)+'</p>'+(step.media.length?renderDiagnosisMedia({media:step.media}):'<p class="helper-small">📷 이 단계에 연결된 사진 없음</p>')+'</section>').join('')+(!row.steps.length?'<p>단계별 안내 없음 · 사진 추가 위치도 검토가 필요해요.</p>':'');hydrateDiagnosisMedia();};list.appendChild(card);
+        body.innerHTML=(row.reference?.length?'<h3 style="margin-top:20px">공통 참고 사진 (단계별 사진 아님)</h3>'+renderDiagnosisMedia({media:row.reference}):'')+row.steps.map(step=>'<section style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px"><strong>'+escapeHtml(step.key)+'</strong><p class="helper-body">'+escapeHtml(step.text)+'</p>'+(step.media.length?renderDiagnosisMedia({media:step.media}):'<p class="helper-small">📷 이 단계에 연결된 사진 없음</p>')+'</section>').join('')+(!row.steps.length?'<p>단계별 안내 없음 · 사진 추가 위치도 검토가 필요해요.</p>':'');
+        const controls=document.createElement('section');controls.className='helper-card';const saved=review(row);
+        controls.innerHTML='<label>검수 상태<select aria-label="검수 상태">'+['검토 전','업데이트 중','픽스'].map(s=>'<option'+(s===saved.status?' selected':'')+'>'+s+'</option>').join('')+'</select></label><label>검수 메모<input maxlength="500" placeholder="교체할 사진·추가할 내용"></label><button type="button">검수 기록 저장</button><p role="status"></p>';
+        controls.querySelector('input').value=saved.note||'';
+        controls.querySelector('button').onclick=()=>{try{localStorage.setItem(diagramDraftKey()+':review:'+row.id,JSON.stringify({status:controls.querySelector('select').value,note:controls.querySelector('input').value,content:JSON.stringify(TREES[row.id]||row),updatedAt:new Date().toISOString()}));draw();}catch{controls.querySelector('[role=status]').textContent='저장에 실패했습니다. 입력한 메모를 보관하고 다시 시도해주세요.';}};
+        if(TREES[row.id]){const edit=document.createElement('button');edit.textContent='🗺️ 이 증상 다이어그램 편집';edit.onclick=()=>{manualRequestedSid=row.id;appState='diagramEditor';render();};controls.appendChild(edit);}
+        body.prepend(controls);hydrateDiagnosisMedia();};list.appendChild(card);
     });if(!matched.length)list.textContent='해당 조건의 항목이 없어요.';
-  };host.querySelector('input').oninput=draw;host.querySelector('select').onchange=draw;draw();
+  };host.querySelector('input').oninput=draw;host.querySelector('select').onchange=draw;host.querySelector('#coverageReviewFilter').onchange=draw;draw();
 }
 async function renderPhotoReviewScreen(){
   if(APP_ENV!=='staging'||currentUser?.role!=='admin'){appState='hub';render();return;}
-  const owner=currentUser.id,content=helperShell('🖼️ 사진 모아보기','현재 적용된 사진을 중복 없이 모았습니다. 사진을 누르면 확대되고, 아래에서 적용된 증상·단계를 확인할 수 있어요.');
+  const owner=currentUser.id,content=helperShell('🗂️ 매뉴얼 관리 · 사진 점검','현재 적용된 사진을 중복 없이 모았습니다. 사진을 누르면 확대되고, 아래에서 적용된 증상·단계를 확인할 수 있어요.');
   try{
     if(!await loadPublishedDiagnosis())throw new Error('published photos unavailable');if(!helperOwnerValid(owner,'photoReview'))return;
     const photos=helperPhotoCatalog(TREES,REPLACEMENT_MEDIA);
@@ -6735,7 +6743,7 @@ async function renderPhotoReviewScreen(){
     };content.querySelector('#helperPhotoSearch').oninput=draw;content.querySelector('#helperPhotoSource').onchange=draw;draw();
     const gallery=document.createElement('div');while(content.firstChild)gallery.appendChild(content.firstChild);content.appendChild(gallery);
     const byItem=document.createElement('div');content.prepend(byItem);helperRenderPhotoCoverage(byItem,coverage);gallery.hidden=true;
-    const tabs=document.createElement('div');tabs.className='helper-actions';content.prepend(tabs);
+    const tabs=document.createElement('div');tabs.className='helper-actions';content.prepend(tabs);const back=document.createElement('button');back.textContent='← 증상·다이어그램 관리';back.onclick=()=>{appState='diagramEditor';render();};content.prepend(back);
     [['항목별 사진 점검',true],['사진만 모아보기',false]].forEach(([label,item])=>{const b=document.createElement('button');b.textContent=label;b.setAttribute('aria-pressed',String(item));b.onclick=()=>{byItem.hidden=!item;gallery.hidden=item;tabs.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));};tabs.appendChild(b);});
   }catch{content.innerHTML='<p class="helper-error">사진 목록을 불러오지 못했어요.</p><button>다시 시도</button>';content.querySelector('button').onclick=renderPhotoReviewScreen;}
 }
@@ -8991,8 +8999,29 @@ function diagramDevicesForBrand(brand){
  ]);
 }
 function diagramCategoryShared(name){return diagramDevicesForBrand('photoism').some(d=>d.name===name)&&diagramDevicesForBrand('snapism').some(d=>d.name===name);}
+
+let manualRequestedSid=null;
+function manualReviewState(sid,source){
+ let row={};try{row=JSON.parse(localStorage.getItem(diagramDraftKey()+':review:'+sid))||{};}catch{}
+ const content=source||getDiagramDraft(sid).tree;
+ let previous=null;try{previous=JSON.parse(row.content||'null');}catch{}
+ const changed=row.status==='픽스'&&!sameDiagnosis(previous,content);
+ return {...row,status:changed?'업데이트 중':(['검토 전','업데이트 중','픽스'].includes(row.status)?row.status:'검토 전'),changed};
+}
+function bindManualReview(sid){
+ const row=manualReviewState(sid),box=document.createElement('section');box.className='diagram-note';
+ box.innerHTML='<label>검수 상태 <select aria-label="증상 검수 상태">'+['검토 전','업데이트 중','픽스'].map(s=>'<option'+(s===row.status?' selected':'')+'>'+s+'</option>').join('')+'</select></label> <input aria-label="검수 메모" maxlength="500" placeholder="수정할 사진·추가할 내용 메모"><button type="button">검수 기록 저장</button><p role="status">'+(row.changed?'픽스 이후 내용이 바뀌어 업데이트 중으로 표시됩니다.':'검수 기록은 이 브라우저에 저장됩니다. 조치 내용 배포와는 별개입니다.')+'</p>';
+ box.querySelector('input').value=row.note||'';
+ document.querySelector('.diagram-header').after(box);
+ box.querySelector('button').onclick=()=>{
+  if(diagramSaving||mediaUploading)return;
+  captureDiagramDraft(sid);
+  try{localStorage.setItem(diagramDraftKey()+':review:'+sid,JSON.stringify({status:box.querySelector('select').value,note:box.querySelector('input').value,content:JSON.stringify(getDiagramDraft(sid).tree),updatedAt:new Date().toISOString()}));box.querySelector('[role=status]').textContent='검수 기록을 저장했습니다. (이 브라우저)';document.getElementById('diagramSideList')?.dispatchEvent(new Event('manualreviewchange'));}catch{box.querySelector('[role=status]').textContent='검수 기록 저장에 실패했습니다. 브라우저 저장 공간을 확인해주세요.';}
+ };
+}
+
 async function renderDiagramEditorScreen(){
- if(APP_ENV !== 'staging'){appState=currentUser?'hub':'login';render();return;}
+ if(APP_ENV !== 'staging'||currentUser?.role!=='admin'){appState=currentUser?'hub':'login';render();return;}
  const area=document.getElementById('chatArea');
  let brand=null,device=null,hot=false;
  const brandName=()=>brand==='photoism'?'포토이즘':'스내피즘';
@@ -9002,10 +9031,11 @@ async function renderDiagramEditorScreen(){
   return true;
  }
  function frame(){
-  document.getElementById('breadcrumb').textContent='진단 다이어그램 · '+(brand?brandName():'브랜드 선택')+(device?' · '+device.name:'');
+  document.getElementById('breadcrumb').textContent='매뉴얼 관리 · '+(brand?brandName():'브랜드 선택')+(device?' · '+device.name:'');
   area.innerHTML='<nav class="diagram-step-nav" aria-label="다이어그램 편집 단계"><button class="btn" data-nav="brand">1. 브랜드 선택</button><span>›</span><button class="btn" data-nav="device" '+(!brand?'disabled':'')+'>2. '+(brand?escapeHtml(brandName())+' 장비 선택':'장비 선택')+'</button><span>›</span><span>'+(device?'3. '+escapeHtml(device.name)+' 증상 선택':'3. 증상 선택')+'</span></nav><div id="diagramNavigationBody"></div>';
   area.querySelector('[data-nav="brand"]').onclick=()=>{if(retain()){brand=null;device=null;renderBrands();}};
   area.querySelector('[data-nav="device"]').onclick=()=>{if(retain()){device=null;renderDevices();}};
+  const photos=document.createElement('button');photos.className='btn';photos.textContent='📷 항목별 사진 점검';photos.onclick=()=>{if(retain()){appState='photoReview';render();}};area.querySelector('nav').appendChild(photos);
   return document.getElementById('diagramNavigationBody');
  }
  function renderBrands(){
@@ -9019,24 +9049,24 @@ async function renderDiagramEditorScreen(){
  }
  function renderSymptoms(){
   const body=frame(),shared=diagramCategoryShared(device.name);
-  body.innerHTML='<p class="hot-topic-context">'+(shared?'공통 카테고리입니다. 저장한 내용과 사진은 포토이즘·스내피즘에 함께 적용됩니다.':escapeHtml(brandName())+' 전용 카테고리입니다.')+'</p><div class="diagram-editor-screen"><aside class="diagram-editor-sidebar"><div class="hot-topic-tabs"><button class="btn" id="allTopicTab" aria-pressed="true">전체 증상</button><button class="btn" id="hotTopicTab" aria-pressed="false">🔥 핫토픽</button></div><input type="search" class="diagram-side-search" id="diagramSideSearch" placeholder="선택한 장비의 증상 검색" aria-label="작업할 증상 검색"><div id="diagramSideList"></div></aside><div class="diagram-editor-main" id="diagramEditorMain"></div></div>';
+  body.innerHTML='<p class="hot-topic-context">'+(shared?'공통 카테고리입니다. 저장한 내용과 사진은 포토이즘·스내피즘에 함께 적용됩니다.':escapeHtml(brandName())+' 전용 카테고리입니다.')+'</p><div class="diagram-editor-screen"><aside class="diagram-editor-sidebar"><div class="hot-topic-tabs"><button class="btn" id="allTopicTab" aria-pressed="true">전체 증상</button><button class="btn" id="hotTopicTab" aria-pressed="false">🔥 핫토픽</button></div><input type="search" class="diagram-side-search" id="diagramSideSearch" placeholder="선택한 장비의 증상 검색" aria-label="작업할 증상 검색"><label>검수 상태 <select id="manualStatusFilter"><option value="">전체</option><option>검토 전</option><option>업데이트 중</option><option>픽스</option></select></label><p style="font-size:12px">검수 상태·메모는 이 브라우저에 저장됩니다.</p><div id="diagramSideList"></div></aside><div class="diagram-editor-main" id="diagramEditorMain"></div></div>';
   const side=document.getElementById('diagramSideList'),main=document.getElementById('diagramEditorMain'),search=document.getElementById('diagramSideSearch');
-  function choose(sid){if(!retain())return;diagramEditingList=true;diagramPhotoLibraryOpen=true;diagramPhotoFilter='all';diagramPhotoSearch='';openDiagram(sid);side.querySelectorAll('[data-sid]').forEach(b=>b.classList.toggle('active',b.dataset.sid===sid));}
+  function choose(sid){if(!retain())return;diagramEditingList=false;diagramPhotoLibraryOpen=false;diagramPhotoFilter='all';diagramPhotoSearch='';openDiagram(sid);side.querySelectorAll('[data-sid]').forEach(b=>b.classList.toggle('active',b.dataset.sid===sid));}
   function list(){
    const q=search.value.trim().replace(/\s/g,'').toLowerCase();
-   const ids=device.symptoms.filter(sid=>TREES[sid]&&(!hot||isHotTopic(sid))&&hotTopicLabel(sid).replace(/\s/g,'').toLowerCase().includes(q));
-   side.innerHTML=ids.map(sid=>'<button class="side-link diagram-symptom-link" data-sid="'+sid+'">'+(isHotTopic(sid)?'🔥 ':'')+escapeHtml(hotTopicLabel(sid))+'</button>').join('')||'<p class="hub-sub">해당 증상이 없습니다.</p>';
+   const ids=device.symptoms.filter(sid=>TREES[sid]&&(!document.getElementById('manualStatusFilter').value||manualReviewState(sid).status===document.getElementById('manualStatusFilter').value)&&(!hot||isHotTopic(sid))&&hotTopicLabel(sid).replace(/\s/g,'').toLowerCase().includes(q));
+   side.innerHTML=ids.map(sid=>'<button class="side-link diagram-symptom-link" data-sid="'+sid+'">'+(isHotTopic(sid)?'🔥 ':'')+escapeHtml(hotTopicLabel(sid))+'<small style="display:block;margin-top:6px">'+manualReviewState(sid).status+'</small></button>').join('')||'<p class="hub-sub">해당 증상이 없습니다.</p>';
    side.querySelectorAll('[data-sid]').forEach(b=>b.onclick=()=>choose(b.dataset.sid));
    if(!document.getElementById('diagramCanvas')){
-    main.innerHTML='<section class="hot-topic-home"><h2>'+escapeHtml(device.name)+' · 증상 선택</h2>'+(device.symptoms.length?'<p>수정할 증상을 선택하세요. 내용과 사진 편집은 다음 화면에서 진행합니다.</p><div class="hot-topic-grid">'+ids.map(sid=>'<button class="hot-topic-card" data-sid="'+sid+'"><strong>'+escapeHtml(hotTopicLabel(sid))+'</strong><small>내용 수정 →</small></button>').join('')+'</div>':'<p>이 전용 장비에는 아직 등록된 조치 프로세스가 없습니다.</p><p class="hub-sub">포토이즘 프린터 안내와 구분하여 준비할 항목입니다.</p>')+'</section>';
+    main.innerHTML='<section class="hot-topic-home"><h2>'+escapeHtml(device.name)+' · 증상 선택</h2>'+(device.symptoms.length?'<p>수정할 증상을 선택하세요. 내용과 사진 편집은 다음 화면에서 진행합니다.</p><div class="hot-topic-grid">'+ids.map(sid=>'<button class="hot-topic-card" data-sid="'+sid+'"><strong>'+escapeHtml(hotTopicLabel(sid))+'</strong><small>'+manualReviewState(sid).status+' · 내용·사진 확인 →</small></button>').join('')+'</div>':'<p>이 전용 장비에는 아직 등록된 조치 프로세스가 없습니다.</p><p class="hub-sub">포토이즘 프린터 안내와 구분하여 준비할 항목입니다.</p>')+'</section>';
     main.querySelectorAll('[data-sid]').forEach(b=>b.onclick=()=>choose(b.dataset.sid));
    }
   }
   document.getElementById('allTopicTab').onclick=()=>{hot=false;tabs();};document.getElementById('hotTopicTab').onclick=()=>{hot=true;tabs();};
   function tabs(){document.getElementById('allTopicTab').setAttribute('aria-pressed',String(!hot));document.getElementById('hotTopicTab').setAttribute('aria-pressed',String(hot));list();}
-  search.oninput=list;list();
+  search.oninput=list;document.getElementById('manualStatusFilter').onchange=list;side.addEventListener('manualreviewchange',list);list();
  }
- renderBrands();
+ if(manualRequestedSid){const sid=manualRequestedSid;manualRequestedSid=null;brand='photoism';device=diagramDevicesForBrand(brand).find(d=>d.symptoms.includes(sid));if(!device){brand='snapism';device=diagramDevicesForBrand(brand).find(d=>d.symptoms.includes(sid));}if(device){renderSymptoms();area.querySelector('[data-sid="'+sid+'"]')?.click();}else{brand=null;renderBrands();}}else renderBrands();
 }
 
 
@@ -9132,7 +9162,7 @@ function bindFreeDiagramCard(sid,nid,box){
   (diagramAdditionHistory[sid] ||= []).push({owner:currentUser.id,tree:cloneDiagnosis(draft.tree)});delete draft.tree.nodes[nid];draft.dirty=true;persistDiagramDrafts();openDiagram(sid);
  };tools.appendChild(remove);box.appendChild(tools);
 }
-function fitDiagram(sid){const b=diagramBounds(sid),wrap=document.querySelector('.diagram-canvas-wrap');setDiagramZoom(Math.min(1,(wrap.clientWidth-32)/b.width,(wrap.clientHeight-32)/b.height));wrap.scrollLeft=0;wrap.scrollTop=0;}
+function fitDiagram(sid){const wrap=document.querySelector('.diagram-canvas-wrap'),start=document.getElementById('dn_'+getDiagramDraft(sid).tree.start);setDiagramZoom(1);wrap.scrollLeft=Math.max(0,(parseFloat(start?.style.left)||0)-32);wrap.scrollTop=Math.max(0,(parseFloat(start?.style.top)||0)-32);}
 function bindDiagramPan(sid){
  const wrap=document.querySelector('.diagram-canvas-wrap');wrap.onpointerdown=e=>{if(e.button!==0||e.target.closest('.dnode, .diagram-options'))return;e.preventDefault();wrap.setPointerCapture(e.pointerId);const x=e.clientX,y=e.clientY,sx=wrap.scrollLeft,sy=wrap.scrollTop;wrap.classList.add('panning');wrap.onpointermove=p=>{wrap.scrollLeft=sx+x-p.clientX;wrap.scrollTop=sy+y-p.clientY;};const stop=()=>{wrap.onpointermove=null;wrap.classList.remove('panning');};wrap.onpointerup=stop;wrap.onpointercancel=stop;};
  wrap.onkeydown=e=>{if(e.key==='Escape'){diagramConnectFrom=null;document.getElementById('diagramCanvas').classList.remove('connecting');closeEdgePopover();updateDiagramSaveStatus(sid);}};wrap.tabIndex=0;
@@ -9173,7 +9203,7 @@ function openDiagram(sid){
     '<section class="symptom-video-editor"><h3>🎬 증상별 영상 매뉴얼</h3><p>증상 선택 직후 첫 질문 위에 표시됩니다. 링크 등록 후 저장하고 적용을 눌러주세요.</p><label for="symptomVideoSelect">등록된 영상</label><select id="symptomVideoSelect"></select><label for="symptomVideoLabel">기종 또는 영상 구분 (공통이면 비워두세요)</label><input id="symptomVideoLabel" maxlength="80" placeholder="예: R10 · 850D"><label for="symptomVideoUrl">유튜브 영상 링크</label><input id="symptomVideoUrl" type="url" placeholder="https://www.youtube.com/watch?v=..." autocomplete="off"><div class="symptom-video-actions"><button id="symptomVideoApply">링크 등록 / 변경</button><button id="symptomVideoPreview">미리보기</button><button id="symptomVideoRemove">링크 제거</button></div><p id="symptomVideoStatus" role="status">등록하지 않으면 영상 버튼이 표시되지 않습니다.</p></section>' +
     '<div id="diagramSaveStatus" role="status" aria-live="polite"></div>' +
     '<div class="diagram-note" style="margin:0 0 12px;">위에서 아래로 안내를 읽으세요 · 선택지(동일합니다 / 해결되었습니다 등)를 눌러 문구와 다음 단계를 수정 · 다음 단계 접기/펼치기 · 카드와 빈 배경을 끌어 이동</div>' +
-    '<div class="diagram-toolbar"><button id="diagramEditListBtn" aria-pressed="false">✏️ 목록으로 편집</button><button id="diagramFlowBtn">흐름도 보기</button><button id="diagramListToggle">목록 접기 / 펼치기</button><button id="diagramZoomOut" aria-label="다이어그램 축소">−</button><span id="diagramZoomValue">100%</span><button id="diagramZoomIn" aria-label="다이어그램 확대">＋</button><button id="diagramZoomReset">원래 크기</button><button id="diagramPhotoLibraryBtn" aria-expanded="false" aria-controls="diagramPhotoLibrary">📷 사진 필요한 항목</button><button id="diagramNewCard">＋ 새 안내 카드</button><button id="diagramFit">전체 보기</button><button id="diagramAutoLayout">세로 자동 정렬</button><button id="diagramUndoAddition">추가·삭제 되돌리기</button><span>배치는 이 브라우저에 자동 보관됩니다</span></div>' +
+    '<div class="diagram-toolbar"><button id="diagramEditListBtn" aria-pressed="false">✏️ 목록으로 편집</button><button id="diagramFlowBtn">흐름도 보기</button><button id="diagramListToggle">목록 접기 / 펼치기</button><span>원본 크기 · 100% 고정</span><button id="diagramPhotoLibraryBtn" aria-expanded="false" aria-controls="diagramPhotoLibrary">📷 사진 필요한 항목</button><button id="diagramNewCard">＋ 새 안내 카드</button><button id="diagramFit">시작 카드로 이동</button><button id="diagramAutoLayout">세로 자동 정렬</button><button id="diagramUndoAddition">추가·삭제 되돌리기</button><span>배치는 이 브라우저에 자동 보관됩니다</span></div>' +
     '<section id="diagramPhotoLibrary" class="photo-library" hidden><div class="list-editor-heading"><div><h3>안내 내용 편집</h3><p>안내 문구 → 선택지와 이동 단계 → 사진 순서로 편집하세요.</p></div><button id="listNewGuide">＋ 새 안내 추가</button></div><p>수정 내용은 다이어그램에도 연결됩니다. 완료하면 위의 <strong>저장하고 적용</strong>을 누르세요.</p><div class="photo-library-controls"><label>표시 <select aria-label="사진 항목 표시"><option value="missing">사진 없는 항목만</option><option value="all">전체 항목</option></select></label><input type="search" aria-label="사진 항목 검색" placeholder="안내 문구 또는 단계 검색"><button id="photoSearchClear" type="button">검색 지우기</button><span class="photo-library-summary" role="status"></span></div><div class="photo-library-list"></div></section>' +
     '<div class="diagram-canvas-wrap"><div class="diagram-canvas" id="diagramCanvas"><svg class="diagram-svg" id="diagramSvg"></svg></div></div>' +
     '<div class="edge-popover" id="edgePopover" style="display:none;">' +
@@ -9228,9 +9258,9 @@ function openDiagram(sid){
   requestAnimationFrame(()=> {redrawDiagramLines(sid);if(!view)fitDiagram(sid);});
 
   document.getElementById('diagramListToggle').onclick=()=>document.querySelector('.diagram-editor-screen').classList.toggle('hide-list');
-  document.getElementById('diagramZoomOut').onclick=()=>setDiagramZoom(Number(canvas.style.zoom||1)-.1);
-  document.getElementById('diagramZoomIn').onclick=()=>setDiagramZoom(Number(canvas.style.zoom||1)+.1);
-  document.getElementById('diagramZoomReset').onclick=()=>setDiagramZoom(1);
+
+
+
   if(view){setDiagramZoom(view.zoom);requestAnimationFrame(()=>{const wrap=document.querySelector('.diagram-canvas-wrap');wrap.scrollLeft=view.x;wrap.scrollTop=view.y;});}
   bindDiagramPan(sid);
   document.getElementById('diagramFit').onclick=()=>fitDiagram(sid);
@@ -9238,6 +9268,7 @@ function openDiagram(sid){
   document.getElementById('diagramNewCard').onclick=()=>addStandaloneDiagramCard(sid);
   const undo=document.getElementById('diagramUndoAddition');undo.disabled=diagramAdditionHistory[sid]?.at(-1)?.owner!==currentUser?.id;undo.onclick=()=>undoDiagramAddition(sid);
   bindDiagramPhotoLibrary(sid);
+  bindManualReview(sid);
   bindSymptomVideoEditor(sid);
   document.getElementById('diagramSaveBtn').onclick = ()=>saveDiagram(sid);
   document.getElementById('diagramHistoryBtn').onclick=()=>openDiagnosisHistory(sid);
@@ -9356,8 +9387,7 @@ function redrawDiagramLines(sid){
 
 function setDiagramZoom(value){
   const canvas=document.getElementById('diagramCanvas');if(!canvas)return;
-  const zoom=Math.max(.15,Math.min(1.6,value));canvas.style.zoom=zoom;
-  document.getElementById('diagramZoomValue').textContent=Math.round(zoom*100)+'%';closeEdgePopover();
+  canvas.style.zoom=1;closeEdgePopover();
 }
 
 function copyDiagramContent(sid, tree, btn){

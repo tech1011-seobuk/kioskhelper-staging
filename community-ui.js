@@ -43,7 +43,7 @@ function helperNavigation(){
   nav.hidden=!currentUser;nav.style.display=currentUser?'flex':'none';
   let photos=document.getElementById('helperPhotoReviewButton');
   if(!photos){photos=document.createElement('button');photos.id='helperPhotoReviewButton';photos.textContent='🖼️ 사진 모아보기';photos.onclick=()=>{appState='photoReview';render();};nav.appendChild(photos);}
-  photos.hidden=!currentUser||currentUser.role!=='admin'||APP_ENV!=='staging';
+  photos.hidden=true;
   if(!currentUser){helperNoticeOwner=null;helperAttempt=null;helperNoticeDialog?.close();helperNoticeDialog?.remove();helperNoticeDialog=null;}
 }
 function helperPhotoCatalog(trees,replacements){
@@ -79,23 +79,31 @@ function helperPhotoCoverage(trees,replacements,guides){
   return rows.map(r=>({...r,total:r.steps.length,withPhoto:r.steps.filter(s=>s.media.length).length,count:r.steps.reduce((n,s)=>n+s.media.length,0)+(r.reference||[]).length}));
 }
 function helperRenderPhotoCoverage(host,rows){
-  host.innerHTML='<div class="helper-card"><label>항목 검색<input type="search" placeholder="증상명, 장비명, 단계 내용"></label><label>사진 상태<select><option value="all">전체 항목</option><option value="none">사진 없는 항목</option><option value="some">사진 있는 항목 · 수정 검토</option></select></label><p role="status" class="helper-small"></p><p class="helper-small">사진 없음은 추가 검토 대상이며, 모든 질문에 사진이 필수라는 뜻은 아니에요. 화질·내용의 적합성은 사진을 펼쳐 확인해 주세요. 현재 게시된 안내 기준이며 채널톡 원문 전체와의 대조는 아직 하지 않았어요.</p></div><div class="helper-coverage-list"></div>';
+  host.innerHTML='<div class="helper-card"><label>항목 검색<input type="search" placeholder="증상명, 장비명, 단계 내용"></label><label>사진 상태<select><option value="all">전체 항목</option><option value="none">사진 없는 항목</option><option value="some">사진 있는 항목 · 수정 검토</option></select></label><label>검수 상태<select id="coverageReviewFilter"><option value="">전체</option><option>검토 전</option><option>업데이트 중</option><option>픽스</option></select></label><p role="status" class="helper-small"></p><p class="helper-small">검수 상태·메모는 이 브라우저에 저장됩니다.</p><p class="helper-small">사진 없음은 추가 검토 대상이며, 모든 질문에 사진이 필수라는 뜻은 아니에요. 화질·내용의 적합성은 사진을 펼쳐 확인해 주세요. 현재 게시된 안내 기준이며 채널톡 원문 전체와의 대조는 아직 하지 않았어요.</p></div><div class="helper-coverage-list"></div>';
   const draw=()=>{
     const q=host.querySelector('input').value.trim().toLowerCase(),filter=host.querySelector('select').value;
-    const matched=rows.filter(r=>(filter==='all'||(filter==='none'?r.count===0:r.count>0))&&[r.title,r.id,...r.steps.map(s=>s.text)].join(' ').toLowerCase().includes(q));
-    host.querySelector('[role=status]').textContent='전체 '+rows.length+'항목 · 사진 없음 '+rows.filter(r=>!r.count).length+'항목 · 사진 있음 '+rows.filter(r=>r.count).length+'항목 · 검색 결과 '+matched.length+'항목';
+    const review=r=>manualReviewState(r.id,TREES[r.id]||r);
+    const statusFilter=host.querySelector('#coverageReviewFilter').value;
+    const matched=rows.filter(r=>(!statusFilter||review(r).status===statusFilter)&&(filter==='all'||(filter==='none'?r.count===0:r.count>0))&&[r.title,r.id,...r.steps.map(s=>s.text)].join(' ').toLowerCase().includes(q));
+    host.querySelector('[role=status]').textContent='전체 '+rows.length+'항목 · 픽스 '+rows.filter(r=>review(r).status==='픽스').length+'항목 · 사진 없음 '+rows.filter(r=>!r.count).length+'항목 · 사진 있음 '+rows.filter(r=>r.count).length+'항목 · 검색 결과 '+matched.length+'항목';
     const list=host.querySelector('.helper-coverage-list');list.innerHTML='';
     matched.forEach(row=>{
       const card=document.createElement('details');card.className='helper-card';
-      card.innerHTML='<summary>'+escapeHtml(row.type+' · '+row.title)+'<span class="helper-small" style="display:block;margin-top:8px">'+escapeHtml(row.id)+' · '+(row.count?'🖼️ 사진 있음 · 수정 검토':'📷 사진 없음 · 추가 검토')+' · 단계 사진 '+row.withPhoto+'/'+row.total+'</span></summary><div class="helper-coverage-body"></div>';
+      card.innerHTML='<summary>'+escapeHtml(row.type+' · '+row.title)+'<span class="helper-small" style="display:block;margin-top:8px">'+escapeHtml(row.id)+' · '+review(row).status+' · '+(row.count?'🖼️ 사진 있음 · 수정 검토':'📷 사진 없음 · 추가 검토')+' · 단계 사진 '+row.withPhoto+'/'+row.total+'</span></summary><div class="helper-coverage-body"></div>';
       let loaded=false;card.ontoggle=()=>{if(!card.open||loaded)return;loaded=true;const body=card.querySelector('.helper-coverage-body');
-        body.innerHTML=(row.reference?.length?'<h3 style="margin-top:20px">공통 참고 사진 (단계별 사진 아님)</h3>'+renderDiagnosisMedia({media:row.reference}):'')+row.steps.map(step=>'<section style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px"><strong>'+escapeHtml(step.key)+'</strong><p class="helper-body">'+escapeHtml(step.text)+'</p>'+(step.media.length?renderDiagnosisMedia({media:step.media}):'<p class="helper-small">📷 이 단계에 연결된 사진 없음</p>')+'</section>').join('')+(!row.steps.length?'<p>단계별 안내 없음 · 사진 추가 위치도 검토가 필요해요.</p>':'');hydrateDiagnosisMedia();};list.appendChild(card);
+        body.innerHTML=(row.reference?.length?'<h3 style="margin-top:20px">공통 참고 사진 (단계별 사진 아님)</h3>'+renderDiagnosisMedia({media:row.reference}):'')+row.steps.map(step=>'<section style="border-top:1px solid var(--border);margin-top:18px;padding-top:16px"><strong>'+escapeHtml(step.key)+'</strong><p class="helper-body">'+escapeHtml(step.text)+'</p>'+(step.media.length?renderDiagnosisMedia({media:step.media}):'<p class="helper-small">📷 이 단계에 연결된 사진 없음</p>')+'</section>').join('')+(!row.steps.length?'<p>단계별 안내 없음 · 사진 추가 위치도 검토가 필요해요.</p>':'');
+        const controls=document.createElement('section');controls.className='helper-card';const saved=review(row);
+        controls.innerHTML='<label>검수 상태<select aria-label="검수 상태">'+['검토 전','업데이트 중','픽스'].map(s=>'<option'+(s===saved.status?' selected':'')+'>'+s+'</option>').join('')+'</select></label><label>검수 메모<input maxlength="500" placeholder="교체할 사진·추가할 내용"></label><button type="button">검수 기록 저장</button><p role="status"></p>';
+        controls.querySelector('input').value=saved.note||'';
+        controls.querySelector('button').onclick=()=>{try{localStorage.setItem(diagramDraftKey()+':review:'+row.id,JSON.stringify({status:controls.querySelector('select').value,note:controls.querySelector('input').value,content:JSON.stringify(TREES[row.id]||row),updatedAt:new Date().toISOString()}));draw();}catch{controls.querySelector('[role=status]').textContent='저장에 실패했습니다. 입력한 메모를 보관하고 다시 시도해주세요.';}};
+        if(TREES[row.id]){const edit=document.createElement('button');edit.textContent='🗺️ 이 증상 다이어그램 편집';edit.onclick=()=>{manualRequestedSid=row.id;appState='diagramEditor';render();};controls.appendChild(edit);}
+        body.prepend(controls);hydrateDiagnosisMedia();};list.appendChild(card);
     });if(!matched.length)list.textContent='해당 조건의 항목이 없어요.';
-  };host.querySelector('input').oninput=draw;host.querySelector('select').onchange=draw;draw();
+  };host.querySelector('input').oninput=draw;host.querySelector('select').onchange=draw;host.querySelector('#coverageReviewFilter').onchange=draw;draw();
 }
 async function renderPhotoReviewScreen(){
   if(APP_ENV!=='staging'||currentUser?.role!=='admin'){appState='hub';render();return;}
-  const owner=currentUser.id,content=helperShell('🖼️ 사진 모아보기','현재 적용된 사진을 중복 없이 모았습니다. 사진을 누르면 확대되고, 아래에서 적용된 증상·단계를 확인할 수 있어요.');
+  const owner=currentUser.id,content=helperShell('🗂️ 매뉴얼 관리 · 사진 점검','현재 적용된 사진을 중복 없이 모았습니다. 사진을 누르면 확대되고, 아래에서 적용된 증상·단계를 확인할 수 있어요.');
   try{
     if(!await loadPublishedDiagnosis())throw new Error('published photos unavailable');if(!helperOwnerValid(owner,'photoReview'))return;
     const photos=helperPhotoCatalog(TREES,REPLACEMENT_MEDIA);
@@ -112,7 +120,7 @@ async function renderPhotoReviewScreen(){
     };content.querySelector('#helperPhotoSearch').oninput=draw;content.querySelector('#helperPhotoSource').onchange=draw;draw();
     const gallery=document.createElement('div');while(content.firstChild)gallery.appendChild(content.firstChild);content.appendChild(gallery);
     const byItem=document.createElement('div');content.prepend(byItem);helperRenderPhotoCoverage(byItem,coverage);gallery.hidden=true;
-    const tabs=document.createElement('div');tabs.className='helper-actions';content.prepend(tabs);
+    const tabs=document.createElement('div');tabs.className='helper-actions';content.prepend(tabs);const back=document.createElement('button');back.textContent='← 증상·다이어그램 관리';back.onclick=()=>{appState='diagramEditor';render();};content.prepend(back);
     [['항목별 사진 점검',true],['사진만 모아보기',false]].forEach(([label,item])=>{const b=document.createElement('button');b.textContent=label;b.setAttribute('aria-pressed',String(item));b.onclick=()=>{byItem.hidden=!item;gallery.hidden=item;tabs.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));};tabs.appendChild(b);});
   }catch{content.innerHTML='<p class="helper-error">사진 목록을 불러오지 못했어요.</p><button>다시 시도</button>';content.querySelector('button').onclick=renderPhotoReviewScreen;}
 }

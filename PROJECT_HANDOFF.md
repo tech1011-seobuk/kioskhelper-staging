@@ -259,3 +259,18 @@ v86 deployment verified: staging remote commit a13b1bdd331406203fe9ac95f8ad173da
 
 ## v88 — Requested label edit
 Changed SNAPISM jam turn over title to 'jam turn over 오류 코드 조치 방법'. Steps and photos unchanged. Staging deployment pending.
+
+- v88 staging e0b685e deployed successfully, Pages35680078545 (42s). Live symptom button and guide heading both verified as requested. Production unchanged.
+
+## 2026-09-24 — Original-interface intro demo (local review)
+- Replaced inaccurate hand-drawn demo approach with generated demo-actual.local.html: reads current index.html and reuses the original brand cards, 3D picker/assets, camera categories, symptom list, chat renderer and solved ending.
+- build-demo.local.cjs generates the isolated local preview. No Supabase client, auth initialization, service worker registration or event logging. Original source app and published diagnosis untouched. Local demo includes the three original annotated camera-guide PNGs as embedded images and the two CAM-3 texts verified in the current staging UI.
+- Actual route: brand -> 3D picker -> camera -> repair -> CAM-3 -> power/menu photo -> camera and PC tether photos -> solved. The previous mockup incorrectly inserted a tool menu before the picker.
+- Added autoplay, pause, next scene and restart controls. Local preview only, not a video file or staging deployment. Existing 61 automated checks pass; desktop original 3D and photos verified. At 390px browser viewport all three original photos loaded and no horizontal overflow. Actual phone not tested.
+- Follow-up requested an actual demo file: captured original-UI preview via browser screenshots and encoded MP4 using browser MediaRecorder; output in outputs/photoism-demo-video/photoism-helper-demo.mp4. Approximately 34 seconds, 1280x800, silent. Final solved card explicitly included. watch.html is a local playback page; no staging/production deployment.
+
+## 2026-09-27 v89 — Manual review tools
+- Consolidated staging administrator navigation under 매뉴얼 관리. Existing diagram cards/connections/editing remain; default opens the diagram. Photo coverage/gallery are accessible inside this area with direct links back to symptom diagrams.
+- Added 검토 전 / 업데이트 중 / 픽스, notes, status filters and fixed-count summary in photo coverage (including replacement/SNAPISM source manuals). Review records are explicitly browser-local, scoped by environment/account/symptom, independent of publication. Canonical content comparison invalidates 픽스 when reviewed content changes. Photo coverage reviews the published content; diagram reviews its current draft.
+- Removed zoom in/out/reset and auto-fit scaling. Diagram is always 100%; start-card navigation and panning remain. Existing draft persistence/publication guards untouched.
+- 63 automatic checks passed. Isolated desktop UI verified status save/filter, shared note in photo coverage, diagram link, zoom=1 and no runtime errors; 390px viewport has no document overflow. Actual phone not tested. Local test records are isolated from real admin. Production unchanged; staging deployment verification pending.
