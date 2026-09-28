@@ -1,9 +1,11 @@
 import * as T from './three.module.js';
+import {createSnapismModel,snapismAnchors} from './snapism-model.js';
 import {GLTFLoader} from './GLTFLoader.js';
 export {mountCamera,mountPrinter} from './camera-models.js';
 
 // Original Blender model in metres, with an independently hinged front service door.
-export function mount(host){
+export function mount(host,brand='photoism'){
+ const isSnap=brand==='snapism';
  const scene=new T.Scene(),camera=new T.PerspectiveCamera(36,1,.01,30);
  const renderer=new T.WebGLRenderer({antialias:true,alpha:true,powerPreference:'low-power'});
  renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,1.7));renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1;
@@ -23,8 +25,8 @@ export function mount(host){
   const glow=new T.Mesh(new T.PlaneGeometry(w,h),new T.MeshBasicMaterial({map:texture,transparent:true,depthWrite:false,blending:T.AdditiveBlending,toneMapped:false,opacity:.6}));
   glow.position.set(x,y,z);glow.rotation.x=tilt;lightHalos.add(glow);
  }
- lightHalo(0,1.872,.115,.66,.15,Math.atan2(.085,.210));
- for(const x of [-.315,.315])lightHalo(x,1.558,.064,.072,.36);
+ if(!isSnap)lightHalo(0,1.872,.115,.66,.15,Math.atan2(.085,.210));
+ if(!isSnap)for(const x of [-.315,.315])lightHalo(x,1.558,.064,.072,.36);
  let openness=0,frame=0,disposed=false,tween=null,model=null,door=null,pending=null,framingPoints=[],framingDistance=3.65;
  const target=new T.Vector3(0,1,0),reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
  // Fit the entire door sweep once, so opening never moves the camera or clips the door.
@@ -57,7 +59,8 @@ export function mount(host){
  canvas.addEventListener('webglcontextlost',e=>{if(disposed)return;e.preventDefault();host.dispatchEvent(new CustomEvent('modelerror'));});
  const observer=new MutationObserver(()=>{if(!host.isConnected)dispose();});observer.observe(document.body,{subtree:true,childList:true});
  function dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();release(scene);environment.dispose();renderer.dispose();renderer.forceContextLoss();canvas.remove();loading.remove();pending=null;}
- new GLTFLoader().load(new URL('./assets/photoism-kiosk-pointing.glb',document.baseURI).href,gltf=>{if(disposed){release(gltf.scene);return;}model=gltf.scene;door=model.getObjectByName('kiosk_front_door');if(!door){release(model);model=null;host.dispatchEvent(new CustomEvent('modelerror'));return;}scene.add(model);measureDoorSweep();loading.remove();host.dataset.modelSource='blender';host.dataset.modelState='ready';if(pending){const next=pending;pending=null;view(next.mode,next.done);}else request();},undefined,()=>{if(!disposed){host.dataset.modelState='error';host.dispatchEvent(new CustomEvent('modelerror'));}});
- const anchors={'에스라이트':[0,1.872,.103],'카메라':[0,1.548,.1],'지속광':[.315,1.558,.066],'모니터':[0,1.226,.160],'리모컨':[.337,1.238,.192],'지폐투입기':[-.25,.86,.286],'카드리더기':[-.065,.848,.3],'프린터':[.119,.575,.18],'PC':[-.099,1.0,.125],'서비스코인 / 설정':[.016,.329,.18]};
+ function loaded(gltf){if(disposed){release(gltf.scene);return;}model=gltf.scene;door=model.getObjectByName('kiosk_front_door');if(!door){release(model);model=null;host.dispatchEvent(new CustomEvent('modelerror'));return;}scene.add(model);measureDoorSweep();loading.remove();host.dataset.modelSource=isSnap?'photo-reference':'blender';host.dataset.modelState='ready';if(pending){const next=pending;pending=null;view(next.mode,next.done);}else request();}
+ if(isSnap)loaded({scene:createSnapismModel()});else new GLTFLoader().load(new URL('./assets/photoism-kiosk-pointing.glb',document.baseURI).href,loaded,undefined,()=>{if(!disposed){host.dataset.modelState='error';host.dispatchEvent(new CustomEvent('modelerror'));}});
+ const anchors=isSnap?snapismAnchors:{'에스라이트':[0,1.872,.103],'카메라':[0,1.548,.1],'지속광':[.315,1.558,.066],'모니터':[0,1.226,.160],'리모컨':[.337,1.238,.192],'지폐투입기':[-.25,.86,.286],'카드리더기':[-.065,.848,.3],'프린터':[.119,.575,.18],'PC':[-.099,1.0,.125],'서비스코인 / 설정':[.016,.329,.18]};
  request();return {project(name){const v=new T.Vector3(...anchors[name]).project(camera);return {x:(v.x+1)*host.clientWidth/2,y:(1-v.y)*host.clientHeight/2};},view,dispose};
 }
