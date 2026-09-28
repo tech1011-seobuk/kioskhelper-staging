@@ -330,3 +330,9 @@ Changed SNAPISM jam turn over title to 'jam turn over 오류 코드 조치 방�
 - Added snapism-model.js procedural model based on 22 user-supplied September28 photos: thin white cabinet, luminous sign, tall screen, NICE terminal, split front panels sharing right hinge animation, real output openings, CX7600 above PC/DS620, bottom coin/settings enclosure, brackets, slots and status lights. Dimensions estimated from photos; event screen replaced with neutral Snapism artwork; detailed right-hand instruction sticker still needs artwork.
 - Shared Photoism renderer/picker accepts brand; fixed camera fitted to full door sweep. Snapism devices retain existing categories/manual navigation, CMS route and 2D fallback. Photoism GLB unchanged. No diagnosis or review data writes.
 - Existing75 tests pass; desktop and390px viewport checked, no horizontal overflow, doors visible. Actual phone not tested. CX7600 category navigation verified in isolated app. npm unavailable on this host; existing esbuild/runtime used for build. Staging deployment pending.
+
+- v98 staging deployed: remote9f34cab43002352e6ded8749b745e166cc8e17b5, Pages36382996449 succeeded51s. Live authenticated brand route shows new Snapism 3D and internal picker. Local546aca8. Production unchanged.
+
+## 2026-09-28 v99 — Snapism printer grey and contrast
+- User correction: CX7600 and DS620 housings are pale grey, not cabinet white. Added distinct matte printer materials and darker DS620 sides; reduced Snapism-only exposure, environment and fill to preserve detail. Photoism lighting unchanged.
+- Build and75 existing tests passed. Desktop appearance reviewed; no geometry, routing or diagnosis data changed. Staging deployment pending.

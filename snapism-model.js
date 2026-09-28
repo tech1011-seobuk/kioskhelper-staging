@@ -6,6 +6,7 @@ export function createSnapismModel(){
  const root=new T.Group();root.name='snapism_kiosk';
  const mat=(color,roughness=.55,metalness=0)=>new T.MeshStandardMaterial({color,roughness,metalness});
  const white=mat('#ecebe5',.48),edge=mat('#d9dbd6',.55),black=mat('#15171a',.5),slot=mat('#090b0e',.8),silver=mat('#aeb4b7',.21,.85),grey=mat('#9b9f9e'),strap=mat('#202124',.95);
+ const printerGrey=mat('#aeb3b4',.68),printerSide=mat('#8d9498',.7);
  const blue=mat('#127ded'),red=mat('#c51b33'),green=new T.MeshStandardMaterial({color:'#58e573',emissive:'#1baf39',emissiveIntensity:1});
  function box(p,n,x,y,z,w,h,d,m,r=0){
   let geo;
@@ -59,7 +60,7 @@ export function createSnapismModel(){
  box(front,'monitor_electronics',0,1.48,-.084,.29,.51,.036,black);vents(front,0,1.6,-.104,12,5);
  for(const y of [1.19,1.35,1.78]){box(root,'hinge',.335,y,.24,.014,.055,.027,silver);}
  // CX7600: rear-facing housing from the front service opening, feed hopper behind.
- box(root,'CX7600',.035,1.36,-.025,.405,.405,.315,white,.017);
+ box(root,'CX7600',.035,1.36,-.025,.405,.405,.315,printerGrey,.017);
  box(root,'CX_seam',.10,1.36,.134,.0015,.362,.001,grey);
  for(const [y,w,h] of [[1.45,.158,.013],[1.395,.04,.017],[1.22,.033,.013]])box(root,'CX_housing_recess',.158,y,.135,w,h,.008,slot,.002);
  box(root,'CX_retaining_strap',-.098,1.365,.138,.049,.397,.007,strap);
@@ -74,14 +75,14 @@ export function createSnapismModel(){
  vents(root,-.18,1.009,-.04,5,7);
  disc(root,'PC_power_ring',-.18,.949,.144,.014,.003,blue);disc(root,'PC_power',-.18,.949,.147,.008,.002,silver);
  for(const x of [-.198,-.168])for(const y of [.66,.71]){box(root,'USB_surround',x,y,.145,.009,.018,.004,silver);box(root,'USB_socket',x,y,.148,.005,.013,.002,slot);}
- box(root,'DS620',.088,.767,-.023,.335,.281,.337,grey,.009);
- box(root,'DS620_face',.088,.77,.149,.328,.261,.012,white,.008);
+ box(root,'DS620',.088,.767,-.023,.335,.281,.337,printerSide,.009);
+ box(root,'DS620_face',.088,.77,.149,.328,.261,.012,printerGrey,.008);
  box(root,'DS620_output',.09,.851,.158,.258,.009,.01,slot,.003);
- text(root,'DNP_label','DNP',.095,.888,.158,.07,.026,'#ecebe5','#183e77',78);
+ text(root,'DNP_label','DNP',.095,.888,.158,.07,.026,'#aeb3b4','#183e77',78);
  box(root,'DS620_bin',.113,.741,.169,.259,.135,.042,black,.008);
  box(root,'DS620_bin_lip',.113,.679,.194,.243,.009,.012,grey,.003);
  for(let i=0;i<4;i++)box(root,'DS620_status',-.052,.788-i*.018,.157,.011,.003,.002,i?black:green,.001);
- text(root,'DS620_model','DS620',-.051,.817,.158,.038,.014,'#ecebe5','#25272c',65);
+ text(root,'DS620_model','DS620',-.051,.817,.158,.038,.014,'#aeb3b4','#25272c',65);
  // Bottom coin/settings enclosure. The round lock above is NOT a service button.
  box(root,'coin_settings_box',-.205,.277,.025,.185,.29,.27,white,.003);
  box(root,'coin_box_seam',-.205,.303,.162,.174,.002,.001,grey);
