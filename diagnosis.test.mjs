@@ -113,7 +113,7 @@ test('photo checklist distinguishes photos from videos and includes disconnected
 test('symptom manual normalizes video URLs and rejects unrelated or unsafe links',()=>{
  const c=harness();
  for(const url of ['https://youtu.be/abcdefghijk?si=test','https://www.youtube.com/watch?v=abcdefghijk&t=30','https://youtube.com/shorts/abcdefghijk']){
-  c.url=url;assert.equal(vm.runInContext('youtubeManualUrl(url)',c),'https://www.youtube.com/watch?v=abcdefghijk');
+  c.url=url;assert.equal(vm.runInContext('youtubeManualUrl(url)',c),'https://www.youtube.com/watch?v=abcdefghijk'+(url.includes('&t=30')?'&start=30':''));
  }
  for(const url of ['javascript:alert(1)','https://youtube.com.evil.test/watch?v=abcdefghijk','https://youtube.com/playlist?list=abc','https://user@youtube.com/watch?v=abcdefghijk']){
   c.url=url;assert.throws(()=>vm.runInContext('youtubeManualUrl(url)',c));
@@ -169,3 +169,5 @@ test('import copies media and branches independently, preserving destination his
  const jump={start:'n1',nodes:{n1:{text:'test',options:[{label:'go',jump:'PC-1'}]}}};assert.throws(()=>c.importApi.copyDiagnosisForImport(jump,'PC-1'),/현재 증상/);
  jump.nodes.n1.options[0].jump='PRT-9';assert.throws(()=>c.importApi.copyDiagnosisForImport(jump,'PC-1'),/삭제된/);
 });
+
+ test('video scene links preserve bounded start and end times',()=>{const c=harness();assert.equal(vm.runInContext("youtubeManualUrl('https://youtu.be/abcdefghijk?t=1m3s&end=80')",c),'https://www.youtube.com/watch?v=abcdefghijk&start=63&end=80');assert.equal(vm.runInContext("youtubeManualUrl('https://www.youtube.com/watch?v=abcdefghijk&start=20&end=10')",c),'https://www.youtube.com/watch?v=abcdefghijk&start=20');});

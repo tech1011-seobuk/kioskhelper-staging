@@ -318,3 +318,8 @@ Changed SNAPISM jam turn over title to 'jam turn over 오류 코드 조치 방�
 ## 2026-09-28 v96 — Import another symptom diagram
 - Added searchable source picker with saved-content preview. Copies full tree/options/media/video into current draft; source tree, destination name/revision/review preserved. Explicit replacement checkbox; no automatic publication; ordinary save/Ctrl+S and Ctrl+Z retained. Rejects self-jump and archived-target imports; other cross-symptom links retained with visible notice.
 - 74 tests pass. Isolated browser imported CAM-4 into PC-1 including model photos and restored original via Undo; no live DB writes. Mobile390px dialog checked (scrollable, within viewport); actual phone not tested. Staging deployment pending.
+- v96 deployed: remotea57dfb20066df89830f89d20f859844e3c6a2ac5, Pages36328273038 succeeded52s. Live editor import button verified; no console errors or diagnosis writes. Local7a49ee2.
+
+## 2026-09-28 v97 — Reviewed action media
+- Prepared media-only additive publication for 30 symptoms / 93 nodes: 83 image placements and 136 scene links. Existing text/options preserved; snapshot backup and revision guards in outputs/media-staging-apply. Excluded held, mismatched and unavailable sources; duplicate alternatives consolidated. 23 native-ratio scene JPEGs included.
+- YouTube start/end timestamps preserved through inline player; photo captions show model/action. 75 checks pass. Exact pre-change review snapshots advanced with media-only updates; stale reviews are not promoted. Production unchanged. Deployment verification pending.

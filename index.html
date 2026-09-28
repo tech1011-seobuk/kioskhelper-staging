@@ -8901,7 +8901,12 @@ function youtubeManualUrl(value){
   else id=u.pathname.match(/^\/(?:shorts|embed|live)\/([^/]+)\/?$/)?.[1];
  }
  if(!/^[A-Za-z0-9_-]{11}$/.test(id||''))throw new Error('채널이나 재생목록이 아닌 유튜브 영상 링크를 입력해주세요.');
- return 'https://www.youtube.com/watch?v='+id;
+ const result=new URL('https://www.youtube.com/watch?v='+id);
+ const parseTime=value=>{if(!value)return 0;if(/^\d+$/.test(value))return Number(value);const m=value.match(/^(?:(\d+)h)?(?:(\d+)m)?(?:(\d+)s)?$/);return m?Number(m[1]||0)*3600+Number(m[2]||0)*60+Number(m[3]||0):0;};
+ const start=parseTime(u.searchParams.get('start')||u.searchParams.get('t')),end=parseTime(u.searchParams.get('end'));
+ if(Number.isSafeInteger(start)&&start>0&&start<=86400)result.searchParams.set('start',start);
+ if(Number.isSafeInteger(end)&&end>start&&end<=86400)result.searchParams.set('end',end);
+ return result.href;
 }
 function symptomVideoUrl(tree){
  const item=tree?.nodes?.[tree.start]?.media?.find(isSymptomVideo);
@@ -8917,13 +8922,15 @@ function withSymptomVideo(tree,value,label=''){
  if(media.length)node.media=media;else delete node.media;
  return copy;
 }
-function openSymptomVideo(url){
+function openSymptomVideo(url,label=SYMPTOM_VIDEO_NAME){
  const normalized=youtubeManualUrl(url);if(!normalized)return;
  const dialog=document.createElement('dialog');dialog.className='symptom-video-dialog';
  const close=document.createElement('button');close.textContent='닫기 · 조치로 돌아가기';close.onclick=()=>dialog.close();
- const title=document.createElement('h3');title.textContent=SYMPTOM_VIDEO_NAME;
- const frame=document.createElement('iframe');frame.title=SYMPTOM_VIDEO_NAME;frame.allowFullscreen=true;
- frame.src='https://www.youtube-nocookie.com/embed/'+new URL(normalized).searchParams.get('v');
+ const title=document.createElement('h3');title.textContent=label;
+ const frame=document.createElement('iframe');frame.title=label;frame.allowFullscreen=true;
+ const params=new URL(normalized).searchParams,embed=new URL('https://www.youtube-nocookie.com/embed/'+params.get('v'));
+ for(const key of ['start','end'])if(params.has(key))embed.searchParams.set(key,params.get(key));
+ frame.src=embed.href;
  const fallback=document.createElement('a');fallback.href=normalized;fallback.target='_blank';fallback.rel='noopener noreferrer';fallback.textContent='재생이 안 되면 유튜브에서 보기 ↗';
  dialog.append(close,title,frame,fallback);dialog.addEventListener('close',()=>dialog.remove());
  document.body.appendChild(dialog);dialog.showModal();close.focus();
@@ -8978,13 +8985,13 @@ async function hydrateDiagnosisMedia(){
         if(!wrapper.isConnected||currentUser?.id!==owner)continue;
         if(item.kind==='image'){
           const img=document.createElement('img');img.src=src;img.alt=item.name;img.loading='lazy';img.referrerPolicy='no-referrer';
-          img.onclick=()=>openLightbox(src);img.onerror=()=>{wrapper.textContent='사진을 불러오지 못했습니다. 연결 또는 주소를 확인해주세요.';};wrapper.appendChild(img);
+          img.onclick=()=>openLightbox(src);img.onerror=()=>{wrapper.textContent='사진을 불러오지 못했습니다. 연결 또는 주소를 확인해주세요.';};wrapper.appendChild(img);const caption=document.createElement('small');caption.textContent=item.name;caption.style.display='block';wrapper.appendChild(caption);
         }else if(item.kind==='video'){
           const video=document.createElement('video');video.src=src;video.controls=true;video.preload='metadata';video.playsInline=true;
           video.setAttribute('aria-label',item.name);video.onerror=()=>{wrapper.textContent='영상을 재생하지 못했습니다. 파일 형식과 연결을 확인해주세요.';};wrapper.appendChild(video);
         }else{
           let youtube='';try{youtube=youtubeManualUrl(src);}catch{}
-          if(youtube){const button=document.createElement('button');button.className='symptom-video-entry';button.textContent='🎬 '+item.name+' 보기';button.onclick=()=>openSymptomVideo(youtube);wrapper.appendChild(button);}
+          if(youtube){const button=document.createElement('button');button.className='symptom-video-entry';button.textContent='🎬 '+item.name+' 보기';button.onclick=()=>openSymptomVideo(youtube,item.name);wrapper.appendChild(button);}
           else {const link=document.createElement('a');link.href=src;link.target='_blank';link.rel='noopener noreferrer';link.textContent='↗ '+item.name+' (새 탭)';wrapper.appendChild(link);}
         }
       }catch{wrapper.textContent='첨부 자료를 불러오지 못했습니다. 인터넷 연결 후 화면을 다시 열어주세요.';}
