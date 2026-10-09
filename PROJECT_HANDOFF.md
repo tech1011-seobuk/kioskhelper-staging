@@ -336,3 +336,8 @@ Changed SNAPISM jam turn over title to 'jam turn over 오류 코드 조치 방�
 ## 2026-09-28 v99 — Snapism printer grey and contrast
 - User correction: CX7600 and DS620 housings are pale grey, not cabinet white. Added distinct matte printer materials and darker DS620 sides; reduced Snapism-only exposure, environment and fill to preserve detail. Photoism lighting unchanged.
 - Build and75 existing tests passed. Desktop appearance reviewed; no geometry, routing or diagnosis data changed. Staging deployment pending.
+
+## 2026-10-09 — Front door interior focus (v101)
+- Opening the front service door now smoothly focuses the internal equipment; front view reverses the camera path. PHOTOISM and SNAPISM use separate framing; reduced motion and part links retained.
+- Existing 75 tests passed. User explicitly requested direct staging deployment before additional local visual review. Desktop/mobile visual review pending; no production or diagnosis changes.
+

@@ -29,7 +29,9 @@ export function mount(host,brand='photoism'){
  if(!isSnap)for(const x of [-.315,.315])lightHalo(x,1.558,.064,.072,.36);
  let openness=0,frame=0,disposed=false,tween=null,model=null,door=null,pending=null,framingPoints=[],framingDistance=3.65;
  const target=new T.Vector3(0,1,0),reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
- // Fit the entire door sweep once, so opening never moves the camera or clips the door.
+ // The front view retains the full door sweep; the inside view frames the service bay.
+ const insideTarget=new T.Vector3(0,isSnap?.88:.70,.02);
+ let insideDistance=2.6;
  function fitFrame(){
   let distance=Math.max(3.65,host.clientHeight/Math.max(host.clientWidth,1)*3.12);
   for(let i=0;i<100;i++){
@@ -38,6 +40,10 @@ export function mount(host,brand='photoism'){
    distance*=1.025;
   }
   framingDistance=distance;
+  const halfHeight=isSnap?.82:.55,halfWidth=isSnap?.36:.37;
+  const tan=Math.tan(T.MathUtils.degToRad(camera.fov/2));
+  // Keep room beside the cabinet for the part labels, including narrow phones.
+  insideDistance=.30+Math.max(halfHeight/(tan*.86),halfWidth/(tan*camera.aspect*.57));
  }
  function measureDoorSweep(){
   framingPoints=[];
@@ -51,7 +57,12 @@ export function mount(host,brand='photoism'){
  }
  function release(root){const geometries=new Set(),materials=new Set(),textures=new Set();root.traverse(o=>{if(o.geometry)geometries.add(o.geometry);for(const m of (Array.isArray(o.material)?o.material:[o.material]))if(m){materials.add(m);for(const value of Object.values(m))if(value?.isTexture)textures.add(value);}});geometries.forEach(g=>g.dispose());materials.forEach(m=>m.dispose());textures.forEach(t=>{t.dispose();t.source?.data?.close?.();});}
  function draw(now=performance.now()){frame=0;if(disposed)return;let done=null;if(tween){const t=reduced?1:Math.min(1,(now-tween.start)/1050),ease=t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;openness=tween.from+(tween.to-tween.from)*ease;if(t===1){done=tween.done;tween=null;}}
-  if(door)door.rotation.y=openness*Math.PI*110/180;camera.position.set(0,1.16,framingDistance);camera.lookAt(target);host.dataset.doorState=tween?'moving':openness>.99?'open':'closed';renderer.render(scene,camera);host.dispatchEvent(new Event('modelrender'));if(tween)frame=requestAnimationFrame(draw);if(done)done();
+  if(door)door.rotation.y=openness*Math.PI*110/180;
+  // Let the door clear the bay before moving in; reversing uses the same continuous path.
+  const p=T.MathUtils.clamp((openness-.18)/.82,0,1),focus=p*p*(3-2*p);
+  camera.position.set(0,T.MathUtils.lerp(1.16,insideTarget.y,focus),T.MathUtils.lerp(framingDistance,insideDistance,focus));
+  camera.lookAt(target.clone().lerp(insideTarget,focus));camera.updateMatrixWorld();
+  host.dataset.doorState=tween?'moving':openness>.99?'open':'closed';renderer.render(scene,camera);host.dispatchEvent(new Event('modelrender'));if(tween)frame=requestAnimationFrame(draw);if(done)done();
  }
  function request(){if(!frame&&!disposed)frame=requestAnimationFrame(draw);}
  function view(mode,done){if(disposed)return;if(!model){pending={mode,done};return;}tween={from:openness,to:mode==='inside'?1:0,start:performance.now(),done};request();}
