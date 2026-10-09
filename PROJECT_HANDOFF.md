@@ -352,3 +352,5 @@ Changed SNAPISM jam turn over title to 'jam turn over 오류 코드 조치 방�
 - Added opt-in automatic login using Supabase session storage: localStorage when checked, sessionStorage otherwise. Passwords are not stored. Existing sessions migrate into the chosen storage; logout clears persistence preference.
 - PHOTOISM door action card now points to the model's actual front-door key slot (-.277,.626,.29), below the bill acceptor. Removed ambiguous door emoji and emphasized explicit Korean action text; arrow tracks projected coordinates on resize.
 - 78 tests passed, including session persistence, opt-out, migration and unavailable storage. Staging visual verification and deployment pending. No production/diagnosis changes.
+
+- v102 deployed as 36f403a; live review found general button styles overriding the yellow card and SVG hidden-attribute behavior preventing arrow display. v103 corrects CSS specificity and SVG visibility; 78 tests pass again.
