@@ -417,3 +417,31 @@ test('overlapping media hydration renders each attachment once', async () => {
   assert.deepEqual(containers.map(c=>c.children.length),[1,1,1]);
   assert.deepEqual(containers.map(c=>c.children[0].children.length),[1,1,1]);
 });
+
+
+function authStorageFixture(){
+ const ctx=vm.createContext({});vm.runInContext(section('function createHelperAuthStorage(', 'const helperAuthStorage='),ctx);
+ const store=()=>{const map=new Map();return {getItem:k=>map.get(k)??null,setItem:(k,v)=>map.set(k,v),removeItem:k=>map.delete(k)}};
+ const local=store(),session=store();return {local,session,store,create:s=>ctx.createHelperAuthStorage(local,s,'auto:staging')};
+}
+test('automatic login is opt-in, survives a new tab only when chosen, and removes tokens on logout',()=>{
+ const f=authStorageFixture(),a=f.create(f.session);a.setItem('sb-test-auth-token','session1');
+ assert.equal(f.local.getItem('sb-test-auth-token'),null);assert.equal(f.create(f.session).getItem('sb-test-auth-token'),'session1');
+ assert.equal(f.create(f.store()).getItem('sb-test-auth-token'),null);
+ a.setPersistent(true);assert.equal(f.session.getItem('sb-test-auth-token'),null);
+ const next=f.create(f.store());assert.equal(next.getItem('sb-test-auth-token'),'session1');
+ next.removeItem('sb-test-auth-token');next.setPersistent(false);
+ assert.equal(f.create(f.store()).getItem('sb-test-auth-token'),null);assert.equal(next.persistent,false);
+});
+test('turning automatic login off moves the refreshed session out of persistent storage',()=>{
+ const f=authStorageFixture(),a=f.create(f.session);a.setPersistent(true);a.setItem('sb-test-auth-token','old');a.setItem('sb-test-auth-token','refreshed');a.setPersistent(false);
+ assert.equal(f.local.getItem('sb-test-auth-token'),null);assert.equal(f.session.getItem('sb-test-auth-token'),'refreshed');
+ assert.equal(f.create(f.store()).getItem('sb-test-auth-token'),null);
+});
+test('existing sessions migrate without logging out and storage failure falls back to memory',()=>{
+ const f=authStorageFixture();f.local.setItem('sb-test-auth-token','legacy');const a=f.create(f.session);
+ assert.equal(a.getItem('sb-test-auth-token'),'legacy');assert.equal(f.local.getItem('sb-test-auth-token'),null);
+ const broken={getItem(){throw Error('blocked')},setItem(){throw Error('blocked')},removeItem(){throw Error('blocked')}};
+ const ctx=vm.createContext({});vm.runInContext(section('function createHelperAuthStorage(', 'const helperAuthStorage='),ctx);
+ const b=ctx.createHelperAuthStorage(broken,broken,'auto');b.setItem('token','temporary');assert.equal(b.getItem('token'),'temporary');b.removeItem('token');assert.equal(b.getItem('token'),null);
+});

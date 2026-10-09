@@ -341,3 +341,14 @@ Changed SNAPISM jam turn over title to 'jam turn over 오류 코드 조치 방�
 - Opening the front service door now smoothly focuses the internal equipment; front view reverses the camera path. PHOTOISM and SNAPISM use separate framing; reduced motion and part links retained.
 - Existing 75 tests passed. User explicitly requested direct staging deployment before additional local visual review. Desktop/mobile visual review pending; no production or diagnosis changes.
 
+
+### v101 staging deployment verification
+- 2026-10-09: GitHub web upload committed as 0c6c1cc46c91f451ce88e860f39ea3a734bf8d76. Pages run 37894716325 succeeded (1m 0s).
+- Live index.html, photoism-model.js, photoism-picker.js and sw.js each returned HTTP 200 and matched tested local files (line endings normalized).
+- Git HTTPS push helper crashed; used authenticated GitHub web upload instead. No force push or production changes.
+- Authenticated staging desktop/mobile visual check still pending: staging browser remains on login screen; user login requested. Actual phone not tested.
+
+## 2026-10-09 — Optional automatic login and front-door callout (v102)
+- Added opt-in automatic login using Supabase session storage: localStorage when checked, sessionStorage otherwise. Passwords are not stored. Existing sessions migrate into the chosen storage; logout clears persistence preference.
+- PHOTOISM door action card now points to the model's actual front-door key slot (-.277,.626,.29), below the bill acceptor. Removed ambiguous door emoji and emphasized explicit Korean action text; arrow tracks projected coordinates on resize.
+- 78 tests passed, including session persistence, opt-out, migration and unavailable storage. Staging visual verification and deployment pending. No production/diagnosis changes.
