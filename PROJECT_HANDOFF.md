@@ -354,3 +354,8 @@ Changed SNAPISM jam turn over title to 'jam turn over 오류 코드 조치 방�
 - 78 tests passed, including session persistence, opt-out, migration and unavailable storage. Staging visual verification and deployment pending. No production/diagnosis changes.
 
 - v102 deployed as 36f403a; live review found general button styles overriding the yellow card and SVG hidden-attribute behavior preventing arrow display. v103 corrects CSS specificity and SVG visibility; 78 tests pass again.
+
+- v103 deployed as 01cf0ae5b5c967b391644da86267dd97985f0526; Pages run 37939177023 succeeded (1m13s). Live authenticated PHOTOISM shows yellow card with arrow ending at lock; card opens focused interior and front button restores it; browser error log empty. Login screen shows unchecked automatic-login checkbox. New tab requires login while current session survives refresh. Persistence across restart covered by unit tests, not a live credential/restart test. Login responsive width390 checked; 3D viewport override did not apply (reported652), so actual mobile 3D/phone remains unverified. Proofs: outputs/auto-login-door-v103/.
+
+## 2026-10-15 로그인 안내 문구 정리
+- 사용자 요청으로 자동 로그인 아래 설명 문구만 제거. 체크박스와 세션 저장 동작 유지. staging 캐시 v104.

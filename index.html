@@ -8290,7 +8290,7 @@ function renderLoginScreen(){
       '<div class="login-field"><label>비밀번호</label><input type="password" id="authPassword" autocomplete="'+(isSignup?'new-password':'current-password')+'" minlength="6" required></div>' +
       (isSignup ? '<div class="login-field"><label for="authPasswordConfirm">비밀번호 확인</label><input type="password" id="authPasswordConfirm" aria-describedby="passwordMatchStatus" autocomplete="new-password" minlength="6" required><span class="field-hint" id="passwordMatchStatus" role="status" aria-live="polite">비밀번호를 한 번 더 입력해주세요.</span></div>' : '') +
       (!isSignup ? '<label class="remember-email-row"><input type="checkbox" id="authRememberEmail" checked> 다음에도 이메일 기억하기</label>' : '') +
-      (!isSignup ? '<label class="remember-email-row"><input type="checkbox" id="authAutoLogin" '+(helperAuthStorage.persistent?'checked':'')+'> 자동 로그인</label><p class="field-hint">선택하면 이 기기에서 다음 방문에도 로그인됩니다. 공용 기기에서는 해제해주세요.</p>' : '') +
+      (!isSignup ? '<label class="remember-email-row"><input type="checkbox" id="authAutoLogin" '+(helperAuthStorage.persistent?'checked':'')+'> 자동 로그인</label>' : '') +
       '' +
       '<button type="submit" class="login-submit" id="authSubmitBtn">'+(isSignup ? '회원가입' : '로그인')+'</button>' +
     '</form>' +
