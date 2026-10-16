@@ -445,3 +445,28 @@ test('existing sessions migrate without logging out and storage failure falls ba
  const ctx=vm.createContext({});vm.runInContext(section('function createHelperAuthStorage(', 'const helperAuthStorage='),ctx);
  const b=ctx.createHelperAuthStorage(broken,broken,'auto');b.setItem('token','temporary');assert.equal(b.getItem('token'),'temporary');b.removeItem('token');assert.equal(b.getItem('token'),null);
 });
+
+// Photo-first diagnosis media: model alternatives share one player.
+function photoFirstFixture(){
+ const element=tag=>({tag,children:[],attrs:{},style:{},isConnected:true,append(...children){this.children.push(...children);},appendChild(child){this.children.push(child);},replaceChildren(...children){this.children=children;},setAttribute(key,value){this.attrs[key]=value;},getAttribute(key){return this.attrs[key];}});
+ const container=element('div');container.dataset={};
+ const ctx=vm.createContext({URL,document:{createElement:element,querySelectorAll:()=>container.dataset.loaded?[]:[container]},SYMPTOM_VIDEO_NAME:'영상',currentUser:{id:'viewer'},mediaUrlCache:new Map(),validateDiagnosisMedia(){},openLightbox(){}});
+ vm.runInContext(section('function youtubeManualUrl(', 'function symptomVideoUrl(')+section('function createManualVideo(', 'function openSymptomVideo(')+section('async function hydrateDiagnosisMedia(){','// Photo checklist'),ctx);
+ return {ctx,container};
+}
+test('photo-first media shows photos before one selected model video and replaces the previous player',async()=>{
+ const {ctx,container}=photoFirstFixture();
+ container.dataset.media=encodeURIComponent(JSON.stringify([{kind:'link',url:'https://www.youtube.com/watch?v=pm6LD9hjKMo&start=42&end=87',name:'DNP RX1'},{kind:'image',url:'https://example.test/p.jpg',name:'사진'},{kind:'link',url:'https://www.youtube.com/watch?v=0LphCWbhORU&start=22&end=54',name:'FUJI ASK-400'}]));
+ await vm.runInContext('hydrateDiagnosisMedia()',ctx);
+ assert.equal(container.children.length,2);assert.equal(container.children[0].children[0].tag,'img');
+ const chooser=container.children[1].children[0],buttons=chooser.children[2].children,player=chooser.children[3];
+ assert.equal(player.children.length,0);buttons[0].onclick();
+ assert.equal(player.children.length,1);assert.match(player.children[0].children[1].src,/pm6LD9hjKMo\?start=42&end=87/);
+ buttons[1].onclick();assert.equal(player.children.length,1);assert.match(player.children[0].children[1].src,/0LphCWbhORU\?start=22&end=54/);
+ assert.equal(buttons[0].attrs['aria-pressed'],'false');assert.equal(buttons[1].attrs['aria-pressed'],'true');
+ await vm.runInContext('hydrateDiagnosisMedia()',ctx);assert.equal(container.children.length,2);
+});
+test('a single relevant video stays inline after the photograph',async()=>{
+ const {ctx,container}=photoFirstFixture();container.dataset.media=encodeURIComponent(JSON.stringify([{kind:'link',url:'https://www.youtube.com/watch?v=3uehpJLn4tM&start=50&end=68',name:'HDMI 교체'},{kind:'image',url:'https://example.test/p.jpg',name:'사진'}]));
+ await vm.runInContext('hydrateDiagnosisMedia()',ctx);assert.equal(container.children[0].children[0].tag,'img');assert.equal(container.children[1].children[0].className,'manual-video');
+});

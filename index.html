@@ -1986,6 +1986,11 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 .replacement-guide{text-align:left;width:100%;margin-top:24px}.replacement-choices{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}.replacement-choice,.replacement-navigation button{font:inherit;color:inherit;background:var(--panel,#25262c);border:1px solid var(--border,#555);border-radius:12px;padding:12px 18px;cursor:pointer;min-height:44px}.replacement-choice[aria-pressed="true"]{border-color:#d4ec32;background:rgba(212,236,50,.12)}.replacement-step{padding:24px;border:1px solid var(--border,#555);border-radius:18px;background:rgba(128,128,128,.06)}.replacement-progress{font-size:13px;color:var(--muted,#aaa);margin:0 0 14px}.replacement-step h3{font-size:22px;margin:0 0 18px;line-height:1.4}.replacement-step h3:focus-visible{outline:2px solid #d4ec32;outline-offset:4px}.replacement-body{white-space:pre-line;line-height:1.85;font-size:16px;overflow-wrap:anywhere;margin:0;min-height:100px}.replacement-navigation{display:flex;justify-content:space-between;gap:12px;margin-top:26px}.replacement-navigation .replacement-next{background:#d4ec32;color:#16190c;font-weight:700}.replacement-navigation button:disabled{opacity:.35;cursor:default}.replacement-video-note{line-height:1.7;color:var(--muted,#aaa)}@media(max-width:600px){.replacement-step{padding:18px}.replacement-step h3{font-size:20px}.replacement-body{font-size:15px}.replacement-choice{flex:1;min-width:120px}.replacement-navigation button{padding:12px 15px}}
 .replacement-media{text-align:left;margin-top:24px}.replacement-media-card{margin:16px 0;padding:16px;border:1px solid var(--border);border-radius:12px}.replacement-media-card img{display:block;max-width:100%;height:auto;cursor:zoom-in}.replacement-media-card h4{margin:0 0 12px}
 .signup-dialog{box-sizing:border-box;width:min(520px,90vw);max-height:80vh;overflow:auto;background:var(--panel,#25262c);color:var(--text);border:1px solid var(--border);border-radius:18px;padding:24px}.signup-dialog::backdrop{background:#0009}.signup-dialog p{line-height:1.7}.signup-store-option{padding:12px 16px;margin-top:10px;border:1px solid var(--border);border-radius:10px;background:transparent;color:inherit;cursor:pointer}
+.diagnosis-video-choices{border:1px solid var(--border);border-radius:12px;padding:14px;min-width:0}.diagnosis-video-choices h3{font-size:15px;margin:0 0 8px}.diagnosis-video-choices p{font-size:13px;color:var(--muted);margin:0 0 12px}.diagnosis-video-buttons{display:flex;flex-wrap:wrap;gap:8px}.diagnosis-video-buttons button{min-height:44px;max-width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text);font:inherit;font-size:13px;text-align:left;overflow-wrap:anywhere;cursor:pointer}.diagnosis-video-buttons button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}.diagnosis-video-buttons button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.diagnosis-video-choices .manual-video{margin:14px 0 0}.diagnosis-media-item{min-width:0}
+.manual-video{box-sizing:border-box;width:100%;max-width:760px;margin:0 auto 20px;padding:16px;border:1px solid var(--border);border-radius:16px;background:var(--panel);text-align:left;overflow:hidden}
+.manual-video h3{margin:0 0 12px;font-size:15px;line-height:1.5}
+.manual-video iframe{display:block;width:100%;aspect-ratio:16/9;border:0;border-radius:10px;background:#111}
+.manual-video a{display:inline-block;margin-top:10px;font-size:12px;color:var(--muted);line-height:1.5}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>#endingGuideDialog label{display:flex;flex-direction:column;gap:6px;margin:14px 0}#endingGuideDialog input,#endingGuideDialog select,#endingGuideDialog textarea{box-sizing:border-box;width:100%;padding:10px;color:inherit;background:var(--panel,#24262c);border:1px solid #626773;border-radius:8px;font:inherit}#endingGuideDialog button{padding:10px;margin:6px 0;border-radius:8px;cursor:pointer}#endingGuideDialog::backdrop{background:#0009}#endingGuideDialog p{font-size:13px;line-height:1.6}</style></head>
@@ -8956,6 +8961,33 @@ function withSymptomVideo(tree,value,label=''){
  if(media.length)node.media=media;else delete node.media;
  return copy;
 }
+function createManualVideo(url,label=SYMPTOM_VIDEO_NAME){
+ const normalized=youtubeManualUrl(url);if(!normalized)return null;
+ const section=document.createElement('section');section.className='manual-video';
+ const title=document.createElement('h3');title.textContent=label;
+ const frame=document.createElement('iframe');frame.title=label;frame.allowFullscreen=true;
+ const params=new URL(normalized).searchParams,embed=new URL('https://www.youtube-nocookie.com/embed/'+params.get('v'));
+ for(const key of ['start','end'])if(params.has(key))embed.searchParams.set(key,params.get(key));
+ frame.src=embed.href;
+ frame.loading='lazy';frame.referrerPolicy='strict-origin-when-cross-origin';
+ const fallback=document.createElement('a');fallback.href=normalized;fallback.target='_blank';fallback.rel='noopener noreferrer';fallback.textContent='재생이 안 되면 유튜브에서 보기 ↗';
+ section.append(title,frame,fallback);return section;
+}
+function createDiagnosisVideoChoices(items){
+ const section=document.createElement('section');section.className='diagnosis-video-choices';
+ const title=document.createElement('h3');title.textContent='필요한 영상만 보기';
+ const note=document.createElement('p');note.textContent='사용 중인 기종과 작업에 맞는 영상을 골라주세요.';
+ const choices=document.createElement('div');choices.className='diagnosis-video-buttons';choices.setAttribute('role','group');choices.setAttribute('aria-label','기종별 작업 영상');
+ const player=document.createElement('div');
+ const buttons=[];
+ for(const item of items){
+  let url;try{url=youtubeManualUrl(item.url);}catch{continue;}if(!url)continue;
+  const button=document.createElement('button');button.type='button';button.textContent=item.name;button.setAttribute('aria-pressed','false');
+  button.onclick=()=>{if(button.getAttribute('aria-pressed')==='true')return;for(const other of buttons)other.setAttribute('aria-pressed',String(other===button));player.replaceChildren(createManualVideo(url,item.name));};
+  buttons.push(button);choices.appendChild(button);
+ }
+ section.append(title,note,choices,player);return section;
+}
 function openSymptomVideo(url,label=SYMPTOM_VIDEO_NAME){
  const normalized=youtubeManualUrl(url);if(!normalized)return;
  const dialog=document.createElement('dialog');dialog.className='symptom-video-dialog';
@@ -9003,7 +9035,14 @@ async function hydrateDiagnosisMedia(){
     if(container.dataset.loaded||!container.isConnected)continue;
     container.dataset.loaded='true';
     let items;try{items=JSON.parse(decodeURIComponent(container.dataset.media));validateDiagnosisMedia(items);}catch{continue;}
+    items.sort((a,b)=>Number(b.kind==='image')-Number(a.kind==='image'));
+    const alternatives=items.filter(item=>{if(item.kind!=='link'||item.path)return false;try{return !!youtubeManualUrl(item.url);}catch{return false;}});
+    let videoChoicesAdded=false;
     for(const item of items){
+      if(alternatives.length>1&&alternatives.includes(item)){
+        if(!videoChoicesAdded&&container.isConnected&&currentUser?.id===owner){const wrapper=document.createElement('div');wrapper.className='diagnosis-media-item';wrapper.appendChild(createDiagnosisVideoChoices(alternatives));container.appendChild(wrapper);videoChoicesAdded=true;}
+        continue;
+      }
       const wrapper=document.createElement('div');wrapper.className='diagnosis-media-item';container.appendChild(wrapper);
       try{
         let src=item.url;
@@ -9025,7 +9064,7 @@ async function hydrateDiagnosisMedia(){
           video.setAttribute('aria-label',item.name);video.onerror=()=>{wrapper.textContent='영상을 재생하지 못했습니다. 파일 형식과 연결을 확인해주세요.';};wrapper.appendChild(video);
         }else{
           let youtube='';try{youtube=youtubeManualUrl(src);}catch{}
-          if(youtube){const button=document.createElement('button');button.className='symptom-video-entry';button.textContent='🎬 '+item.name+' 보기';button.onclick=()=>openSymptomVideo(youtube,item.name);wrapper.appendChild(button);}
+          if(youtube){wrapper.appendChild(createManualVideo(youtube,item.name));}
           else {const link=document.createElement('a');link.href=src;link.target='_blank';link.rel='noopener noreferrer';link.textContent='↗ '+item.name+' (새 탭)';wrapper.appendChild(link);}
         }
       }catch{wrapper.textContent='첨부 자료를 불러오지 못했습니다. 인터넷 연결 후 화면을 다시 열어주세요.';}
