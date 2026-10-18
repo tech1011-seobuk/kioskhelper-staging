@@ -3,6 +3,8 @@ function legacyManualReview(sid){try{return JSON.parse(localStorage.getItem(diag
 function reviewRecord(row){return {...row,content:typeof row.content==='string'?row.content:JSON.stringify(row.content)};}
 async function loadManualReviews(){
  const owner=currentUser?.id;if(!sb||!owner||currentUser.role!=='admin')return false;
+ if(typeof waitForStepReviews==='function')await waitForStepReviews();
+ if(currentUser?.id!==owner)return false;
  manualReviewReady=false;manualReviewRows={};manualReviewOwner=owner;
  try{
   const rows={};let offset=0;

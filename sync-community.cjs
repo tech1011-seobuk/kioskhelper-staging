@@ -34,4 +34,10 @@ const editableStart='/* EDITABLE MANUALS START */',editableEnd='/* EDITABLE MANU
 const editableBlock=editableStart+'\nconst EDITABLE_MANUALS = '+JSON.stringify(JSON.parse(fs.readFileSync(path.join(root,'editable-manuals.json'),'utf8'))).replace(/</g,'\\u003c')+';\n'+fs.readFileSync(path.join(root,'editable-manuals.js'),'utf8')+'\n'+editableEnd;
 if(html.includes(editableStart))html=html.slice(0,html.indexOf(editableStart))+editableBlock+html.slice(html.indexOf(editableEnd)+editableEnd.length);
 else html=html.replace('/* ============================= FLOW LOGIC ============================= */',editableBlock+'\n/* ============================= FLOW LOGIC ============================= */');
+for(const [name,source,css] of [['STEP REVIEWS','step-reviews.js',false],['STEP REVIEWS CSS','step-reviews.css',true]]){
+ const a='/* '+name+' START */',b='/* '+name+' END */',value=a+'\n'+fs.readFileSync(path.join(root,source),'utf8')+'\n'+b;
+ if(html.includes(a))html=html.slice(0,html.indexOf(a))+value+html.slice(html.indexOf(b)+b.length);
+ else if(css)html=html.replace('</style>',value+'\n</style>');
+ else html=html.replace('/* ============================= FLOW LOGIC ============================= */',value+'\n/* ============================= FLOW LOGIC ============================= */');
+}
 fs.writeFileSync(file,html);
