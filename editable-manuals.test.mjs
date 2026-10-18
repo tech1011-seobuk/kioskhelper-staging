@@ -59,3 +59,22 @@ test('new manual rows do not block promotion of existing diagnosis changes',()=>
  assert.equal(plan.length,1);assert.equal(plan[0].source.symptom_id,'ES-1');
  assert.throws(()=>c.planProductionPromotion([{symptom_id:'CUS-UNKNOWN',tree:source.tree,revision:1}],[]),/본 서버에 없습니다/);
 });
+test('edited manual viewer follows branches and retains prior media while moving forward',()=>{
+ class Element{
+  constructor(tag){this.tag=tag;this.children=[];this.dataset={};this.style={};this.attributes={};this.parent=null;this.textContent='';}
+  appendChild(el){el.parent=this;this.children.push(el);return el;}
+  remove(){if(this.parent)this.parent.children=this.parent.children.filter(c=>c!==this);this.parent=null;}
+  setAttribute(k,v){this.attributes[k]=v;}
+  all(){return this.children.flatMap(c=>[c,...c.all()]);}
+  querySelectorAll(tag){return this.all().filter(c=>c.tag===tag);}
+  querySelector(selector){return selector==='[data-manual-end]'?this.all().find(c=>c.dataset.manualEnd):null;}
+ }
+ const c=harness(),manual=manuals.find(m=>!m.held),tree={start:'n1',nodes:{n1:{text:'첫 단계',options:[{label:'다음',next:'n2'}]},n2:{text:'둘째 단계',options:[{label:'완료',end:'info'}]}}};
+ c.api.applyPublishedRows([{symptom_id:manual.id,revision:3,tree}],'server');
+ c.document={createElement:tag=>new Element(tag)};c.renderDiagnosisMedia=()=>'<div>사진</div>';c.appendSymptomVideoButtons=()=>{};c.hydrateDiagnosisMedia=()=>{};c.resolvedEnding=()=>({desc:'안내 완료'});c.END_META={};
+ const host=new Element('main');c.appendEditableManual(host,manual.id);
+ const reader=host.children[0],first=reader.children[0];assert.equal(first.children[1].textContent,'첫 단계');
+ first.querySelectorAll('button')[0].onclick();assert.equal(reader.children.length,2);assert.equal(reader.children[0],first);
+ reader.children[1].querySelectorAll('button')[0].onclick();assert.equal(reader.children.length,3);
+ first.querySelectorAll('button')[0].onclick();assert.equal(reader.children.length,2);assert.equal(reader.children[0],first);
+});
