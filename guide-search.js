@@ -44,15 +44,15 @@ function buildGuideSearchIndex(){
  for(const device of ['CX7600','DS620','모니터','PC','카드리더기','서비스코인','키오스크']){
   for(const category of ['repair','replace','care','info'])for(const [index,item]of snapEntries(device,category).entries()){
    if(item.held||(!item.cards.length&&!item.sid))continue;
-   add({id:'snapism:'+device+':'+category+':'+index,brand:'snapism',device,code:item.sid||'',title:item.title,kind:{repair:'고장 조치',replace:'교체 방법',care:'소모품·청소',info:'장비 안내'}[category],body:item.sid?guideSearchBody(TREES[item.sid]):item.cards.map(c=>c.text).join(' '),route:'snap',category,index});
+   add({id:'snapism:'+device+':'+category+':'+index,brand:'snapism',device,code:item.sid||'',title:item.title,kind:{repair:'고장 조치',replace:'교체 방법',care:'소모품·청소',info:'장비 안내'}[category],body:item.sid?guideSearchBody(TREES[item.sid]):(typeof editableManualBody==='function'?editableManualBody(item.editSource,item.cards.map(c=>c.text).join(' ')):item.cards.map(c=>c.text).join(' ')),route:'snap',category,index});
   }
  }
  for(const [key,guides]of Object.entries(REPLACEMENT_GUIDES))for(const [variant,guide]of guides.entries()){
   const [device,model]=key.split(':'),camera=CAMERA_MODELS.find(m=>m.id===model),printer=PRINTER_MODELS.find(m=>m.id===model);
   const name=camera?.sub||printer?.label||guide.label||device;
-  add({id:'replace:'+key+':'+variant,brand:'photoism',device,code:'',title:name+(name.includes('교체')?'':' 교체'),kind:'교체 방법',body:[guide.preparation,guide.after,...guide.steps.flat()].filter(Boolean).join(' '),route:'replace',key,model,variant});
+  add({id:'replace:'+key+':'+variant,brand:'photoism',device,code:'',title:name+(name.includes('교체')?'':' 교체'),kind:'교체 방법',body:typeof editableManualBody==='function'?editableManualBody('replace:'+key+':'+variant,[guide.preparation,guide.after,...guide.steps.flat()].filter(Boolean).join(' ')):[guide.preparation,guide.after,...guide.steps.flat()].filter(Boolean).join(' '),route:'replace',key,model,variant});
  }
- for(const model of CAMERA_MODELS)for(const action of ['basic','color'])add({id:'camera:'+model.id+':'+action,brand:'photoism',device:'카메라',code:'',title:model.sub+' '+(action==='basic'?'기본 설정':'색감 조정'),kind:'설정 방법',body:action==='basic'?'카메라 기본세팅 설정':'화이트밸런스 색감 밝기 조정 세팅',route:'camera',model:model.id,action});
+ for(const model of CAMERA_MODELS)for(const action of ['basic','color'])add({id:'camera:'+model.id+':'+action,brand:'photoism',device:'카메라',code:'',title:model.sub+' '+(action==='basic'?'기본 설정':'색감 조정'),kind:'설정 방법',body:typeof editableManualBody==='function'?editableManualBody('camera:'+model.id+':'+action,action==='basic'?'카메라 기본세팅 설정':'화이트밸런스 색감 밝기 조정 세팅'):(action==='basic'?'카메라 기본세팅 설정':'화이트밸런스 색감 밝기 조정 세팅'),route:'camera',model:model.id,action});
  return entries;
 }
 let guideSearchQuery='',guideSearchBrand='all',guideSearchReturn='hub',guideSearchVariant=null;

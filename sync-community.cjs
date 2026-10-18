@@ -30,4 +30,8 @@ const searchCssStart='/* GUIDE SEARCH CSS START */',searchCssEnd='/* GUIDE SEARC
 const searchCss=searchCssStart+'\n'+fs.readFileSync(path.join(root,'guide-search.css'),'utf8')+'\n'+searchCssEnd;
 if(html.includes(searchCssStart))html=html.slice(0,html.indexOf(searchCssStart))+searchCss+html.slice(html.indexOf(searchCssEnd)+searchCssEnd.length);
 else html=html.replace('</style>',searchCss+'\n</style>');
+const editableStart='/* EDITABLE MANUALS START */',editableEnd='/* EDITABLE MANUALS END */';
+const editableBlock=editableStart+'\nconst EDITABLE_MANUALS = '+JSON.stringify(JSON.parse(fs.readFileSync(path.join(root,'editable-manuals.json'),'utf8'))).replace(/</g,'\\u003c')+';\n'+fs.readFileSync(path.join(root,'editable-manuals.js'),'utf8')+'\n'+editableEnd;
+if(html.includes(editableStart))html=html.slice(0,html.indexOf(editableStart))+editableBlock+html.slice(html.indexOf(editableEnd)+editableEnd.length);
+else html=html.replace('/* ============================= FLOW LOGIC ============================= */',editableBlock+'\n/* ============================= FLOW LOGIC ============================= */');
 fs.writeFileSync(file,html);

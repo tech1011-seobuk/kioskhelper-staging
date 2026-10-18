@@ -155,7 +155,7 @@ test('only channel inquiry outcomes show the CMS link; AS retains its handoff su
   }
 });
 test('diagram brand categories reuse common data and keep dedicated printers separate',()=>{
- const c=vm.createContext({});vm.runInContext(section('const DEVICES = [','const EQUIP_REPLACE_DEVICES')+readFileSync(resolve(root,'symptom-catalog.js'),'utf8')+section('function diagramDevicesForBrand','async function renderDiagramEditorScreen'),c);
+ const c=vm.createContext({});vm.runInContext(section('const DEVICES = [','const EQUIP_REPLACE_DEVICES')+readFileSync(resolve(root,'symptom-catalog.js'),'utf8')+readFileSync(resolve(root,'editable-manuals.js'),'utf8')+section('function diagramDevicesForBrand','async function renderDiagramEditorScreen'),c);
  for(const name of ['모니터','카드리더기','PC','CMS']){
   assert.equal(vm.runInContext(`JSON.stringify(diagramDevicesForBrand('photoism').find(d=>d.name==='${name}').symptoms)===JSON.stringify(diagramDevicesForBrand('snapism').find(d=>d.name==='${name}').symptoms)`,c),true);
  }

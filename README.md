@@ -44,6 +44,7 @@ npm run preview
 | `three.module.js`, `three.core.js` | 함께 보관한 Three.js 0.180.0; 라이선스는 THREE-LICENSE.txt |
 | `sw.js` | PWA 캐시. 화면 변경 시 테스트 캐시 버전을 올릴 것 |
 | `diagnosis-*.sql` | DB 설정/초기 데이터 참고. 초기화 목적으로 재실행하지 말 것 |
+| `editable-manuals.json`, `editable-manuals.js` | 별도 교체·설정·스내피즘 안내의 원문과 편집 연결. 사용자 수정본은 테스트 DB의 MAN 안내로 저장 |
 | `AGENTS.md`, `PROJECT_HANDOFF.md` | 다음 Codex 작업을 위한 지침/현재 상태 |
 
 3D 원본 수정 후 `npm run build`를 실행합니다. 변경이 있으면 index.html과 sw.js가 갱신됩니다. 원본과 결과물을 함께 커밋하세요. 다른 앱 기능은 index.html을 수정합니다. 빌드는 3D 지정 영역만 교체합니다. 자동 배포는 결과물 index.html을 사용하므로 소스만 바꿔 올려서는 화면이 바뀌지 않습니다.

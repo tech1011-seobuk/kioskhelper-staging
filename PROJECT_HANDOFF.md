@@ -382,3 +382,13 @@ Changed SNAPISM jam turn over title to 'jam turn over 오류 코드 조치 방�
 - Replacement paging retains video/image DOM and reserves text-card height to avoid scroll jumps/player resets.
 - ES-1 database media: n1 only C dial image; n2a/n3a retain the two recent photos and remove E01 video stills. Existing relevant n3a video remains. Each environment uses its own C-image URL and revision-guarded save history.
 - Verification: guide-search.test.mjs plus existing regression suites and 390px browser check.
+
+## 2026-10-18 본 서버 안내 → 테스트 매뉴얼 관리
+
+- 동기화 전 두 DB의 기존 조치 42개, 첨부 연결 237개, 증상 표시 설정 5개, 종료 안내 3개를 비교했다. 서버별 공개 주소와 사설 파일 경로 차이를 제외하면 내용이 같고 사설 파일도 eTag/크기/형식이 같았다. 기존 조치 및 테스트 검수 기록 20개는 덮어쓰지 않는다.
+- 기존 편집 목록에서 빠져 있던 별도 안내를 `editable-manuals.json`에 본 서버 원문 그대로 보존: 스내피즘 43개, 포토이즘 교체·설정 19개, 합계 62개. 확인 중인 2개는 사용자 안내에서 계속 보류한다. `MAN-` ID는 원본 경로에서 만든 고정 ID이며 기존 증상 ID/통계와 분리한다.
+- 기존 diagnosis_trees + save_diagnosis_tree의 관리자 확인/검증/리비전 비교/복구 이력을 재사용한다. 별도 테이블, 사용자 권한, 로그인은 변경하지 않는다. 스내피즘 키오스크와 전용 프린터를 포함해 브랜드→장비 목록에서 모두 편집할 수 있다.
+- `editable-manuals.js`는 저장된 수정본이 있을 때 해당 교체/스내피즘/설정 안내에 연결한다. 변경 전에는 기존 표시 동작을 유지한다. 원문 자체는 보존하고 미저장 초안은 사용자 화면에 노출하지 않는다. 카메라 기본설정의 내장 사진 15개는 변환 없이 원본 바이트를 assets/manual-scenes/camera-*-basic-*.jpg로 분리했다.
+- 원본 백업, 비교 결과, 임시 등록 후 rollback 검증 SQL, 실제 추가 등록 SQL은 작업 폴더 outputs/production-to-staging-manuals-20261018에 보관하며 저장소에 올리지 않는다. 초기 등록 SQL은 기존 행이 다르면 중단하고 기존 데이터를 덮어쓰지 않는다.
+- 본 서버는 변경하지 않는다. 향후 본 서버에 추가 안내 편집본을 반영하려면 프로그램/사진 배포와 MAN 안내 행의 초기 등록이 함께 필요하다. 기존 본 서버 적용 창은 본 서버에 없는 MAN 안내를 명시적으로 별도 표시하고 기존 조치 변경은 계속 적용할 수 있다. 본 서버 초기 등록 전 MAN 내용을 무리하게 복사하지 않는다.
+- 자동 검사 91개 통과. 추가 안내 62개 실제 DB 검증을 트랜잭션 안에서 실행 후 rollback 성공(전체 104개). 배포 후 편집/저장/조회 및 모바일 브라우저 최종 확인을 이어서 수행한다.

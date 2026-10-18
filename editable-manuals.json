@@ -1,0 +1,5106 @@
+[
+  {
+    "source": "snap:CX7600:repair:194833:1",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "repair",
+    "title": "Film Run Out (A2) 오류 코드 조치 방법",
+    "held": null,
+    "id": "MAN-15BDAFA6F7B99D7F077331D8",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\n프린터 베이스 손잡이를 위로 당긴 상태에서 프린터를 시계 방향으로 90도 회전시켜 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396b3845c49a6bb45e",
+              "name": "Film Run Out (A2) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n프린터 커버 손잡이를 잡고 당겨서 열어주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396b3845c49a6bb45e",
+              "name": "Film Run Out (A2) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 3\n\nRT 필름 하우징 손잡이를 잡고 전면으로 당겨서 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396b3845c49a6bb45e",
+              "name": "Film Run Out (A2) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 4\n\nRT 필름 하우징에 체결된 잔여 필름 및 소모 필름을 손으로 잡고 위로 당겨서 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839699eb85d324bfc91",
+              "name": "Film Run Out (A2) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 5\n\n새상품 RT 필름을 준비해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839699eb85d324bfc91",
+              "name": "Film Run Out (A2) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 6\n\nRT 필름 새상품을 하우징에 해체의 역순으로 눌러서 체결해 주세요\n\n체결 시 필름의 감기는 방향을 확인하여 체결해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396a1960a5b9d46a86",
+              "name": "Film Run Out (A2) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n7"
+            }
+          ]
+        },
+        "n7": {
+          "text": "STEP 7\n\nRT 필름의 검정 라인을 표시한 샤프트에 위치 시켜주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396a1960a5b9d46a86",
+              "name": "Film Run Out (A2) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n8"
+            }
+          ]
+        },
+        "n8": {
+          "text": "STEP 8\n\nRT 필름 하우징을 프린터 체결 시 RT 필름 하우징 샤프트를 프린터 삽입부에 위치켜 삽입해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396ab3e212d25b0e2d",
+              "name": "Film Run Out (A2) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n9"
+            }
+          ]
+        },
+        "n9": {
+          "text": "STEP 9\n\nRT 필름 하우징을 눌러서 체결해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396ab3e212d25b0e2d",
+              "name": "Film Run Out (A2) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n10"
+            }
+          ]
+        },
+        "n10": {
+          "text": "STEP 1\n\nReset 버튼을 눌른 후 확인 버튼을 눌러주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396d6797fdce9eb287",
+              "name": "Film Run Out (A2) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n11"
+            }
+          ]
+        },
+        "n11": {
+          "text": "STEP 2\n\n1차 초기화 작업이 진행됩니다.\n\n2차 롤러 히팅 작업이 진행됩니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396d6797fdce9eb287",
+              "name": "Film Run Out (A2) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n12"
+            }
+          ]
+        },
+        "n12": {
+          "text": "STEP 3\n\n준비 완료 후 출력 TEST를 진행해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396d6797fdce9eb287",
+              "name": "Film Run Out (A2) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:repair:194833:2",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "repair",
+    "title": "Ink Run Out (B2) 오류  코드 조치 방법",
+    "held": "칼라리본 교체 3단계의 부품명이 원문에서 일치하지 않아 확인 중이에요. 해당 교체 절차는 확인 후 제공할게요.",
+    "id": "MAN-BD32358519FEA41E5039B371",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "칼라리본 교체 3단계의 부품명이 원문에서 일치하지 않아 확인 중이에요. 해당 교체 절차는 확인 후 제공할게요.",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:repair:194833:3",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "repair",
+    "title": "No Card 오류 코드 조치 방법",
+    "held": null,
+    "id": "MAN-16FEF1B16B46C3A75510DC59",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\n프린터 베이스 손잡이를 위로 당긴 상태에서 프린터를 시계 방향으로 90도 회전시켜 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839669d8a5f5eb10a8d",
+              "name": "No Card 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n프린터 전면 위치에서 45도를 추가 회전 시켜주세요\\",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839669d8a5f5eb10a8d",
+              "name": "No Card 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 3\n\n프린터 베이스 하단을 손으로 잡고 앞으로 당겨주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839671a0cc8ef62c004",
+              "name": "No Card 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 4\n\n포토카드 호퍼 락장치를 OPEN 방향으로 밀어 개방해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839671a0cc8ef62c004",
+              "name": "No Card 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 5\n\n포토카드를 준비해 주세요 (250장씩 패킹)\n\n호퍼 상부를 위로 올려 제거 후 포토카드를 투입해 주세요\n\n장갑을 착용하지 않고 포토카드를 투입 시 포토카드에 이물질 및 지문이 남아 출력 품질이 저하되므로 필수로 착용해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839671a0cc8ef62c004",
+              "name": "No Card 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 6\n\n포토카드 단차가 없도록 손으로 두드려서 정렬시켜 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396795aa85e8981ebb",
+              "name": "No Card 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n7"
+            }
+          ]
+        },
+        "n7": {
+          "text": "STEP 7\n\n포토카드 호퍼 상부를 위에서 아래로 체결해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396795aa85e8981ebb",
+              "name": "No Card 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n8"
+            }
+          ]
+        },
+        "n8": {
+          "text": "STEP 8\n\n포토카드 호퍼 락장치를 LOCK쪽으로 밀어 잠가주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396795aa85e8981ebb",
+              "name": "No Card 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n9"
+            }
+          ]
+        },
+        "n9": {
+          "text": "STEP 9\n\n포토카드 투입 완료 후 프린터를 정위치 시켜 TEST 출력을 진행해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396795aa85e8981ebb",
+              "name": "No Card 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:repair:194833:4",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "repair",
+    "title": "Jam (90~95) 오류 코드 조치 방법",
+    "held": null,
+    "id": "MAN-67FD901E575024DD6D8A986D",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1 (초기화 작업 진행)\n\nReset 버튼 클릭 후 확인 버튼 클릭으로 초기화 작업 진행\n\n내부 걸린 포토카드 오류카드 배출구로 배출 확인\n\n미배출 시",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb16b649f242d4ed5",
+              "name": "Jam (90~95) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2 진행",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb16b649f242d4ed5",
+              "name": "Jam (90~95) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 2 (포토카드 투입구 확인)\n\n포토카드 호퍼를 제거할 수 있도록 프린터를 위치 시킨 후 호퍼를 제거\n\n투입구에 걸려 있는 포토카드를 제거해 주세요\n\n제거 후",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb22ebe88683788f5",
+              "name": "Jam (90~95) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 1 초기화 작업 진행\n\n포토카드가 없을 시",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb22ebe88683788f5",
+              "name": "Jam (90~95) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 3 진행",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb22ebe88683788f5",
+              "name": "Jam (90~95) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 3 (내부 포토카드 제거)\n\n프린터 정면에 위치한 손잡이를 위로 당겨 프린터를 90도 돌려주세요\n\n프린터 전원을 종료 후 커버 손잡이를 당겨 열러주세요\n\nRT 필름 하우징 손잡이를 잡고 전면으로 당겨서 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb2cbb2bd8cafd5aa",
+              "name": "Jam (90~95) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n7"
+            }
+          ]
+        },
+        "n7": {
+          "text": "STEP 3 (내부 포토카드 제거)\n\n프린터 내부 하단에 위치한 조그 다이얼을 제거해 주세요\n\n조그 다이얼을 카드 피드 롤러 샤프트에 체결 후 조그다이얼을 잡고 시계 반대 방향으로 돌려주세요\n\n피드 롤러에 걸려 있던 포토카드가 나왔는지 확인해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb3dbc0e5eafb96cc",
+              "name": "Jam (90~95) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n8"
+            }
+          ]
+        },
+        "n8": {
+          "text": "STEP 3 (내부 포토카드 제거)\n\n틈새로 가위 or 핀셋을 이용하여 포토카드를 제거해 주세요\n\nRT 필름 하우징을 체결해 후 프린터 도어를 닥고 전원을 켠 후",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb4d8eb5470d89e42",
+              "name": "Jam (90~95) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n9"
+            }
+          ]
+        },
+        "n9": {
+          "text": "STEP 1 초기화 작업 진행",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb4d8eb5470d89e42",
+              "name": "Jam (90~95) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:repair:194833:5",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "repair",
+    "title": "jam turn over 오류 코드 조치 방법",
+    "held": null,
+    "id": "MAN-71266F133EF1378DDE5486CD",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1 (샤프트 위치 변경)\n\n블랙 샤프트 (반달 모양) 의 평평한 부분을 '왼쪽'에 위치 시켜주셔야 합니다. \n\n* 왼쪽으로 위치 시키는 법 = 아래 청록색 도구를 이용하여 샤프트에 장착 후 돌려줍니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/articles/1001576/revisions/2023029/usermedia/6a99255f52a05767132f",
+              "name": "jam turn over 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2 (프린터 Reset)\n\nReset 버튼 클릭 후 확인 버튼 클릭으로 초기화 작업 진행",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "▶ 최종 Ready Total 상태가 되면 완료",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:repair:194833:6",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "repair",
+    "title": "Flim Search (A1) 오류 코드 조치 방법",
+    "held": null,
+    "id": "MAN-D2125FD0423EB4AF6EC4D385",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\n프린터 정면에 위치한 손잡이를 위로 당긴 후 프린터를 시계 방향으로 90도 돌려 오류 코드를 확인해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb56654eacfabc1fc",
+              "name": "Flim Search (A1) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n프린터 커버 손잡이를 잡고 열어 RT 필름 하우징을 당겨서 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb56654eacfabc1fc",
+              "name": "Flim Search (A1) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 3\n\nRT 필름이 끊어졌는지 확인해 주세요\n\n끊어짐이 없을 경우 RT필름 하우징 재체결 후 초기화 작업을 진행해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb57a3322778c808f",
+              "name": "Flim Search (A1) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 4\n\nRT 필름을 제거 후 끊어진 부분을 가위로 반듯하게 잘라 스카치 테이프로 부착하여 연결해 주세요\n\n부착 시 필름 방향을 확인하여 부착해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb57a3322778c808f",
+              "name": "Flim Search (A1) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 5\n\n테이프로 부착한 필름이 보이지 않도록 소모 필름쪽으로 충분히 감은 후 프린터에 체결해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb612b1608796d4c5",
+              "name": "Flim Search (A1) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 6\n\n완료 후 리셋 버튼 → 확인 버튼으로 초기화 작업 진행 후 테스트 진행해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb612b1608796d4c5",
+              "name": "Flim Search (A1) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:repair:194833:7",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "repair",
+    "title": "Ink Error, Ink Search (B0~B1) 오류 코드 조치 방법",
+    "held": null,
+    "id": "MAN-A090008D76C7C19762A9DF40",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\n프린터 정면에 위치한 손잡이를 위로 당긴 후 프린터를 시계 방향으로 90도 돌려 오류 코드를 확인해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb81970bc3cff5908",
+              "name": "Ink Error, Ink Search (B0~B1) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n프린터 커버 손잡이를 잡고 열어 칼라 리본 하우징을 당겨서 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb81970bc3cff5908",
+              "name": "Ink Error, Ink Search (B0~B1) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 3\n\n칼라 리본이 끊어졌는지 확인해 주세요\n\n끊어짐이 없을 경우 칼라 리본 하우징 재체결 후 초기화 작업을 진행해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb89f5b3e01a17d7e",
+              "name": "Ink Error, Ink Search (B0~B1) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 4\n\n칼라 리본을 제거 후 끊어진 부분을 가위로 반듯하게 잘라 스카치 테이프로 부착하여 연결해 주세요\n\n부착 시 필름 방향을 확인하여 부착해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb89f5b3e01a17d7e",
+              "name": "Ink Error, Ink Search (B0~B1) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 5\n\n테이프로 부착한 필름이 보이지 않도록 소모 필름쪽으로 충분히 감은 후 프린터에 체결해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb8e53c7544cd894b",
+              "name": "Ink Error, Ink Search (B0~B1) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 6\n\n완료 후 리셋 버튼 → 확인 버튼으로 초기화 작업 진행 후 테스트 진행해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fb8e53c7544cd894b",
+              "name": "Ink Error, Ink Search (B0~B1) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:repair:194833:8",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "repair",
+    "title": "Door Open (D1) 오류 코드 조치 방법",
+    "held": null,
+    "id": "MAN-37FF853FDDB10917C28350A8",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\n프린터 정면에 위치한 손잡이를 위로 올려 프린터를 시계방향 90도 돌려주세요\n\n프린터 커버 손잡이를 잡고 당겨서 열고 다시 닫아주세요\n\n이후 리셋 버튼 → 확인 버튼으로 초기화 작업을 진행해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fcc84c7a8c3a5e51c",
+              "name": "Door Open (D1) 오류 코드 조치 방법 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:repair:194882:0,1",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "repair",
+    "title": "하얀 이물질이 출력돼요",
+    "held": null,
+    "id": "MAN-8FB7767E51646C4083D14269",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "원인\n\n프린터 내부에 이물질이 유입되어 포토카드 출력 과정에서 화이트 색상으로 이물질이 출력되는 현상\n\n\n\n\n조치\n\n클리닝 롤러 청소 필요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fccfac6fc7f6cddfd",
+              "name": "하얀 이물질이 출력돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "준비물 : 스카치 테이프",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396e331b24169256ae",
+              "name": "하얀 이물질이 출력돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 1\n\n프린터 커버 손잡이를 잡고 당겨서 열어주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396e331b24169256ae",
+              "name": "하얀 이물질이 출력돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 2\n\n클리닝 롤러 하우징 손잡이를 잡고 전면으로 당겨서 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396e331b24169256ae",
+              "name": "하얀 이물질이 출력돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 3\n\n롤러에 묻은 이물질을 확인해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396e331b24169256ae",
+              "name": "하얀 이물질이 출력돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 4\n\n스카치 테이프를 이용하여 이물질을 테이프로 제거해 주세요\n\n기어를 돌리면서 이물질을 전체적으로 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396e331b24169256ae",
+              "name": "하얀 이물질이 출력돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n7"
+            }
+          ]
+        },
+        "n7": {
+          "text": "STEP 5\n\n해체의 역순으로 클리닝 롤러를 조립해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396e331b24169256ae",
+              "name": "하얀 이물질이 출력돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:repair:194882:2,3",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "repair",
+    "title": "먼지 모양이 출력돼요",
+    "held": null,
+    "id": "MAN-AC53E7BC7C601EEF670700E4",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "원인\n\n칼라 리본, RT 필름 교체 과정에서 먼지가 리본 or 필름에 묻은 상태로 교체되어 출력물이 먼지 모양으로 출력되는 증상\n\n\n\n\n조치\n\n칼라 리본, RT 필름을 소모 필름쪽으로 3~5바퀴 감아서 먼지가 묻은 부분이 출력되지 않도록 조치",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fcdaff1ae26971c00",
+              "name": "먼지 모양이 출력돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 1\n\n칼라 리본, RT 필름 해체 후 소모 필름쪽으로 3~5바퀴 감아주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/articles/194882/revisions/333689/usermedia/683fcdf739e7933d0125",
+              "name": "먼지 모양이 출력돼요 참고 사진 1"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/articles/194882/revisions/333689/usermedia/683fcdffc4c17a482b68",
+              "name": "먼지 모양이 출력돼요 참고 사진 2"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:repair:194882:4,5",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "repair",
+    "title": "찍힘·구김이 보여요",
+    "held": null,
+    "id": "MAN-0DC235F2D230ED2B77CB5A08",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "원인\n\n칼라 리본, RT 필름 교체 과정에서 리본이 구겨졌거나, 찍힘이 발생할 경우\n\n\n\n\n조치\n\n칼라 리본, RT 필름을 제거하여 찍거나, 구겨진 부분을 소모 필름쪽으로 감아서 출력물에 문제가 없도록 조치",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fced3e52861059267",
+              "name": "찍힘·구김이 보여요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 1\n\n칼라 리본, RT 필름 해체 후 소모 필름쪽으로 3~5바퀴 감아주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/articles/194882/revisions/333689/usermedia/683fcdf739e7933d0125",
+              "name": "찍힘·구김이 보여요 참고 사진 1"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/articles/194882/revisions/333689/usermedia/683fcdffc4c17a482b68",
+              "name": "찍힘·구김이 보여요 참고 사진 2"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:repair:194882:6,7,8",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "repair",
+    "title": "가로줄·세로줄이 보여요",
+    "held": null,
+    "id": "MAN-09E9E2E1717444C15580DD5B",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "원인\n\n잉크가 뭉쳐있는 경우 줄 발생\n\n\n\n\n조치\n\n검은색 포토카드를 다량으로 출력하여 잉크가 풀어지도록 조치",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/692fce990a6e62777949",
+              "name": "가로줄·세로줄이 보여요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 1\n\n키보드 연결 후 메인 화면에서 [S] 눌러주세요.\n\n키보드 연결이 어렵다면 매장 방문 후 채널톡으로 원격 조치 요청해 주세요.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/692fceab1f5f272c8ffa",
+              "name": "가로줄·세로줄이 보여요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 2\n\n상단 우측 [CX7600] 클릭 > [프린터 헤드 이물질 제거] 5장 수량 > [시작] 클릭해 주세요.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/692fceab1f5f272c8ffa",
+              "name": "가로줄·세로줄이 보여요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 3\n\n'청소 중이에요' 문구가 표시되면서 검은색 포토카드 5장 출력이 완료될 때까지 기다립니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/692fceab1f5f272c8ffa",
+              "name": "가로줄·세로줄이 보여요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 4\n\n검은색 포토카드 5장 출력 완료 후 포토카드 테스트 출력 시 줄 생성 유무를 확인합니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/692fceab1f5f272c8ffa",
+              "name": "가로줄·세로줄이 보여요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 5\n\n가로줄(세로줄) 오류가 발생한 경우 검은색 포토카드를 1장씩 추가 출력하면서 오류가 발생하지 않도록 확인합니다.\n\nEX. [프린터 헤드 이물질 제거] 1장 출력 → 포토카드 1장 테스트 출력 → 줄 발생 시 반복(최대 3회)",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/692fceab1f5f272c8ffa",
+              "name": "가로줄·세로줄이 보여요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n7"
+            }
+          ]
+        },
+        "n7": {
+          "text": "STEP 6\n\n가로줄(세로줄)이 발생하지 않으면 우측 하단 [전원] 버튼을 클릭하여 종료합니다. \n\n[전원] 버튼 클릭 시 프로그램 강제 종료 후 재부팅이 자동으로 진행됩니다. \n\n검은색 포토카드 총 8장 출력했으나 동일 증상 발생 시 다음 단계로 진행합니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/692fceab1f5f272c8ffa",
+              "name": "가로줄·세로줄이 보여요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n8"
+            }
+          ]
+        },
+        "n8": {
+          "text": "STEP 1\n\n칼라 리본, RT 필름 해체 후 소모 필름 쪽으로 3~5바퀴 감아주세요.\n\n포토카드 테스트 출력 시 가로줄(세로줄) 오류가 재발하는 경우 칼라, RT필름을 발주해서 새 제품으로 교체해 주세요.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/articles/194882/revisions/333689/usermedia/683fcdf739e7933d0125",
+              "name": "가로줄·세로줄이 보여요 참고 사진 1"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/articles/194882/revisions/333689/usermedia/683fcdffc4c17a482b68",
+              "name": "가로줄·세로줄이 보여요 참고 사진 2"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:replace:190279:0,2",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "replace",
+    "title": "CX7600 프린터 교체",
+    "held": null,
+    "id": "MAN-FF7374D78D230D1A033A58ED",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "프린터 교체 시 필수 안내\n\n\n\n\n프린터를 교체하는 경우, 원활한 운영을 위해 본사에서 프린터 세팅 작업을 반드시 진행해야 합니다. 프린터 세팅이 완료되지 않으면 정상적인 사용이 불가능하므로, 교체 후 즉시 본사에 세팅 요청을 해주시기 바랍니다.\n\n\n\n\n 프린터 세팅 요청 방법\n\nCMS 접속 후 우측 하단 채팅 상담 클릭\n\n\"장비 세팅 문의\" → \"프린터 세팅 문의\" 선택\n\n프린터 교체 사실을 알리고 세팅 요청\n\n본사에서 세팅이 완료된 후 정상 작동 여부를 확인한 후 사용해 주세요.세팅 요청이 누락될 경우 프린터 사용이 불가능하니 반드시 진행해 주시기 바랍니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/white_check_mark.png",
+              "name": "CX7600 프린터 교체 참고 사진 1"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/rotating_light.png",
+              "name": "CX7600 프린터 교체 참고 사진 2"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 1 \n\n프린터 베이스 손잡이를 위로 당긴 상태에서 프린터를 시계 방향으로 90도 회전 시켜주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683965783dd3c0f837b9",
+              "name": "CX7600 프린터 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 2 (전원끄기)\n\n프린터 전원 버튼을 눌러 프린터 전원을 끄고 기존 위치로 프린터를 정위치 시켜주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683965783dd3c0f837b9",
+              "name": "CX7600 프린터 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 3 (케이블 제거)\n\n프린터 측면에 체결되어 있는 AB, 전원 케이블을 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683965783dd3c0f837b9",
+              "name": "CX7600 프린터 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 4\n\n프린터 베이스 하단을 손으로 잡고 앞으로 당겨주세요\n\n프린터 양쪽을 잡고 프린터를 살짝 들어 올려 앞으로 빼서 제거해 주세요\n\n프린터 제거 시 포토카드 호퍼 상부가 프레임에 간섭이 없도록 뒤쪽으로 기울여서 프린터를 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396620591cfde6a285",
+              "name": "CX7600 프린터 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 5\n\n해체한 순서의 역순으로 조립하여 프린터를 장착합니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396620591cfde6a285",
+              "name": "CX7600 프린터 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:care:287949:0,2",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "care",
+    "title": "RT필름 교체",
+    "held": null,
+    "id": "MAN-5DBA6887DD85FCAC20B60D4C",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\n프린터 베이스 손잡이를 위로 당긴 상태에서 프린터를 시계 방향으로 90도 회전시켜 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396b3845c49a6bb45e",
+              "name": "RT필름 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n프린터 커버 손잡이를 잡고 당겨서 열어주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396b3845c49a6bb45e",
+              "name": "RT필름 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 3\n\nRT 필름 하우징 손잡이를 잡고 전면으로 당겨서 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396b3845c49a6bb45e",
+              "name": "RT필름 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 4\n\nRT 필름 하우징에 체결된 잔여 필름 및 소모 필름을 손으로 잡고 위로 당겨서 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839699eb85d324bfc91",
+              "name": "RT필름 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 5\n\n새상품 RT 필름을 준비해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839699eb85d324bfc91",
+              "name": "RT필름 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 6\n\nRT 필름 새상품을 하우징에 해체의 역순으로 눌러서 체결해 주세요\n\n체결 시 필름의 감기는 방향을 확인하여 체결해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396a1960a5b9d46a86",
+              "name": "RT필름 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n7"
+            }
+          ]
+        },
+        "n7": {
+          "text": "STEP 7\n\nRT 필름의 검정 라인을 표시한 샤프트에 위치 시켜주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396a1960a5b9d46a86",
+              "name": "RT필름 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n8"
+            }
+          ]
+        },
+        "n8": {
+          "text": "STEP 8\n\nRT 필름 하우징을 프린터 체결 시 RT 필름 하우징 샤프트를 프린터 삽입부에 위치켜 삽입해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396ab3e212d25b0e2d",
+              "name": "RT필름 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n9"
+            }
+          ]
+        },
+        "n9": {
+          "text": "STEP 9\n\nRT 필름 하우징을 눌러서 체결해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396ab3e212d25b0e2d",
+              "name": "RT필름 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n10"
+            }
+          ]
+        },
+        "n10": {
+          "text": "STEP 1\n\nReset 버튼을 눌른 후 확인 버튼을 눌러주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396d6797fdce9eb287",
+              "name": "RT필름 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n11"
+            }
+          ]
+        },
+        "n11": {
+          "text": "STEP 2\n\n1차 초기화 작업이 진행됩니다.\n\n2차 롤러 히팅 작업이 진행됩니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396d6797fdce9eb287",
+              "name": "RT필름 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n12"
+            }
+          ]
+        },
+        "n12": {
+          "text": "STEP 3\n\n준비 완료 후 출력 TEST를 진행해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396d6797fdce9eb287",
+              "name": "RT필름 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:care:287949:1",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "care",
+    "title": "칼라리본 교체 · 원문 확인 중",
+    "held": "칼라리본 교체 3단계의 부품명이 원문에서 일치하지 않아 확인 중이에요. 해당 교체 절차는 확인 후 제공할게요.",
+    "id": "MAN-BA5898783961BD45D2940E46",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "칼라리본 교체 3단계의 부품명이 원문에서 일치하지 않아 확인 중이에요. 해당 교체 절차는 확인 후 제공할게요.",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:care:287947:all",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "care",
+    "title": "포토카드 보충",
+    "held": null,
+    "id": "MAN-4CD4651C8178208BF8F241B4",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\n프린터 베이스 손잡이를 위로 당긴 상태에서 프린터를 시계 방향으로 90도 회전시켜 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839669d8a5f5eb10a8d",
+              "name": "포토카드 보충 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n프린터 전면 위치에서 45도를 추가 회전 시켜주세요\\",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839669d8a5f5eb10a8d",
+              "name": "포토카드 보충 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 3\n\n프린터 베이스 하단을 손으로 잡고 앞으로 당겨주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839671a0cc8ef62c004",
+              "name": "포토카드 보충 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 4\n\n포토카드 호퍼 락장치를 OPEN 방향으로 밀어 개방해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839671a0cc8ef62c004",
+              "name": "포토카드 보충 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 5\n\n포토카드를 준비해 주세요 (250장씩 패킹)\n\n호퍼 상부를 위로 올려 제거 후 포토카드를 투입해 주세요\n\n장갑을 착용하지 않고 포토카드를 투입 시 포토카드에 이물질 및 지문이 남아 출력 품질이 저하되므로 필수로 착용해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839671a0cc8ef62c004",
+              "name": "포토카드 보충 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 6\n\n포토카드 단차가 없도록 손으로 두드려서 정렬시켜 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396795aa85e8981ebb",
+              "name": "포토카드 보충 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n7"
+            }
+          ]
+        },
+        "n7": {
+          "text": "STEP 7\n\n포토카드 호퍼 상부를 위에서 아래로 체결해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396795aa85e8981ebb",
+              "name": "포토카드 보충 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n8"
+            }
+          ]
+        },
+        "n8": {
+          "text": "STEP 8\n\n포토카드 호퍼 락장치를 LOCK쪽으로 밀어 잠가주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396795aa85e8981ebb",
+              "name": "포토카드 보충 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n9"
+            }
+          ]
+        },
+        "n9": {
+          "text": "STEP 9\n\n포토카드 투입 완료 후 프린터를 정위치 시켜 TEST 출력을 진행해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396795aa85e8981ebb",
+              "name": "포토카드 보충 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:care:287949:3",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "care",
+    "title": "클리닝 롤러 청소",
+    "held": null,
+    "id": "MAN-2A08617A483D5E5D7AC48981",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "준비물 : 스카치 테이프",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396e331b24169256ae",
+              "name": "클리닝 롤러 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 1\n\n프린터 커버 손잡이를 잡고 당겨서 열어주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396e331b24169256ae",
+              "name": "클리닝 롤러 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 2\n\n클리닝 롤러 하우징 손잡이를 잡고 전면으로 당겨서 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396e331b24169256ae",
+              "name": "클리닝 롤러 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 3\n\n롤러에 묻은 이물질을 확인해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396e331b24169256ae",
+              "name": "클리닝 롤러 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 4\n\n스카치 테이프를 이용하여 이물질을 테이프로 제거해 주세요\n\n기어를 돌리면서 이물질을 전체적으러 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396e331b24169256ae",
+              "name": "클리닝 롤러 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 5\n\n해체의 역순으로 클리닝 롤러를 조립해 주셍요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396e331b24169256ae",
+              "name": "클리닝 롤러 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:care:287949:4",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "care",
+    "title": "클리닝 카드 청소",
+    "held": null,
+    "id": "MAN-B653C3D3A4DE35D05D82E793",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\n프린터 커버 손잡이를 잡고 당겨서 열어주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396f782c6dbe3cd5db",
+              "name": "클리닝 카드 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\nRT 필름 하우징 손잡이를 잡고 전면으로 당겨서 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396f782c6dbe3cd5db",
+              "name": "클리닝 카드 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 3\n\n프린터 도어를 다시 닫아주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68396f782c6dbe3cd5db",
+              "name": "클리닝 카드 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 4\n\n포토카드 호퍼를 위로 올려서 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839700f3b056a0dca4c",
+              "name": "클리닝 카드 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 5\n\nMENU 버튼을 클릭해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839700f3b056a0dca4c",
+              "name": "클리닝 카드 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 6\n\nENTER 버튼(확인)을 누른 후 한번 더 확인 버튼을 눌러주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839700f3b056a0dca4c",
+              "name": "클리닝 카드 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n7"
+            }
+          ]
+        },
+        "n7": {
+          "text": "STEP 7\n\n\"Rollers HR is too hot!\" 문구가 노출 시 프린터 전원버튼을 눌러  전원을 종료하고\n\n10~15분 뒤 재시도 해주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683970bed3f1059845ac",
+              "name": "클리닝 카드 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n8"
+            }
+          ]
+        },
+        "n8": {
+          "text": "STEP 8\n\n\"Cleaning start OK?\" 문구가 노출되면 칼라 리본 + RT필름 박스에 포함된 클리닝 카드를 준비해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683970bed3f1059845ac",
+              "name": "클리닝 카드 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n9"
+            }
+          ]
+        },
+        "n9": {
+          "text": "STEP 9\n\n클리닝 카드의 보호필름을 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839718c803abd540e8d",
+              "name": "클리닝 카드 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n10"
+            }
+          ]
+        },
+        "n10": {
+          "text": "STEP 10\n\n보호 필름을 제거한 부분이 위쪽을 향하도록 포토카드 투입구에 클리닝 카드를 넣어주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839718c803abd540e8d",
+              "name": "클리닝 카드 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n11"
+            }
+          ]
+        },
+        "n11": {
+          "text": "STEP 11\n\n확인 버튼을 눌러주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839718c803abd540e8d",
+              "name": "클리닝 카드 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n12"
+            }
+          ]
+        },
+        "n12": {
+          "text": "STEP 12\n\n포토카드 롤러가 작동하면 클리닝 카드가 프린터 내부로 투입됩니다.\n\n클리닝 카드가 내부 롤러에 묻은 이물질을 제거 후 배출구로 배출됩니다.\n\n2~3회 클리닝 반복 진행이 필요하여 배출고로 나온 카드를 다시 확인을 눌러 포토카드 투입구로 넣어주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839721f7b3141cf01d5",
+              "name": "클리닝 카드 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n13"
+            }
+          ]
+        },
+        "n13": {
+          "text": "STEP 13\n\n클리닝 완료 후 Exit 버튼을 눌러주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839721f7b3141cf01d5",
+              "name": "클리닝 카드 청소 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:info:144600:4",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "info",
+    "title": "장비 명칭과 연결 위치",
+    "held": null,
+    "id": "MAN-45E251DA69152F632BB122B8",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "프린터 및 케이블 (전,후면)",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/8576/usermedia/6839432f17b2e1dc6f51",
+              "name": "장비 명칭과 연결 위치 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "프린터 (측면)",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/8576/usermedia/68394400c061cffaacf1",
+              "name": "장비 명칭과 연결 위치 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "프린터 내부",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/8576/usermedia/68395429b9869c590d2b",
+              "name": "장비 명칭과 연결 위치 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:CX7600:info:194833:0",
+    "brand": "snapism",
+    "device": "CX7600 프린터 (포토카드)",
+    "category": "info",
+    "title": "프린터 에러코드 종류",
+    "held": null,
+    "id": "MAN-D5414352203E007031891CA5",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "에러코드 종류\n\nFilm Run Out (A2) - RT 필름 부족\n\n→ RT 필름 새상품 교체 진행\n\nInk Run Out (B2) - 칼라 리본 부족\n\n→ 칼라 리본 새상품 교체 진행\n\nNo Card - 포토카드 부족\n\n→ 새 포토카드 투입 교체\n\nJam(Hopper) (90) - 포토카드 걸림\n\nJam(Hopper) (91) - 포토카드 걸림\n\nJam(MG) (92) - 포토카드 걸림\n\nJam(Transfer) (93) - 포토카드 걸림\n\nJam(Discharge) (94) - 포토카드 걸림\n\nJam(Retran) (95) - 포토카드 걸림\n\n포토 카드 걸림 조치 방법\n\n→ 1안 : Reset 버튼 클릭 및 Initialize 진행 후 오류 카드 배출구로 카드 배출\n\n→ 2안 : 호퍼 개방 후 투입구에 걸린 포토카드 제거\n\n→ 3안 : 전원 종료 후 프린터 내부 개방 후 조그 다이얼을 이용하여 포토카드 제거\n\nFilm Search (A1) - 인식 오류 및 RT필름 끊김\n\n→ 1안 : RT 필름 하우징 제거 후 필름 끊김 여부 확인 후 Initialize 진행\n\n→ 2안 : 끊김 현상 발생 시 절단면 깔끔하게 자른 후 테이프 부착 테이프 부착\n\n             부분이 안보이도록 감아서 조치\n\nInk Error (B0) - 인식 오류 및 칼라 리본 끊김\n\nInk Search (B1) - 인식 오류 및 칼라 리본 끊김\n\n인식 오류 및 칼라 리본 끊김 조치 방법\n\n→ 1안 : 칼라 리본 하우징 제거 후 필름 끊김 여부 확인 후 Initialize 진행\n\n→ 2안 : 끊김 현상 발생 시 절단면 깔끔하게 자른 후 테이프 부착 테이프 부착 \n\n             부분이 안보이도록 소모부로 감아서 조치\n\nDoor Open (D1) - 프린터 도어 열림\n\n→ 프린터 도어 재시건 진행",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fadec291aabcc8a6f",
+              "name": "프린터 에러코드 종류 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:DS620:repair:194826:0",
+    "brand": "snapism",
+    "device": "DS620 프린터 (스티커)",
+    "category": "repair",
+    "title": "인화지 부족 / 인화지 교체 / 재접촉 방법 (DNP)",
+    "held": null,
+    "id": "MAN-040DDFC5FBEEC12686CB2C2C",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\n프린터 전면부 하단 커버를 눌러 앞문을 개방해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/680887a83d70c3a48525",
+              "name": "인화지 부족 / 인화지 교체 / 재접촉 방법 (DNP) 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n표시된 하늘색 레버를 당겨 문을 개방한다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/680887a83d70c3a48525",
+              "name": "인화지 부족 / 인화지 교체 / 재접촉 방법 (DNP) 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 3\n\n문을 연 뒤에 잔여물통을 올려서 제거한다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/680887a83d70c3a48525",
+              "name": "인화지 부족 / 인화지 교체 / 재접촉 방법 (DNP) 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 4\n\n기존 인화지에 장착돼 있는 양 옆 롤러를 제거한 뒤, 새 인화지에 장착한다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/680888639c6fb9b504a2",
+              "name": "인화지 부족 / 인화지 교체 / 재접촉 방법 (DNP) 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 5\n\n롤러가 장착된 인화지를 브라켓에 결합 후 화살표 방향으로 조금씩 아래로\n\n\"삐빅\" 알림음이 날때까지 내려준다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/680888639c6fb9b504a2",
+              "name": "인화지 부족 / 인화지 교체 / 재접촉 방법 (DNP) 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 6\n\n역순으로 잔여물통과 프린터 앞문으로 닫은 후, 리본 트레이를 꺼내준다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/680888639c6fb9b504a2",
+              "name": "인화지 부족 / 인화지 교체 / 재접촉 방법 (DNP) 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n7"
+            }
+          ]
+        },
+        "n7": {
+          "text": "STEP 7\n\n기존 체결되어 있는 리본(필름지)를 제거 후 트레이 브라켓 규격에 맞게 새 리본(필름지)를\n\n\"딸깍\" 소리가 날때까지 장착한다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6808892f3ccbff08ed9c",
+              "name": "인화지 부족 / 인화지 교체 / 재접촉 방법 (DNP) 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n8"
+            }
+          ]
+        },
+        "n8": {
+          "text": "STEP 8\n\n리본(필름지)를 몸 바깥쪽으로 팽팽하게 말아준 뒤 트레이를 프린터 내부에 결합한다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6808892f3ccbff08ed9c",
+              "name": "인화지 부족 / 인화지 교체 / 재접촉 방법 (DNP) 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n9"
+            }
+          ]
+        },
+        "n9": {
+          "text": "STEP 9\n\n인화지와 리본(필름지) 모두 결합 후 앞문을 닫는다\n\n정상 교체 시 테스트 용지 5장 인화\n\n정상 : 초록색 LED 점등\n\n비정상 : 빨간색 LED 점등",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6808892f3ccbff08ed9c",
+              "name": "인화지 부족 / 인화지 교체 / 재접촉 방법 (DNP) 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:DS620:repair:194826:1",
+    "brand": "snapism",
+    "device": "DS620 프린터 (스티커)",
+    "category": "repair",
+    "title": "필름지(리본이)이 끊어진 경우",
+    "held": null,
+    "id": "MAN-6AD4930AD8A24F931680051C",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "필름지(리본) 끊어짐 현상이 발생할 경우\n\n프린터 인화 시 열로 인해 필름지 끊김, 눌러붙음 현상이 발생할 수 있습니다\n\n\n\n\n필름지(리본)이 끊어진 경우에는 별도의 교체 없이, 끊어진 부분을 이어 붙이면 해결할 수 있습니다. 양쪽 끝을 테이프로 단단히 붙인 후 다시 장착해 주세요.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 1\n\n프린터 전원스위치를 끄고, 프린터 커버를 연다",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fa9fa430098fe8d60",
+              "name": "필름지(리본이)이 끊어진 경우 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 2\n\n인화지 및 리본의 상태를 확인 후 부드럽게 제거한다.\n\n인화지가 막혀서 구겨진 경우 인화지 절단면을 자른 후 결합해 주세요\n\n리본이 찢어지거나 구겨진 경우 끊어진 부분을 테이프로 반듯하게 붙혀 결합해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fa9fa430098fe8d60",
+              "name": "필름지(리본이)이 끊어진 경우 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:DS620:repair:194826:2",
+    "brand": "snapism",
+    "device": "DS620 프린터 (스티커)",
+    "category": "repair",
+    "title": "Check 화면, 프린터 오류, 전원 차단",
+    "held": null,
+    "id": "MAN-7EE58BD42B4FC53A260D5C66",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "Check 화면, 프린터 오류, 전원 차단 등 오류 문구가 표시될 경우\n\n전원 및 케이블 확인이 필요합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 1\n\n프린터 전원 케이블과 AB 케이블이 잘 연결되어 있는지 확인해 주세요\n\n프린터 전원선과 AB 케이블에 손상되거나 끊어진 부분이 있는지 확인해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fabc741e697a7390c",
+              "name": "Check 화면, 프린터 오류, 전원 차단 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 2 (Check 화면, 프린터 오류)\n\n프린터와 PC에 연결된 AB 케이블을 재접촉 또는 교체해 주세요\n\n러너 실행 후 정산 인화 여부를 확인해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fabc741e697a7390c",
+              "name": "Check 화면, 프린터 오류, 전원 차단 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 3 (전원 차단)\n\n프린터와 키오스크 하단 6구 멀티탭에 연결된 전원선을 재접촉 또는 교체해 주세요\n\n프린터의 전원 불빛이 정상적으로 들어오는지 확인해 주세요\n\n러너 실행 후 정산 인화 여부를 확인해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fabc741e697a7390c",
+              "name": "Check 화면, 프린터 오류, 전원 차단 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:DS620:repair:194826:3",
+    "brand": "snapism",
+    "device": "DS620 프린터 (스티커)",
+    "category": "repair",
+    "title": "인화본에 언룩 또는 선이 생기는 증상",
+    "held": null,
+    "id": "MAN-7FC9EF30EC2FD3094449ACDE",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "인화본에 얼룩 또는 선이 생기는 증상의 경우에는 헤드 및 롤러 청소 및 새 인화지로 교체가 필요합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 1 (헤드 및 롤러 청소)\n\n거즈나 부드러운 천에 알코올을 묻혀 헤드와 롤러 부분을 부드럽게 닦아주세요\n\n※ 지문이나 이물질이 남지 않도록 주의해 주세요\n\n헤드와 롤러 부분을 청소한 후에는 깨긋한 부분으로 다시 한 번 닦아서 물기를 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fad1df29b8b42b041",
+              "name": "인화본에 언룩 또는 선이 생기는 증상 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 2 (인화지 교체)\n\n프린터 전면부 하단 커버를 눌러 앞문을 개방해 주세요\n\n표시된 하늘색 레버를 당겨 문을 개방한다.\n\n문을 연 뒤에 잔여물통을 올려서 제거한다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/680887a83d70c3a48525",
+              "name": "인화본에 언룩 또는 선이 생기는 증상 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 2 (인화지 교체)\n\n기존 인화지에 장착돼 있는 양 옆 롤러를 제거한 뒤, 새 인화지에 장착한다.\n\n롤러가 장착된 인화지를 브라켓에 결합 후 화살표 방향으로 조금씩 아래로\n\n\"삐빅\" 알림음이 날때까지 내려준다.\n\n역순으로 잔여물통과 프린터 앞문으로 닫은 후, 리본 트레이를 꺼내준다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/680888639c6fb9b504a2",
+              "name": "인화본에 언룩 또는 선이 생기는 증상 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 2 (인화지 교체)\n\n기존 체결되어 있는 리본(필름지)를 제거 후 트레이 브라켓 규격에 맞게 새 리본(필름지)를\n\n\"딸깍\" 소리가 날때까지 장착한다.\n\n리본(필름지)를 몸 바깥쪽으로 팽팽하게 말아준 뒤 트레이를 프린터 내부에 결합한다.\n\n인화지와 리본(필름지) 모두 결합 후 앞문을 닫는다\n\n정상 교체 시 테스트 용지 5장 인화\n\n정상 : 초록색 LED 점등\n\n비정상 : 빨간색 LED 점등",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6808892f3ccbff08ed9c",
+              "name": "인화본에 언룩 또는 선이 생기는 증상 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:DS620:replace:190279:0,1",
+    "brand": "snapism",
+    "device": "DS620 프린터 (스티커)",
+    "category": "replace",
+    "title": "DS620 프린터 교체",
+    "held": null,
+    "id": "MAN-CBC52205BDF8DF5C0A9768FE",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "프린터 교체 시 필수 안내\n\n\n\n\n프린터를 교체하는 경우, 원활한 운영을 위해 본사에서 프린터 세팅 작업을 반드시 진행해야 합니다. 프린터 세팅이 완료되지 않으면 정상적인 사용이 불가능하므로, 교체 후 즉시 본사에 세팅 요청을 해주시기 바랍니다.\n\n\n\n\n 프린터 세팅 요청 방법\n\nCMS 접속 후 우측 하단 채팅 상담 클릭\n\n\"장비 세팅 문의\" → \"프린터 세팅 문의\" 선택\n\n프린터 교체 사실을 알리고 세팅 요청\n\n본사에서 세팅이 완료된 후 정상 작동 여부를 확인한 후 사용해 주세요.세팅 요청이 누락될 경우 프린터 사용이 불가능하니 반드시 진행해 주시기 바랍니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/white_check_mark.png",
+              "name": "DS620 프린터 교체 참고 사진 1"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/rotating_light.png",
+              "name": "DS620 프린터 교체 참고 사진 2"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "준비 물품\n\n일반 십자드라이버, 작은 십자드라이버 (주먹 드라이버 추천)",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683960f432e0d2a560fe",
+              "name": "DS620 프린터 교체 참고 사진 1"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/shopping_trolley.png",
+              "name": "DS620 프린터 교체 참고 사진 2"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/white_check_mark.png",
+              "name": "DS620 프린터 교체 참고 사진 3"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/rotating_light.png",
+              "name": "DS620 프린터 교체 참고 사진 4"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 1 (전원 끄기)\n\n프린터 전원 스위치를 OFF로 변경합니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683960f432e0d2a560fe",
+              "name": "DS620 프린터 교체 참고 사진 1"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/shopping_trolley.png",
+              "name": "DS620 프린터 교체 참고 사진 2"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/white_check_mark.png",
+              "name": "DS620 프린터 교체 참고 사진 3"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/rotating_light.png",
+              "name": "DS620 프린터 교체 참고 사진 4"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 2 (케이블 제거)\n\n프린터에 연결된 AB 케이블(데이터 전송 케이블)과 전원 케이블을 분리합니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683960f432e0d2a560fe",
+              "name": "DS620 프린터 교체 참고 사진 1"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/shopping_trolley.png",
+              "name": "DS620 프린터 교체 참고 사진 2"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/white_check_mark.png",
+              "name": "DS620 프린터 교체 참고 사진 3"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/rotating_light.png",
+              "name": "DS620 프린터 교체 참고 사진 4"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 3 (프린터 해체 및 교체)\n\n프린터 후면에서 키오스크와 연결된 볼트 2개를 해체합니다.\n\n프린터 전면에 있는 볼트 2개를 해체한 후, 프린터를 앞으로 당겨 키오스크와 분리합니다.\n\n프린터 하단의 브라켓과 프린터를 분리하기 위해 측면에 고정된 작은 볼트 4개를 해체합니다.\n\n교체할 프린터를 준비한 후, 해체한 순서의 역순으로 조립하여 프린터를 장착합니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683960f432e0d2a560fe",
+              "name": "DS620 프린터 교체 참고 사진 1"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/shopping_trolley.png",
+              "name": "DS620 프린터 교체 참고 사진 2"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/white_check_mark.png",
+              "name": "DS620 프린터 교체 참고 사진 3"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/rotating_light.png",
+              "name": "DS620 프린터 교체 참고 사진 4"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 4 (프린터 세팅 요청)\n\n 프린터 세팅 요청 방법\n\nCMS 접속 후 우측 하단 채팅 상담 클릭\n\n\"장비 세팅 문의\" → \"프린터 세팅 문의\" 선택\n\n프린터 교체 사실을 알리고 세팅 요청\n\n본사에서 세팅이 완료된 후 정상 작동 여부를 확인한 후 사용해 주세요. 세팅 요청이 누락될 경우 프린터 사용이 불가능하니 반드시 진행해 주시기 바랍니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683960f432e0d2a560fe",
+              "name": "DS620 프린터 교체 참고 사진 1"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/shopping_trolley.png",
+              "name": "DS620 프린터 교체 참고 사진 2"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/white_check_mark.png",
+              "name": "DS620 프린터 교체 참고 사진 3"
+            },
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/asset/emoji/images/80/rotating_light.png",
+              "name": "DS620 프린터 교체 참고 사진 4"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:DS620:care:287948:all",
+    "brand": "snapism",
+    "device": "DS620 프린터 (스티커)",
+    "category": "care",
+    "title": "인화지·리본 교체",
+    "held": null,
+    "id": "MAN-D13954BDD43EAB0863E7A508",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\n프린터 전면부 하단 커버를 눌러 앞문을 개방해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/680887a83d70c3a48525",
+              "name": "인화지·리본 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n표시된 하늘색 레버를 당겨 문을 개방한다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/680887a83d70c3a48525",
+              "name": "인화지·리본 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 3\n\n문을 연 뒤에 잔여물통을 올려서 제거한다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/680887a83d70c3a48525",
+              "name": "인화지·리본 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 4\n\n기존 인화지에 장착돼 있는 양 옆 롤러를 제거한 뒤, 새 인화지에 장착한다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/680888639c6fb9b504a2",
+              "name": "인화지·리본 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 5\n\n롤러가 장착된 인화지를 브라켓에 결합 후 화살표 방향으로 조금씩 아래로\n\n\"삐빅\" 알림음이 날때까지 내려준다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/680888639c6fb9b504a2",
+              "name": "인화지·리본 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 6\n\n역순으로 잔여물통과 프린터 앞문으로 닫은 후, 리본 트레이를 꺼내준다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/680888639c6fb9b504a2",
+              "name": "인화지·리본 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n7"
+            }
+          ]
+        },
+        "n7": {
+          "text": "STEP 7\n\n기존 체결되어 있는 리본(필름지)를 제거 후 트레이 브라켓 규격에 맞게 새 리본(필름지)를\n\n\"딸깍\" 소리가 날때까지 장착한다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6808892f3ccbff08ed9c",
+              "name": "인화지·리본 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n8"
+            }
+          ]
+        },
+        "n8": {
+          "text": "STEP 8\n\n리본(필름지)를 몸 바깥쪽으로 팽팽하게 말아준 뒤 트레이를 프린터 내부에 결합한다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6808892f3ccbff08ed9c",
+              "name": "인화지·리본 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n9"
+            }
+          ]
+        },
+        "n9": {
+          "text": "STEP 9\n\n인화지와 리본(필름지) 모두 결합 후 앞문을 닫는다\n\n정상 교체 시 테스트 용지 5장 인화\n\n정상 : 초록색 LED 점등\n\n비정상 : 빨간색 LED 점등",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6808892f3ccbff08ed9c",
+              "name": "인화지·리본 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:DS620:info:144600:3",
+    "brand": "snapism",
+    "device": "DS620 프린터 (스티커)",
+    "category": "info",
+    "title": "장비 명칭과 연결 위치",
+    "held": null,
+    "id": "MAN-BBEA36AB6235A4E868AB6901",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "프린터 및 케이블",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/8576/usermedia/68394116801a21132c67",
+              "name": "장비 명칭과 연결 위치 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:모니터:repair:194891:0",
+    "brand": "snapism",
+    "device": "모니터",
+    "category": "repair",
+    "title": "모니터 검은화면 송출",
+    "held": null,
+    "id": "MAN-B25273DAB30C16560669417B",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1 (모니터 전원 확인)\n\n모니터 후면에 위치한 전원 케이블을 재접촉 해주세요\n\n모니터가 PC에 연결되는 인식음(띠링)이 들리는지 확인 필요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fcfe87e525281184c",
+              "name": "모니터 검은화면 송출 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 1-1\n\n키오스크 내부 하단에 위치한 멀티탭 확인 (Moniter 라벨링)\n\n※ 조치 이후에도 동일하게 연결되는 소리가 들리지 않는다면 모니터 A/S 또는 전원 어댑터를 교체해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fcfe87e525281184c",
+              "name": "모니터 검은화면 송출 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 2 (모니터 전원 확인)\n\n모니터 연결 인식음이 들리지 않았을 경우 모니터 전원 공급 장치에 문제가 있으므로 모니터 교체 및 전원 어댑터 교체가 필요합니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd14ff0442a9f0886",
+              "name": "모니터 검은화면 송출 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 2-1 \n\n모니터 좌측 상단에 위치한 전원 버튼을 1회 클릭해 주세요\n\n모니터가 정상적으로 켜지는지 점검해 주세요\n\n※ 모니터가 켜지지 않을 경우 모니터 A/S 진행이 필요합니다",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd14ff0442a9f0886",
+              "name": "모니터 검은화면 송출 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 3 (모니터 영상 송출 확인)\n\n모니터가 전원이 공급되며 PC 연결 인식음이 들릴 시 영상 정상 송출을 확인해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/articles/194891/revisions/333711/usermedia/683fd1aa6db2efb32b37",
+              "name": "모니터 검은화면 송출 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 3-1\n\n\"케이블 연결 확인\" 문구가 송출된다면 전원 공급은 문제가 없으므로, HDMI 케이블 확인이 필요합니다.\n\n모니터 후면 위치한 HDMI 케이블을 재접촉 해주세요\n\n본체에 체결된 HDMI 케이블을 재접촉 해주세요\n\n※조치 이후에도 동일하게 연결되는 소리가 들리지 않는다면 HDMI 케이블을 교체해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/articles/194891/revisions/333711/usermedia/683fd1aa6db2efb32b37",
+              "name": "모니터 검은화면 송출 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:모니터:repair:194891:1",
+    "brand": "snapism",
+    "device": "모니터",
+    "category": "repair",
+    "title": "모니터 터치 불가",
+    "held": null,
+    "id": "MAN-77D59BED1277739148B19076",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\nPC에 체결되어 있는 터치 케이블을 재접촉 해주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd2063f8649598fc3",
+              "name": "모니터 터치 불가 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n재접촉 후에도 동일 증상 시, 강화유리 터치 패널 교체 필요합니다.\n\n※ 강화유리 터치 패널에 케이블이 삽입되어 있으므로 터치 불가능 시 케이블 교체가 불가하여, \n\n     패널 교체가 필요합니다",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd2063f8649598fc3",
+              "name": "모니터 터치 불가 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:모니터:repair:194891:2",
+    "brand": "snapism",
+    "device": "모니터",
+    "category": "repair",
+    "title": "화면이 노랗게 송출되는 경우",
+    "held": null,
+    "id": "MAN-29BEFB4FF20C17D48877E4D9",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\n작업표시줄 우측 메뉴를 클릭 후 야간 모드 설정을 클릭해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd29a86df85100a36",
+              "name": "화면이 노랗게 송출되는 경우 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n야간모드 설정화면에서 \"야간 모드\"를 끄기로 선택해 주세요\n\n※ 해당 방법 이후에도 문제가 지속되면 디스플레이 설정 초기화 또는 TX팀으로 문의를 남겨주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd29a86df85100a36",
+              "name": "화면이 노랗게 송출되는 경우 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:모니터:replace:190267:all",
+    "brand": "snapism",
+    "device": "모니터",
+    "category": "replace",
+    "title": "모니터 교체",
+    "held": null,
+    "id": "MAN-75F700C4211CE3F87076F583",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "키오스크 모니터 교체 시 유의사항\n\n\n\n\n모니터 교체 전, 브라켓 부착을 꼼꼼하게 진행해 주세요\n\n사진의 기재된 숫자를 확인하여 순서에 맞게 교체해 주세요",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 1\n\n1번 체결된 볼트 7개를 제거하여 모니터 후면 커버를 해체해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68395da5e09753a28ef1",
+              "name": "모니터 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STPE 2\n\n2번 체결된 전원 케이블 + HDMI선 케이블을 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68395da5e09753a28ef1",
+              "name": "모니터 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STPE 3\n\n3번 체결된 볼트 6개를 제거하여 상부 고정 브라켓을 해체해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68395da5e09753a28ef1",
+              "name": "모니터 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STPE 4\n\n4번 양쪽 체결된 볼트 2개를 제거해 주세요\n\n모니터가 떨어지지 않도록 꼭 모니터를 잡고 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68395da5e09753a28ef1",
+              "name": "모니터 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STPE 5\n\n모니터를 위로 올리면서 키오스크에서 해체해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68395da5e09753a28ef1",
+              "name": "모니터 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n7"
+            }
+          ]
+        },
+        "n7": {
+          "text": "STPE 6\n\n5번에 체결된 볼트 4개를 제거하여 모니터를 해체해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68395da5e09753a28ef1",
+              "name": "모니터 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n8"
+            }
+          ]
+        },
+        "n8": {
+          "text": "STPE 7\n\n조립은 해체의 역순으로 조립해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68395da5e09753a28ef1",
+              "name": "모니터 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:모니터:info:144600:5",
+    "brand": "snapism",
+    "device": "모니터",
+    "category": "info",
+    "title": "장비 명칭과 연결 위치",
+    "held": null,
+    "id": "MAN-B048D0B7DC6A5C9C1857F184",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "참고 사진",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/8576/usermedia/6839553931cd4e4ac268",
+              "name": "장비 명칭과 연결 위치 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:PC:repair:194902:0",
+    "brand": "snapism",
+    "device": "PC",
+    "category": "repair",
+    "title": "본체 부팅이 안되는 경우",
+    "held": null,
+    "id": "MAN-1C8229EC0CA7007220A1C271",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\nPC 본체 전원버튼을 누른 후 전원 버튼에 LED 점등이 되는지 확인해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd39814e221114179",
+              "name": "본체 부팅이 안되는 경우 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n점등이 안될 경우, PC 본체 후면부에 있는 전원 케이블 단자와 전원 어댑터를 재접촉 해주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd39814e221114179",
+              "name": "본체 부팅이 안되는 경우 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 3\n\n전원버튼을 누른 후 전원 LED 발광여부와 본체 내부 팬이 돌아가는지 확인해 주세요\n\n※ 전원 공급이 안될 시 본체 교체가 필요합니다",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd39814e221114179",
+              "name": "본체 부팅이 안되는 경우 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:PC:repair:194902:1",
+    "brand": "snapism",
+    "device": "PC",
+    "category": "repair",
+    "title": "오류 화면이 표시되는 경우",
+    "held": null,
+    "id": "MAN-7CAAFEA60BDA9939D5198CB5",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1 (블루스크린)\n\nPC(본체) 전원 ON/OFF 버튼을 활용하여 재부팅을 진행해 주세요\n\n재부팅 후 동일증상일 시 표시된 부분 [중지코드] 사진을 TX팀에 전달해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd4646b81dc80c0aa",
+              "name": "오류 화면이 표시되는 경우 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2 (부팅 오류)\n\nPC(본체) 전원 ON/OFF 버튼을 활용하여 재부팅을 진행해 주세요\n\n재부팅 후 동일증상일 시 표시된 부분 [중지코드] 사진을 TX팀에 전달해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd4646b81dc80c0aa",
+              "name": "오류 화면이 표시되는 경우 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:PC:replace:190368:all",
+    "brand": "snapism",
+    "device": "PC",
+    "category": "replace",
+    "title": "PC 교체",
+    "held": null,
+    "id": "MAN-323B07951EC5953700671AF7",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "영상 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "url": "https://www.youtube.com/watch?v=F8WVTzZJCxI",
+              "name": "PC 교체 영상 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "PC 본체 내 PC 전원 버튼 존재",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/8576/articles/77904/revisions/227518/usermedia/67dbd720d727f7e54f90",
+              "name": "PC 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:PC:info:144600:6",
+    "brand": "snapism",
+    "device": "PC",
+    "category": "info",
+    "title": "장비 명칭과 연결 위치",
+    "held": null,
+    "id": "MAN-B912A315348E1F19BF05306B",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "참고 사진",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/8576/usermedia/68395541adaedede963e",
+              "name": "장비 명칭과 연결 위치 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:카드리더기:repair:194908:all",
+    "brand": "snapism",
+    "device": "카드리더기",
+    "category": "repair",
+    "title": "카드 결제가 안 돼요",
+    "held": null,
+    "id": "MAN-5C47CC642EFE503DB227B9A7",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\n카드단말기 뒷편 전원 케이블 재결합",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd798e84af44ed552",
+              "name": "카드 결제가 안 돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n카드단말기 전원 콘센트 재결합\n\n※조치되지 않는 경우 카드단말기 및 전원 케이블 교체 진행",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd798e84af44ed552",
+              "name": "카드 결제가 안 돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 1\n\n윈도우키를 눌러 작업 표시줄 인터넷 연결 여부를 확인해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd82dcdd34dbb4912",
+              "name": "카드 결제가 안 돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "STEP 2\n\n키오스크 뒷문 하단을 개방 후 랜선을 재접촉 해주세요\n\n랜선 LED 점등 확인",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd82dcdd34dbb4912",
+              "name": "카드 결제가 안 돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "STEP 3\n\n랜선 재접촉 및 교체를 진행해 주세요\n\n※ 전원 및 LAN 불안정 상태일 경우 : 통신사를 통해 A/S를 진행해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd82dcdd34dbb4912",
+              "name": "카드 결제가 안 돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "STEP 1\n\n바탕화면 내 KSCAT 프로그램을 확인해 주세요\n\n암호화 리더기 포트 \"자동검색\" 클릭\n\n자동검색 후 포트가 정상적으로 인식된다면 \"테스트\" 클릭",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd8c6dc80d2c91fa1",
+              "name": "카드 결제가 안 돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n7"
+            }
+          ]
+        },
+        "n7": {
+          "text": "STEP 2\n\n자동검색이 안되는 경우 PC 본체 뒷편 통신 케이블을 재접촉 해주세요\n\n※ 조치되지 않는 경우 카드단말기 교체가 필요합니다",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd8c6dc80d2c91fa1",
+              "name": "카드 결제가 안 돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n8"
+            }
+          ]
+        },
+        "n8": {
+          "text": "참고 사진",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd9e007abf2a218f9",
+              "name": "카드 결제가 안 돼요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n9"
+            }
+          ]
+        },
+        "n9": {
+          "text": "카드단말기 오류 발생 후 매뉴얼 혹은 TX팀의 기술지원으로 조치가 완료된 경우\n\n정확한 확인을 위해 결제 테스트가 필요합니다. 사진을 선택해 결제를 하는 방법 외에\n\n아래와 같이 단말기 프로그램을 통해 간략한 결제 테스트 진행이 가능합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n10"
+            }
+          ]
+        },
+        "n10": {
+          "text": "영상 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "url": "https://www.youtube.com/watch?v=gDn3gtDXZCc",
+              "name": "카드 결제가 안 돼요 영상 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n11"
+            }
+          ]
+        },
+        "n11": {
+          "text": "STEP 1\n\n위 동영상에 따라 조치해 주세요.\n\n[단독 결제 > 단말기ID] 입력은 반드시 AT0419479A으로 진행 필요",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n12"
+            }
+          ]
+        },
+        "n12": {
+          "text": "STEP 2\n\n정상적으로 테스트 결제가 되었다면 카드단말기 조치가 완료되었습니다.\n\n\"결제 내역 조회\"에서 테스트 결제 건 취소 필요\n\n※ 결제 시도하였던 카드를 다시 꽂아야 취소 가능",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n13"
+            }
+          ]
+        },
+        "n13": {
+          "text": "STEP 3\n\n테스트 결제 시 'ic칩 거래 요망'으로 팝업될 경우 기기 자체 결함으로 카드단말기 교체가 필요합니다.",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:카드리더기:replace:190369:all",
+    "brand": "snapism",
+    "device": "카드리더기",
+    "category": "replace",
+    "title": "카드단말기 교체",
+    "held": null,
+    "id": "MAN-8CF5D0752373CF8CBA54942A",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\nPC 본체 뒷면에 체결되어있는 카드단말기 시리얼 케이블을 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839733f7f0a51c04882",
+              "name": "카드단말기 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n카드단말기 뒷편에 체결된 볼트 4개를 제거 후 키오스크 전면에서 단말기를 당겨 해체해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839733f7f0a51c04882",
+              "name": "카드단말기 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 3\n\n해체의 역순으로 조립해 주세요\n\n카드단말기 시리얼 케이블은 단말기 내부에 연결되어 있으므로 카드단말기 해체 전 케이블 고정용 케이블타이를 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/6839733f7f0a51c04882",
+              "name": "카드단말기 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:카드리더기:info:144600:7",
+    "brand": "snapism",
+    "device": "카드리더기",
+    "category": "info",
+    "title": "장비 명칭과 연결 위치",
+    "held": null,
+    "id": "MAN-B73E498243C3C186CF08223D",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "참고 사진",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/8576/usermedia/683956730f481f01d6c7",
+              "name": "장비 명칭과 연결 위치 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:서비스코인:repair:194905:0",
+    "brand": "snapism",
+    "device": "서비스코인",
+    "category": "repair",
+    "title": "서비스코인 / 설정 버튼이 작동하지 않아요",
+    "held": null,
+    "id": "MAN-F01C9495A2AA36DB5D08F0B7",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\nCoin / Setting 버튼 뒷편의 커넥터 케이블을 재접촉 해주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd579465872bc9bf0",
+              "name": "서비스코인 / 설정 버튼이 작동하지 않아요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n버튼 케이블 및 커넥터 연결부가 빠져있지 않는지 확인 후 끝가지 밀어 체결을 확인해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd579465872bc9bf0",
+              "name": "서비스코인 / 설정 버튼이 작동하지 않아요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 3\n\nPC에 체결된 USB 단자를 재접촉 해 주세요\n\n※ 작동하지 않는 경우 USB 단자 커넥터부 교체가 필요합니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd579465872bc9bf0",
+              "name": "서비스코인 / 설정 버튼이 작동하지 않아요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:서비스코인:replace:194905:1",
+    "brand": "snapism",
+    "device": "서비스코인",
+    "category": "replace",
+    "title": "USB 단자부 교체",
+    "held": null,
+    "id": "MAN-574DFA53B6132DAD1DE5226A",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\n커넥터 연결부 - 커넥터 양 옆을 누른 후 분리해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd61747aba53c36b4",
+              "name": "USB 단자부 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\nPC(본체) 후면부 USB 단자 케이블을 제거해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd61747aba53c36b4",
+              "name": "USB 단자부 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 3\n\n새상품 USB 단자 케이블부를 역순으로 교체해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd61747aba53c36b4",
+              "name": "USB 단자부 교체 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:키오스크:repair:194906:all",
+    "brand": "snapism",
+    "device": "키오스크",
+    "category": "repair",
+    "title": "키오스크 전원이 들어오지 않아요",
+    "held": null,
+    "id": "MAN-33B5AE4BDE9D204227F52847",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "STEP 1\n\n키오스크 전면 하단 좌측에 위치한 누전 차단기를 확인해 주세요\n\n누전 차단기 스위치가 올라가 있어야 정상 작동 상태입니다.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd6c8339968260e0d",
+              "name": "키오스크 전원이 들어오지 않아요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "STEP 2\n\n키오스크 내 멀티탭 전원 스위치에 불이 점등되어 있는지 확인해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd6c8339968260e0d",
+              "name": "키오스크 전원이 들어오지 않아요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "STEP 3\n\n멀티탭 불이 꺼져있다면, 키오스크 후면 하단부에 위치한 전원 단자를 확인해 주세요\n\n※ 전원이 들어오지 않을 경우 전원 케이블을 교체해 주세요",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/683fd6c8339968260e0d",
+              "name": "키오스크 전원이 들어오지 않아요 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "snap:키오스크:info:144600:0,1,2,8",
+    "brand": "snapism",
+    "device": "키오스크",
+    "category": "info",
+    "title": "장비 명칭과 연결 위치",
+    "held": null,
+    "id": "MAN-2BF8C2E41659398351E14A09",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "키오스크란?\n\n\n\n\n스내피즘 매장 부스에서 고객 포토카드 출력 위해 사용하는 핵심 장치로, 모든 장치를 통칭하여 키오스크라고 부릅니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "키오스크 전면",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68906e178c1c4c683cb5",
+              "name": "장비 명칭과 연결 위치 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "키오스크 내부",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/12234/usermedia/68906ecedc252f2c5e12",
+              "name": "장비 명칭과 연결 위치 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "프린터는 스내피즘 키오스크의 핵심 부품이자 주장비로, 포토카드 및 사진을 출력하여 고객에게 제공하는 장치입니다.\n\n\n\n\n핵심 역할: 이미지를 빠르고 선명하게 인화하여 고객에게 전달\n\n서비스 품질 결정 요소: 출력 속도, 인화 품질, 용지 공급 상태에 따라 고객 만족도에 직접적인 영향을 미침\n\n운영 관리 필요성: 원활한 매장 운영을 위해 정기적인 유지보수 및 소모품(인화지, 필름) 관리가 필수\n\n\n\n\n프린터 이상 발생 시 즉각적인 대응이 필요하며, 예비 소모품과 정기 점검을 통해 안정적인 운영을 유지하는 것이 중요합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "참고 사진",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://cf.channel.io/document/spaces/8576/usermedia/683956bed1153c5dd12a",
+              "name": "장비 명칭과 연결 위치 참고 사진 1"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "replace:카메라:r10:0",
+    "brand": "photoism",
+    "device": "카메라",
+    "category": "replace",
+    "title": "R10 · 카메라 본체 교체",
+    "id": "MAN-41FDB817B2B81A8191DECF9C",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "교체 영상·사진 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "name": "R10 카메라 교체",
+              "url": "https://www.youtube.com/watch?v=G85D5JuZE6Q"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "준비물 · 유의사항\n준비 물품: 십자드라이버\n\n유의 사항\n카메라 각도 조정은 불필요하므로, 브라켓 옆면 각도 조정 피스는 조정하지 말아주세요..!\n\n카메라 교체 후 기본세팅과 색감 세팅을 진행해 주세요.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "선 제거\n카메라에 결합된 핫슈, 테더선(테더툴스), 더미 배터리를 분리합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "카메라 분리\n카메라 각도 조정 나사 2개를 살짝 풀어 브라켓을 뒤로 당긴 후, 카메라 하부 피스를 풀어 카메라를 분리해줍니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "카메라 장착\n장착은 분리의 역순으로 진행됩니다. 새로 교체할 카메라의 하부 피스를 먼저 고정한 후, 앞으로 당겨 브라켓에 단단히 고정합니다. 그다음, 제거했던 핫슈, 테더선(테더툴스), 더미 배터리를 다시 장착한 후, 카메라가 정상적으로 작동하는지 테스트합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "교체 후 카메라 세팅\n아래 카드에서 기본세팅과 색감 세팅 안내로 바로 이동할 수 있어요.\n교체할 때 선택한 카메라 기종으로 안내합니다.",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "replace:카메라:850d:0",
+    "brand": "photoism",
+    "device": "카메라",
+    "category": "replace",
+    "title": "850D · 카메라 본체 교체",
+    "id": "MAN-ACA14552B25DDC3AD0BF563C",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "교체 영상·사진 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "name": "850D 카메라 교체",
+              "url": "https://www.youtube.com/watch?v=G85D5JuZE6Q"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "준비물 · 유의사항\n준비 물품: 십자드라이버\n\n유의 사항\n카메라 각도 조정은 불필요하므로, 브라켓 옆면 각도 조정 피스는 조정하지 말아주세요..!\n\n카메라 교체 후 기본세팅과 색감 세팅을 진행해 주세요.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "선 제거\n카메라에 결합된 핫슈, 테더선(테더툴스), 더미 배터리를 분리합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "카메라 분리\n카메라 각도 조정 나사 2개를 살짝 풀어 브라켓을 뒤로 당긴 후, 카메라 하부 피스를 풀어 카메라를 분리해줍니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "카메라 장착\n장착은 분리의 역순으로 진행됩니다. 새로 교체할 카메라의 하부 피스를 먼저 고정한 후, 앞으로 당겨 브라켓에 단단히 고정합니다. 그다음, 제거했던 핫슈, 테더선(테더툴스), 더미 배터리를 다시 장착한 후, 카메라가 정상적으로 작동하는지 테스트합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "교체 후 카메라 세팅\n아래 카드에서 기본세팅과 색감 세팅 안내로 바로 이동할 수 있어요.\n교체할 때 선택한 카메라 기종으로 안내합니다.",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "replace:카메라:m50:0",
+    "brand": "photoism",
+    "device": "카메라",
+    "category": "replace",
+    "title": "M50 · 카메라 본체 교체",
+    "id": "MAN-95E4E2CE90305EF54F8D287A",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "교체 영상·사진 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "name": "M50 카메라 교체",
+              "url": "https://www.youtube.com/watch?v=MUsQ-23kqOk"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "준비물 · 유의사항\n준비 물품: 십자드라이버\n\n유의 사항\n카메라 각도 조정은 불필요하므로, 브라켓 옆면 각도 조정 피스는 조정하지 말아주세요..!\n\n카메라 교체 후 기본세팅과 색감 세팅을 진행해 주세요.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "선 제거\n카메라에 결합된 핫슈, 테더선(테더툴스), 더미 배터리를 분리합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "카메라 분리\n카메라 각도 조정 나사 2개를 살짝 풀어 브라켓을 뒤로 당긴 후, 카메라 하부 피스를 풀어 카메라를 분리해줍니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "카메라 장착\n장착은 분리의 역순으로 진행됩니다. 새로 교체할 카메라의 하부 피스를 먼저 고정한 후, 앞으로 당겨 브라켓에 단단히 고정합니다. 그다음, 제거했던 핫슈, 테더선(테더툴스), 더미 배터리를 다시 장착한 후, 카메라가 정상적으로 작동하는지 테스트합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "교체 후 카메라 세팅\n아래 카드에서 기본세팅과 색감 세팅 안내로 바로 이동할 수 있어요.\n교체할 때 선택한 카메라 기종으로 안내합니다.",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "replace:프린터:rx1:0",
+    "brand": "photoism",
+    "device": "프린터",
+    "category": "replace",
+    "title": "RX1 · 프린터 본체 교체",
+    "id": "MAN-30A6A6AE65F97A2162DF351D",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "교체 영상·사진 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "name": "DNP RX1 교체",
+              "url": "https://www.youtube.com/watch?v=nTR23UkNhBc"
+            },
+            {
+              "kind": "link",
+              "name": "프린터 교체 후 SW 설정",
+              "url": "https://www.youtube.com/watch?v=O0oa1EE--Ps"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "준비물 · 유의사항\n준비 물품: 십자드라이버 (주먹 드라이버 추천)\n\n프린터 세팅이 완료되지 않으면 정상적인 사용이 불가능하므로, 교체 후 즉시 본사에 세팅 요청을 해주시기 바랍니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "전원 끄기\n프린터 전원 스위치를 OFF로 변경합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "케이블 제거\n프린터에 연결된 AB 케이블(데이터 전송 케이블)과 전원 케이블을 분리합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "프린터 해체 및 교체\n1. 프린터 후면에서 키오스크와 연결된 볼트 2개를 해체합니다.\n2. 프린터 전면에 있는 볼트 2개를 해체한 후, 프린터를 앞으로 당겨 키오스크와 분리합니다.\n3. 프린터 하단의 브라켓과 프린터를 분리하기 위해 측면에 고정된 작은 볼트 4개를 해체합니다.\n4. 교체할 프린터를 준비한 후, 해체한 순서의 역순으로 조립하여 프린터를 장착합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "프린터 세팅 요청\n1. CMS 접속 후 우측 하단 채팅 상담 클릭\n2. \"장비 세팅 문의\" → \"프린터 세팅 문의\" 선택\n3. 프린터 교체 사실을 알리고 세팅 요청\n\n본사에서 세팅이 완료된 후 정상 작동 여부를 확인한 후 사용해 주세요. 세팅 요청이 누락될 경우 프린터 사용이 불가능하니 반드시 진행해 주시기 바랍니다.",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "replace:프린터:ask400:0",
+    "brand": "photoism",
+    "device": "프린터",
+    "category": "replace",
+    "title": "ASK400 · 프린터 본체 교체",
+    "id": "MAN-10458581A9FE3BDB322AFFAA",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "교체 영상·사진 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "name": "FUJI 프린터 교체",
+              "url": "https://www.youtube.com/watch?v=7yA38wdkSA8"
+            },
+            {
+              "kind": "link",
+              "name": "프린터 교체 후 SW 설정",
+              "url": "https://www.youtube.com/watch?v=O0oa1EE--Ps"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "준비물 · 유의사항\n준비 물품: 십자드라이버 (주먹 드라이버 추천)\n\n프린터 세팅이 완료되지 않으면 정상적인 사용이 불가능하므로, 교체 후 즉시 본사에 세팅 요청을 해주시기 바랍니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "전원 끄기\n프린터 전원 스위치를 OFF로 변경합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "케이블 제거\n프린터에 연결된 AB 케이블(데이터 전송 케이블)과 전원 케이블을 분리합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "프린터 해체 및 교체\n1. 프린터 후면에서 키오스크와 연결된 볼트 2개를 해체합니다.\n2. 프린터 전면에 있는 볼트 2개를 해체한 후, 프린터를 앞으로 당겨 키오스크와 분리합니다.\n3. 프린터 하단의 브라켓과 프린터를 분리하기 위해 측면에 고정된 작은 볼트 4개를 해체합니다.\n4. 교체할 프린터를 준비한 후, 해체한 순서의 역순으로 조립하여 프린터를 장착합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n6"
+            }
+          ]
+        },
+        "n6": {
+          "text": "프린터 세팅 요청\n1. CMS 접속 후 우측 하단 채팅 상담 클릭\n2. \"장비 세팅 문의\" → \"프린터 세팅 문의\" 선택\n3. 프린터 교체 사실을 알리고 세팅 요청\n\n본사에서 세팅이 완료된 후 정상 작동 여부를 확인한 후 사용해 주세요. 세팅 요청이 누락될 경우 프린터 사용이 불가능하니 반드시 진행해 주시기 바랍니다.",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "replace:에스라이트:0",
+    "brand": "photoism",
+    "device": "에스라이트",
+    "category": "replace",
+    "title": "에스라이트 교체",
+    "id": "MAN-841E008364E87B6E96BBB3EE",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "교체 영상·사진 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "name": "에스라이트 교체",
+              "url": "https://www.youtube.com/watch?v=3KWloMeSYe8"
+            },
+            {
+              "kind": "link",
+              "name": "에스라이트 케이블 교체",
+              "url": "https://www.youtube.com/watch?v=z5XkfOhpg4k"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "준비물 · 유의사항\n준비 물품: 십자드라이버",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "기존 장비 분리하기\n에스라이트 좌측의 전원 케이블과 핫슈 조명 케이블(싱크 케이블)을 분리해줍니다. 이후 에스라이트 양쪽 브라켓에 고정된 피스 4개를 드라이버로 제거한 후 브라켓과 기존 에스라이트를 분리해줍니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "새 장비 장착하기\n교체할 에스라이트를 기존 위치에 맞춰 장착한 뒤, 브라켓을 고정하고 피스 4개를 결합합니다. 좌측에 전원 케이블과 핫슈 케이블(싱크 케이블)을 다시 연결해줍니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "설정 및 작동 확인하기\n에스라이트 좌측의 전원을 켜고, 지속광 밝기를 최저로 조절합니다. 우측 다이얼 수치를 확인하여 표준 값인 2.0으로 설정되어 있는지 확인한 뒤, 최종 작동 테스트를 진행해 주세요.",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "replace:카드리더기:0",
+    "brand": "photoism",
+    "device": "카드리더기",
+    "category": "replace",
+    "title": "카드리더기 교체",
+    "id": "MAN-DF922BA371B2113674BC1D17",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "교체 영상·사진 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "name": "카드단말기 교체",
+              "url": "https://www.youtube.com/watch?v=qxth2meldtc"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "브라켓 나사 제거\n카드리더기 브라켓에 체결돼 있는 나사 두개를 제거해주세요",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "케이블타이 제거\n카드리더기 케이블에 묶인 케이블타이를 제거해주세요",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "케이블 분리\n카드리더기 케이블이 꽂힌 본체 쪽으로 따라가면서 분리해준다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "케이블 제거 및 조립\n카드리더기 USB타입 케이블과 RGB타입 케이블을 제거해주세요\n\n※ 새 카드리더기를 해체의 역순으로 조립해주세요",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "replace:지폐투입기:0",
+    "brand": "photoism",
+    "device": "지폐투입기",
+    "category": "replace",
+    "title": "A/B 타입 교체",
+    "id": "MAN-E35A5E89CEC2CB499F53EF8B",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "교체 영상·사진 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "name": "A/B 타입 지폐투입기 교체",
+              "url": "https://www.youtube.com/watch?v=DvduL3OC-jg"
+            },
+            {
+              "kind": "link",
+              "name": "A/B 타입 케이블 교체",
+              "url": "https://www.youtube.com/watch?v=zTyDPm-thJI"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "커넥터 분리\n지폐투입기 우측에 체결되어 있는 커넥터의 양쪽 끝단을 손톱 또는 얇은 일자 드라이버로 들어올린 후 케이블을 제거해 주세요\n\n※ 케이블만 잡고 당길 경우 케이블 연결 부분이 끊어질 위험이 있습니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "접지선 분리\n지폐투입기 접지선 고정 볼트를 제거해 주세요\n\n※ 접지선이 없을 경우 해당 작업을 생략합니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "지폐투입기 교체\n지폐투입기 브라켓 하단에 체결되어 있는 작은 볼트 4ea를 제거해 주세요\n지폐투입기를 뒤쪽으로 제거해 주세요\n설치는 해체의 역순으로 조립해 주세요",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "replace:지폐투입기:1",
+    "brand": "photoism",
+    "device": "지폐투입기",
+    "category": "replace",
+    "title": "C 타입 교체",
+    "id": "MAN-C7C266C34863209A362FEFBF",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "교체 영상·사진 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "name": "C 타입 지폐투입기 교체",
+              "url": "https://www.youtube.com/watch?v=WWEisshO2AU"
+            },
+            {
+              "kind": "link",
+              "name": "C 타입 케이블 교체",
+              "url": "https://www.youtube.com/watch?v=Rs3AVG0j_Vs"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "커넥터 분리\n지폐투입기 우측에서 체결되어 있는 커넥터 2ea의 양쪽 끝단을 손톱 또는 얇은 일자 드라이버로 들어올린 후 케이블을 제거한다.\n\n※ 케이블만 잡고 당길 경우 케이블 연결 부분이 끊어질 위험이 있습니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "지폐투입기 교체\n지폐투입기 브라켓 하단에 체결되어 있는 작은 볼트 4ea를 제거해 주세요\n지폐투입기를 뒤쪽으로 제거해 주세요\n설치는 해체의 역순으로 조립해 주세요",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "replace:리모컨 / 서비스코인 / 설정:0",
+    "brand": "photoism",
+    "device": "리모컨 / 서비스코인 / 설정",
+    "category": "replace",
+    "title": "리모컨 교체",
+    "id": "MAN-739B0A8D3C5AE31772EED784",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "교체 영상·사진 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "name": "A/B 타입 리모컨 교체",
+              "url": "https://www.youtube.com/watch?v=aYxPJaHwNlA"
+            },
+            {
+              "kind": "link",
+              "name": "C 타입 리모컨 교체",
+              "url": "https://www.youtube.com/watch?v=4FcBZLfd-Lw"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "리모컨 선 찾기\n키오스크 우측에 연결되어 있는 리모컨 선을 찾아준다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "케이블타이 제거\n리모컨 선 접촉 부분을 찾아 케이블타이를 제거한다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "커넥터 분리\n리모컨 커넥터 부분을 분리한다.\n※ 접촉 부분을 누른 후 분리",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n5"
+            }
+          ]
+        },
+        "n5": {
+          "text": "새 리모컨 연결\n교체하는 리모컨 커넥터 부분을 접촉 시킨다",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "replace:리모컨 / 서비스코인 / 설정:1",
+    "brand": "photoism",
+    "device": "리모컨 / 서비스코인 / 설정",
+    "category": "replace",
+    "title": "서비스코인 / 설정 · USB 커넥터 교체",
+    "id": "MAN-C8A72E96A2689661B5DB3735",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "교체 영상·사진 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "name": "USB 단자 커넥터 교체",
+              "url": "https://www.youtube.com/watch?v=VW7oddDZRZE"
+            },
+            {
+              "kind": "link",
+              "name": "서비스코인 / 설정 버튼 케이블 교체",
+              "url": "https://www.youtube.com/watch?v=AnTsne7Gthk"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "커넥터 분리\n커넥터 연결부 ↔ 커넥터 양 옆을 누른 후 분리",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "USB 케이블 제거\nPC(본체) 후면부 USB 단자 케이블 제거",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n4"
+            }
+          ]
+        },
+        "n4": {
+          "text": "새 케이블 교체\n새상품 USB 단자 케이블부 역순으로 교체 진행",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "replace:모니터:0",
+    "brand": "photoism",
+    "device": "모니터",
+    "category": "replace",
+    "title": "모니터 교체",
+    "id": "MAN-AAC78990143FAF1E39B1896D",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "교체 영상·사진 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "name": "B 타입 모니터 교체",
+              "url": "https://www.youtube.com/watch?v=EORqrJOYW1M"
+            },
+            {
+              "kind": "link",
+              "name": "C 타입 모니터 교체",
+              "url": "https://www.youtube.com/watch?v=8iQSlPiZllA"
+            },
+            {
+              "kind": "link",
+              "name": "모니터 케이블 교체",
+              "url": "https://www.youtube.com/watch?v=3uehpJLn4tM"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "준비물 · 유의사항\n모니터 교체 전, 기존 모니터의 모델명을 반드시 확인해 주세요. 모델명이 다를 경우 브라켓 규격이 맞지 않아 장착이 불가능할 수 있습니다.\n\n모니터 발주 전에는 채널톡을 통해 본사에 사전 문의해 주시고, 호환 가능한 모델 안내를 받은 후 구매해 주시기 바랍니다.\n\n※ 사전 확인 없이 구매 시 설치 불가 또는 환불이 어려울 수 있습니다.",
+          "options": [
+            {
+              "label": "다음",
+              "next": "n3"
+            }
+          ]
+        },
+        "n3": {
+          "text": "교체 과정은 위 영상 매뉴얼에서 확인해 주세요.",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "replace:PC:0",
+    "brand": "photoism",
+    "device": "PC",
+    "category": "replace",
+    "title": "PC 교체",
+    "id": "MAN-153794316E61A5010FE96BE2",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "교체 영상·사진 매뉴얼",
+          "media": [
+            {
+              "kind": "link",
+              "name": "오픈형 PC 교체",
+              "url": "https://www.youtube.com/watch?v=NHmTpOsyhxM"
+            },
+            {
+              "kind": "link",
+              "name": "미니 PC 교체",
+              "url": "https://www.youtube.com/watch?v=F8WVTzZJCxI"
+            }
+          ],
+          "options": [
+            {
+              "label": "다음",
+              "next": "n2"
+            }
+          ]
+        },
+        "n2": {
+          "text": "교체 과정은 위 영상 매뉴얼에서 확인해 주세요.",
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "camera:r10:basic",
+    "brand": "photoism",
+    "device": "카메라",
+    "category": "setup",
+    "title": "R10 기본세팅",
+    "id": "MAN-14355411C34D5821C766D6A6",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "아래에서 안내서를 확인하세요.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-r10-basic-1.jpg",
+              "name": "R10 기본세팅 안내서 1"
+            },
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-r10-basic-2.jpg",
+              "name": "R10 기본세팅 안내서 2"
+            },
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-r10-basic-3.jpg",
+              "name": "R10 기본세팅 안내서 3"
+            },
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-r10-basic-4.jpg",
+              "name": "R10 기본세팅 안내서 4"
+            },
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-r10-basic-5.jpg",
+              "name": "R10 기본세팅 안내서 5"
+            },
+            {
+              "kind": "link",
+              "url": "https://www.youtube.com/watch?v=xScLykjpLAQ",
+              "name": "R10 기본 설정 영상"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "camera:r10:color",
+    "brand": "photoism",
+    "device": "카메라",
+    "category": "setup",
+    "title": "R10 색감 조정",
+    "id": "MAN-5DAC8F0BD06EAF57AD8DAD37",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "색감 값을 보면서 아래 영상에 따라 하나씩 설정해 주세요.",
+          "media": [
+            {
+              "kind": "link",
+              "url": "https://www.youtube.com/watch?v=ge9gad8IPac",
+              "name": "R10 색감 세팅 영상"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "camera:850d:basic",
+    "brand": "photoism",
+    "device": "카메라",
+    "category": "setup",
+    "title": "850D 기본세팅",
+    "id": "MAN-089E0B804A8A08BF3FCF0C75",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "아래에서 안내서를 확인하세요.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-850d-basic-1.jpg",
+              "name": "850D 기본세팅 안내서 1"
+            },
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-850d-basic-2.jpg",
+              "name": "850D 기본세팅 안내서 2"
+            },
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-850d-basic-3.jpg",
+              "name": "850D 기본세팅 안내서 3"
+            },
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-850d-basic-4.jpg",
+              "name": "850D 기본세팅 안내서 4"
+            },
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-850d-basic-5.jpg",
+              "name": "850D 기본세팅 안내서 5"
+            },
+            {
+              "kind": "link",
+              "url": "https://www.youtube.com/watch?v=NiIGdGjtyhc",
+              "name": "850D 기본 설정 영상"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "camera:850d:color",
+    "brand": "photoism",
+    "device": "카메라",
+    "category": "setup",
+    "title": "850D 색감 조정",
+    "id": "MAN-0DF014A556F5A0D849769A83",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "색감 값을 보면서 아래 영상에 따라 하나씩 설정해 주세요.",
+          "media": [
+            {
+              "kind": "link",
+              "url": "https://www.youtube.com/watch?v=vP8-n601TmY",
+              "name": "850D 색감 세팅 영상"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "camera:m50:basic",
+    "brand": "photoism",
+    "device": "카메라",
+    "category": "setup",
+    "title": "M50 기본세팅",
+    "id": "MAN-5F34DB3C178910D66B12277A",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "아래에서 안내서를 확인하세요.",
+          "media": [
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-m50-basic-1.jpg",
+              "name": "M50 기본세팅 안내서 1"
+            },
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-m50-basic-2.jpg",
+              "name": "M50 기본세팅 안내서 2"
+            },
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-m50-basic-3.jpg",
+              "name": "M50 기본세팅 안내서 3"
+            },
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-m50-basic-4.jpg",
+              "name": "M50 기본세팅 안내서 4"
+            },
+            {
+              "kind": "image",
+              "url": "https://tech1011-seobuk.github.io/kioskhelper-staging/assets/manual-scenes/camera-m50-basic-5.jpg",
+              "name": "M50 기본세팅 안내서 5"
+            },
+            {
+              "kind": "link",
+              "url": "https://www.youtube.com/watch?v=bTCNjvB5RIM",
+              "name": "M50 기본 설정 영상"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  },
+  {
+    "source": "camera:m50:color",
+    "brand": "photoism",
+    "device": "카메라",
+    "category": "setup",
+    "title": "M50 색감 조정",
+    "id": "MAN-34FA60550AC74F53F30D9FA1",
+    "tree": {
+      "start": "n1",
+      "nodes": {
+        "n1": {
+          "text": "색감 값을 보면서 아래 영상에 따라 하나씩 설정해 주세요.",
+          "media": [
+            {
+              "kind": "link",
+              "url": "https://www.youtube.com/watch?v=gxG7k71MedM",
+              "name": "M50 색감 세팅 영상"
+            }
+          ],
+          "options": [
+            {
+              "label": "안내 확인 완료",
+              "end": "info"
+            }
+          ]
+        }
+      }
+    }
+  }
+]

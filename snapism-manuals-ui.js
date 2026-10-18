@@ -4,7 +4,7 @@ const SNAP_DEVICE_ICONS={CX7600:'🖨️',DS620:'🖨️',모니터:'🖥️',PC
 function snapSections(id,indices){const m=SNAPISM_MANUALS.find(m=>m.id===String(id));return (indices||m.sections.map((_,i)=>i)).map(i=>m.sections[i]);}
 function snapEntries(device,category){
  const entries=[];
- const add=(title,id,indices)=>{const sections=snapSections(id,indices);entries.push({title,sections,cards:sections.flatMap(s=>s.cards),held:sections.find(s=>s.held)?.held});};
+ const add=(title,id,indices)=>{const sections=snapSections(id,indices);entries.push({editSource:`snap:${device}:${category}:${id}:${indices?indices.join(","):"all"}`,title,sections,cards:sections.flatMap(s=>s.cards),held:sections.find(s=>s.held)?.held});};
  const each=(id)=>snapSections(id).forEach((s,i)=>add(s.title.replace(/^[^가-힣A-Za-z]+/,''),id,[i]));
  if(category==='repair'){
   if(typeof catalogSymptoms==='function'){const key=device==='CX7600'?'CX7600 프린터 (포토카드)':device==='DS620'?'DS620 프린터 (스티커)':device;for(const sid of catalogSymptoms(key,'snapism').filter(id=>id.startsWith('CUS-')))entries.push({title:hotTopicLabel(sid),sid,cards:[]});}
@@ -52,6 +52,7 @@ function renderSnapManuals(){
  if(snapStage==='guide'){
   const title=document.createElement('h2');title.textContent=snapEntry.title;wrap.appendChild(title);
   if(snapEntry.held){const p=document.createElement('p');p.textContent=snapEntry.held;wrap.appendChild(p);return;}
+  if(typeof editableManualChanged==='function'&&editableManualChanged(snapEntry.editSource)){appendEditableManual(wrap,editableManualSource(snapEntry.editSource).id);return;}
   const videos=[...new Set(snapEntry.cards.flatMap(c=>c.videos))];for(const url of videos){const b=document.createElement('button');b.className='symptom-video-entry';b.textContent='🎬 전체 조치 과정 영상 매뉴얼 보기';b.onclick=()=>openSymptomVideo(url);wrap.appendChild(b);}
   snapEntry.cards.slice(0,snapStep+1).forEach((c,i)=>{const bubble=document.createElement('div');bubble.className='bubble bot';bubble.style.cssText='margin:20px 0;max-width:100%;box-sizing:border-box';bubble.innerHTML='<div class="step-tag">STEP '+(i+1)+' / '+snapEntry.cards.length+'</div><p style="white-space:pre-wrap">'+escapeHtml(c.text)+'</p>';for(const url of c.images){const img=document.createElement('img');img.src=url;img.alt=snapEntry.title+' 참고 사진';img.loading='lazy';img.style.cssText='width:100%;height:auto;display:block;margin-top:12px;border-radius:10px';bubble.appendChild(img);}wrap.appendChild(bubble);});
   const actions=document.createElement('div');actions.className='end-actions';const b=document.createElement('button');b.textContent=snapStep<snapEntry.cards.length-1?'다음':'안내 확인 완료';b.onclick=()=>{if(snapStep<snapEntry.cards.length-1){snapStep++;renderSnapManuals();[...area.querySelectorAll('.bubble')].at(-1)?.scrollIntoView({block:'start',behavior:'smooth'});}else{snapStage='list';render();}};actions.appendChild(b);wrap.appendChild(actions);return;

@@ -1,7 +1,7 @@
 let symptomCatalog={},symptomCatalogReady=false;
 const REMOVED_SYMPTOMS=['PRT-9','PRT-11','PRT-12','PRT-14','PC-3'];
 function symptomActive(sid){return symptomCatalog[sid]?.active??!REMOVED_SYMPTOMS.includes(sid);}
-function knownSymptom(sid){return Object.hasOwn(BUILTIN_TREES,sid)||Object.hasOwn(symptomCatalog,sid);}
+function knownSymptom(sid){return Object.hasOwn(BUILTIN_TREES,sid)||Object.hasOwn(symptomCatalog,sid)||(typeof editableManual==='function'&&!!editableManual(sid));}
 function symptomDefaults(sid){const device=DEVICES.find(d=>d.symptoms.includes(sid))?.name||'지폐투입기';return {symptom_id:sid,label:DIAGRAM_HOT_TOPICS.find(t=>t.sid===sid)?.label||SYMPTOM_LABEL[sid]||sid,device,scope:['모니터','PC','카드리더기','CMS'].includes(device)?'shared':device==='서비스코인'?'snapism':'photoism',active:symptomActive(sid),revision:0};}
 function catalogSymptoms(device,brand){const base=DEVICES.find(d=>d.name===device)?.symptoms||[];return [...new Set([...base,...Object.keys(symptomCatalog).filter(id=>symptomCatalog[id].device===device)])].filter(id=>{const row=symptomCatalog[id];return symptomActive(id)&&(!row||row.scope==='shared'||row.scope===brand);});}
 function applySymptomCatalog(rows){
