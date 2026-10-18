@@ -8,7 +8,7 @@ function editableManualChanged(source){
  return !!(m&&!m.held&&row&&!sameDiagnosis(row.tree,m.tree));
 }
 function editableManualBody(source,fallback){const m=editableManualSource(source);return m&&diagnosisStore.rows[m.id]?guideSearchBody(diagnosisStore.rows[m.id].tree):fallback;}
-function appendEditableManual(host,id,onComplete){
+function appendEditableManual(host,id,onComplete,{videoHost=null}={}){
  const meta=editableManual(id);if(!meta)return;
  const tree=cloneDiagnosis(diagnosisStore.rows[id]?.tree||meta.tree);
  const section=document.createElement('section');section.className='editable-manual-reader';host.appendChild(section);
@@ -21,8 +21,16 @@ function appendEditableManual(host,id,onComplete){
   const heading=document.createElement('h3');heading.textContent='STEP '+(index+1);heading.tabIndex=-1;card.appendChild(heading);
   const text=document.createElement('p');text.style.whiteSpace='pre-wrap';text.textContent=node.text;card.appendChild(text);
   if(node.attachment){const extra=document.createElement('p');extra.textContent=node.attachment;card.appendChild(extra);}
-  const media=document.createElement('div');media.innerHTML=renderDiagnosisMedia(node);card.appendChild(media);
-  if(index===0)appendSymptomVideoButtons(card,tree);
+  // Camera replacement keeps its saved opening videos above the step text.
+  // Only the display copy is filtered; saved content and editor drafts stay intact.
+  const openingVideos=index===0&&videoHost?(node.media||[]).filter(item=>{
+   if(item.kind!=='link'||item.path)return false;
+   try{return !!youtubeManualUrl(item.url);}catch{return false;}
+  }):[];
+  for(const item of openingVideos)videoHost.appendChild(createManualVideo(item.url,item.name));
+  const displayNode=openingVideos.length?{...node,media:node.media.filter(item=>!openingVideos.includes(item))}:node;
+  const media=document.createElement('div');media.innerHTML=renderDiagnosisMedia(displayNode);card.appendChild(media);
+  if(index===0&&!videoHost)appendSymptomVideoButtons(card,tree);
   const options=document.createElement('div');options.className='options-wrap';card.appendChild(options);
   for(const option of node.options){
    const button=document.createElement('button');button.type='button';button.className='opt-btn';button.textContent=option.label;
@@ -45,7 +53,16 @@ function appendEditableManual(host,id,onComplete){
  append(tree.start);
 }
 function appendEditableCameraActions(host,model){
- for(const [label,action]of [['기본세팅 하기',goToCameraBasicSetup],['색감 세팅 하기',goToCameraColorGuideContent]]){
-  const b=document.createElement('button');b.className='opt-btn';b.textContent=label;b.onclick=()=>{selectedCameraModel=model;action();};host.appendChild(b);
+ const section=document.createElement('section');section.className='camera-after-replacement';
+ const title=document.createElement('h3');title.textContent='교체가 끝났다면, 설정을 이어서 진행해 주세요';section.appendChild(title);
+ const note=document.createElement('p');note.textContent=model.toUpperCase()+' 기종의 기본세팅을 먼저 진행한 뒤, 색감을 조정해 주세요.';section.appendChild(note);
+ const actions=document.createElement('div');actions.className='camera-after-actions';section.appendChild(actions);
+ for(const [number,label,desc,action]of [['1','기본세팅 하기','교체한 카메라의 기본 설정을 맞춰요.',goToCameraBasicSetup],['2','색감 조정하기','기본세팅 후 촬영 색감을 맞춰요.',goToCameraColorGuideContent]]){
+  const b=document.createElement('button');b.type='button';b.className='camera-after-action';
+  const order=document.createElement('span');order.className='camera-after-order';order.textContent=number;b.appendChild(order);
+  const copy=document.createElement('span');const name=document.createElement('strong');name.textContent=label;copy.appendChild(name);
+  const detail=document.createElement('span');detail.textContent=desc;copy.appendChild(detail);b.appendChild(copy);
+  b.onclick=()=>{selectedCameraModel=model;action();};actions.appendChild(b);
  }
+ host.appendChild(section);
 }

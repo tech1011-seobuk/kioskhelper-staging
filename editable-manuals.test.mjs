@@ -78,3 +78,17 @@ test('edited manual viewer follows branches and retains prior media while moving
  reader.children[1].querySelectorAll('button')[0].onclick();assert.equal(reader.children.length,3);
  first.querySelectorAll('button')[0].onclick();assert.equal(reader.children.length,2);assert.equal(reader.children[0],first);
 });
+
+test('saved camera opening video is displayed above the guide once without changing its saved tree',()=>{
+ class El{constructor(tag){this.tag=tag;this.children=[];this.style={};}appendChild(el){this.children.push(el);return el;}}
+ const c=harness(),manual=manuals.find(m=>m.source==='replace:카메라:r10:0'),tree=structuredClone(manual.tree);
+ tree.nodes[tree.start].text='수정한 교체 안내';const snapshot=JSON.stringify(tree);
+ c.api.applyPublishedRows([{symptom_id:manual.id,tree,revision:3}],'server');
+ c.document={createElement:tag=>new El(tag)};c.renderDiagnosisMedia=node=>{c.displayed=node;return '';};
+ c.appendSymptomVideoButtons=()=>assert.fail('camera should not show a video launch card');
+ c.youtubeManualUrl=url=>url;c.createManualVideo=(url,name)=>({url,name});c.hydrateDiagnosisMedia=()=>{};
+ const host=new El('main'),videoHost=new El('header');c.appendEditableManual(host,manual.id,null,{videoHost});
+ assert.equal(videoHost.children.length,1);assert.equal(videoHost.children[0].url,tree.nodes[tree.start].media[0].url);
+ assert.equal(c.displayed.text,'수정한 교체 안내');assert.equal(c.displayed.media.length,0);
+ assert.equal(JSON.stringify(tree),snapshot);assert.equal(c.api.diagnosisStore.rows[manual.id].tree.nodes[tree.start].media.length,1);
+});

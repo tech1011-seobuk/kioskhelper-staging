@@ -1985,6 +1985,7 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 .symptom-video-dialog::backdrop{background:#000b}.symptom-video-dialog iframe{display:block;width:100%;aspect-ratio:16/9;border:0;margin:14px 0}.symptom-video-dialog a{color:var(--text)}
 .replacement-guide{text-align:left;width:100%;margin-top:24px}.replacement-choices{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}.replacement-choice,.replacement-navigation button{font:inherit;color:inherit;background:var(--panel,#25262c);border:1px solid var(--border,#555);border-radius:12px;padding:12px 18px;cursor:pointer;min-height:44px}.replacement-choice[aria-pressed="true"]{border-color:#d4ec32;background:rgba(212,236,50,.12)}.replacement-step{padding:24px;border:1px solid var(--border,#555);border-radius:18px;background:rgba(128,128,128,.06)}.replacement-progress{font-size:13px;color:var(--muted,#aaa);margin:0 0 14px}.replacement-step h3{font-size:22px;margin:0 0 18px;line-height:1.4}.replacement-step h3:focus-visible{outline:2px solid #d4ec32;outline-offset:4px}.replacement-body{white-space:pre-line;line-height:1.85;font-size:16px;overflow-wrap:anywhere;margin:0;min-height:100px}.replacement-navigation{display:flex;justify-content:space-between;gap:12px;margin-top:26px}.replacement-navigation .replacement-next{background:#d4ec32;color:#16190c;font-weight:700}.replacement-navigation button:disabled{opacity:.35;cursor:default}.replacement-video-note{line-height:1.7;color:var(--muted,#aaa)}@media(max-width:600px){.replacement-step{padding:18px}.replacement-step h3{font-size:20px}.replacement-body{font-size:15px}.replacement-choice{flex:1;min-width:120px}.replacement-navigation button{padding:12px 15px}}
 .replacement-media{text-align:left;margin-top:24px}.replacement-media-card{margin:16px 0;padding:16px;border:1px solid var(--border);border-radius:12px}.replacement-media-card img{display:block;max-width:100%;height:auto;cursor:zoom-in}.replacement-media-card h4{margin:0 0 12px}
+.camera-after-replacement{box-sizing:border-box;margin-top:24px;padding:24px;border:1px solid var(--border);border-radius:18px;background:var(--panel2);text-align:left}.camera-after-replacement h3{font-size:20px;line-height:1.5;margin:0 0 8px}.camera-after-replacement>p{font-size:14px;line-height:1.7;color:var(--muted);margin:0 0 18px}.camera-after-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.camera-after-action{display:flex;align-items:center;gap:12px;min-width:0;min-height:88px;padding:16px;border:1px solid var(--border);border-radius:12px;background:var(--panel);color:var(--text);font:inherit;text-align:left;cursor:pointer}.camera-after-action:hover{border-color:var(--accent)}.camera-after-action:focus-visible{outline:2px solid var(--accent);outline-offset:3px}.camera-after-order{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:50%;background:var(--accent);color:#16190c;font-size:16px;font-weight:800}.camera-after-action strong{display:block;font-size:17px;line-height:1.5}.camera-after-action strong+span{display:block;font-size:13px;line-height:1.6;color:var(--muted);margin-top:4px}@media(max-width:600px){.camera-after-replacement{padding:18px}.camera-after-replacement h3{font-size:18px}.camera-after-actions{grid-template-columns:1fr}.camera-after-action{min-height:80px}}
 .signup-dialog{box-sizing:border-box;width:min(520px,90vw);max-height:80vh;overflow:auto;background:var(--panel,#25262c);color:var(--text);border:1px solid var(--border);border-radius:18px;padding:24px}.signup-dialog::backdrop{background:#0009}.signup-dialog p{line-height:1.7}.signup-store-option{padding:12px 16px;margin-top:10px;border:1px solid var(--border);border-radius:10px;background:transparent;color:inherit;cursor:pointer}
 .diagnosis-video-choices{border:1px solid var(--border);border-radius:12px;padding:14px;min-width:0}.diagnosis-video-choices h3{font-size:15px;margin:0 0 8px}.diagnosis-video-choices p{font-size:13px;color:var(--muted);margin:0 0 12px}.diagnosis-video-buttons{display:flex;flex-wrap:wrap;gap:8px}.diagnosis-video-buttons button{min-height:44px;max-width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text);font:inherit;font-size:13px;text-align:left;overflow-wrap:anywhere;cursor:pointer}.diagnosis-video-buttons button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}.diagnosis-video-buttons button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}.diagnosis-video-choices .manual-video{margin:14px 0 0}.diagnosis-media-item{min-width:0}
 .manual-video{box-sizing:border-box;width:100%;max-width:760px;margin:0 auto 20px;padding:16px;border:1px solid var(--border);border-radius:16px;background:var(--panel);text-align:left;overflow:hidden}
@@ -7263,7 +7264,7 @@ function editableManualChanged(source){
  return !!(m&&!m.held&&row&&!sameDiagnosis(row.tree,m.tree));
 }
 function editableManualBody(source,fallback){const m=editableManualSource(source);return m&&diagnosisStore.rows[m.id]?guideSearchBody(diagnosisStore.rows[m.id].tree):fallback;}
-function appendEditableManual(host,id,onComplete){
+function appendEditableManual(host,id,onComplete,{videoHost=null}={}){
  const meta=editableManual(id);if(!meta)return;
  const tree=cloneDiagnosis(diagnosisStore.rows[id]?.tree||meta.tree);
  const section=document.createElement('section');section.className='editable-manual-reader';host.appendChild(section);
@@ -7276,8 +7277,16 @@ function appendEditableManual(host,id,onComplete){
   const heading=document.createElement('h3');heading.textContent='STEP '+(index+1);heading.tabIndex=-1;card.appendChild(heading);
   const text=document.createElement('p');text.style.whiteSpace='pre-wrap';text.textContent=node.text;card.appendChild(text);
   if(node.attachment){const extra=document.createElement('p');extra.textContent=node.attachment;card.appendChild(extra);}
-  const media=document.createElement('div');media.innerHTML=renderDiagnosisMedia(node);card.appendChild(media);
-  if(index===0)appendSymptomVideoButtons(card,tree);
+  // Camera replacement keeps its saved opening videos above the step text.
+  // Only the display copy is filtered; saved content and editor drafts stay intact.
+  const openingVideos=index===0&&videoHost?(node.media||[]).filter(item=>{
+   if(item.kind!=='link'||item.path)return false;
+   try{return !!youtubeManualUrl(item.url);}catch{return false;}
+  }):[];
+  for(const item of openingVideos)videoHost.appendChild(createManualVideo(item.url,item.name));
+  const displayNode=openingVideos.length?{...node,media:node.media.filter(item=>!openingVideos.includes(item))}:node;
+  const media=document.createElement('div');media.innerHTML=renderDiagnosisMedia(displayNode);card.appendChild(media);
+  if(index===0&&!videoHost)appendSymptomVideoButtons(card,tree);
   const options=document.createElement('div');options.className='options-wrap';card.appendChild(options);
   for(const option of node.options){
    const button=document.createElement('button');button.type='button';button.className='opt-btn';button.textContent=option.label;
@@ -7300,9 +7309,18 @@ function appendEditableManual(host,id,onComplete){
  append(tree.start);
 }
 function appendEditableCameraActions(host,model){
- for(const [label,action]of [['기본세팅 하기',goToCameraBasicSetup],['색감 세팅 하기',goToCameraColorGuideContent]]){
-  const b=document.createElement('button');b.className='opt-btn';b.textContent=label;b.onclick=()=>{selectedCameraModel=model;action();};host.appendChild(b);
+ const section=document.createElement('section');section.className='camera-after-replacement';
+ const title=document.createElement('h3');title.textContent='교체가 끝났다면, 설정을 이어서 진행해 주세요';section.appendChild(title);
+ const note=document.createElement('p');note.textContent=model.toUpperCase()+' 기종의 기본세팅을 먼저 진행한 뒤, 색감을 조정해 주세요.';section.appendChild(note);
+ const actions=document.createElement('div');actions.className='camera-after-actions';section.appendChild(actions);
+ for(const [number,label,desc,action]of [['1','기본세팅 하기','교체한 카메라의 기본 설정을 맞춰요.',goToCameraBasicSetup],['2','색감 조정하기','기본세팅 후 촬영 색감을 맞춰요.',goToCameraColorGuideContent]]){
+  const b=document.createElement('button');b.type='button';b.className='camera-after-action';
+  const order=document.createElement('span');order.className='camera-after-order';order.textContent=number;b.appendChild(order);
+  const copy=document.createElement('span');const name=document.createElement('strong');name.textContent=label;copy.appendChild(name);
+  const detail=document.createElement('span');detail.textContent=desc;copy.appendChild(detail);b.appendChild(copy);
+  b.onclick=()=>{selectedCameraModel=model;action();};actions.appendChild(b);
  }
+ host.appendChild(section);
 }
 
 /* EDITABLE MANUALS END */
@@ -10842,9 +10860,10 @@ function appendReplacementGuide(host,key,initialVariant=0){
  if(guides.length>1){const label=document.createElement('p');label.textContent='교체할 종류를 선택해 주세요.';section.appendChild(label);section.appendChild(choices);}
  const media=document.createElement('div');section.appendChild(media);
  const stage=document.createElement('div');section.appendChild(stage);
+ const cameraModel=key.startsWith('카메라:')?key.split(':')[1]:null;
  function draw(focus){
-  const guide=guides[variant],cards=replacementCards(guide);
-  const cameraFinish=key.startsWith('카메라:')&&page===cards.length-1;
+  const guide=guides[variant],cards=replacementCards(cameraModel?{...guide,after:null}:guide);
+  const cameraFinish=!!cameraModel&&page===cards.length-1;
   choices.innerHTML='';
   guides.forEach((g,i)=>{if(guides.length<2)return;const b=document.createElement('button');b.className='replacement-choice';b.textContent=g.label;b.setAttribute('aria-pressed',String(i===variant));b.onclick=()=>{variant=i;page=0;draw(true);};choices.appendChild(b);});
   // Keep the player and photos mounted while paging; otherwise their height collapses.
@@ -10854,7 +10873,7 @@ function appendReplacementGuide(host,key,initialVariant=0){
   const editableSource='replace:'+key+':'+variant;
   if(typeof editableManualChanged==='function'&&editableManualChanged(editableSource)){
    media.replaceChildren();mediaVariant=-1;stage.replaceChildren();
-   appendEditableManual(stage,editableManualSource(editableSource).id,key.startsWith('카메라:')?host=>appendEditableCameraActions(host,key.split(':')[1]):null);return;
+   appendEditableManual(stage,editableManualSource(editableSource).id,null,{videoHost:cameraModel?media:null});return;
   }
   if(cards.length){
    const card=document.createElement('article');card.className='replacement-step';card.setAttribute('aria-live','polite');
@@ -10865,11 +10884,6 @@ function appendReplacementGuide(host,key,initialVariant=0){
    const nav=document.createElement('div');nav.className='replacement-navigation';
    const prev=document.createElement('button');prev.textContent='이전';prev.disabled=page===0;prev.onclick=()=>{page=Math.max(0,page-1);draw(true);};nav.appendChild(prev);
    const next=document.createElement('button');next.className='replacement-next';next.textContent=cameraFinish||page===cards.length?'처음부터 보기':page===cards.length-1?'안내 확인 완료':'다음';next.onclick=()=>{page=cameraFinish||page===cards.length?0:page+1;draw(true);};nav.appendChild(next);
-   if(cameraFinish){
-    const links=document.createElement('div');links.className='tool-card-grid';links.style.marginTop='18px';
-    for(const [icon,label,desc,action] of [['🛠️','기본세팅 하기','교체한 카메라의 기본 설정을 확인해요.',goToCameraBasicSetup],['🎨','색감 세팅 하기','색감 값을 보며 영상에 따라 설정해요.',goToCameraColorGuideContent]]){const b=document.createElement('button');b.className='tool-card';b.innerHTML='<span class="tc-icon">'+icon+'</span><div class="tc-title">'+label+'</div><div class="tc-desc">'+desc+'</div>';b.onclick=()=>{selectedCameraModel=key.split(':')[1];action();};links.appendChild(b);}
-    card.appendChild(links);
-   }
    card.appendChild(nav);content.appendChild(card);
   }
   if(!guide.steps.length){const note=document.createElement('p');note.className='replacement-video-note';note.textContent='교체 과정은 위 영상 매뉴얼에서 확인해 주세요.';content.appendChild(note);}
@@ -10878,9 +10892,14 @@ function appendReplacementGuide(host,key,initialVariant=0){
   if(focus)stage.querySelector('h3')?.focus({preventScroll:true});
  }
  draw(false);
+ if(cameraModel)appendEditableCameraActions(section,cameraModel);
 }
 function appendReplacementMedia(host,key,indices){
  const all=REPLACEMENT_MEDIA[key]||[];const items=indices?indices.map(i=>all[i]).filter(Boolean):all;if(!items.length)return;
+ if(key.startsWith('카메라:')){
+  for(const [label,video]of items)if(video)host.appendChild(createManualVideo('https://www.youtube.com/watch?v='+video,label));
+  return;
+ }
  const section=document.createElement('section');section.className='replacement-media';
  const title=document.createElement('h3');title.textContent='영상 매뉴얼';section.appendChild(title);
  for(const [label,video,image] of items){const card=document.createElement('div');card.className='replacement-media-card';const heading=document.createElement('h4');heading.textContent=label;card.appendChild(heading);

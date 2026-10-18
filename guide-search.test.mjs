@@ -53,3 +53,35 @@ test('replacement next retains media nodes and height, while changing a variant 
  assert.equal(mediaCalls,1);assert.equal(media.children[0],player);assert.equal(stage.style.minHeight,'300px');
  sectionEl.children[1].children[1].onclick();assert.equal(mediaCalls,2);assert.notEqual(media.children[0],player);
 });
+
+test('each camera replacement shows its player immediately and keeps setup actions outside the paged guide',()=>{
+ class El{
+  constructor(tag){this.tag=tag;this.children=[];this.style={};this.attributes={};}
+  appendChild(x){if(x.tag==='fragment')this.children.push(...x.children);else this.children.push(x);return x;}
+  append(...x){x.forEach(n=>this.appendChild(n));}set innerHTML(x){this.children=[];}
+  setAttribute(k,v){this.attributes[k]=v;}focus(o){assert.equal(o.preventScroll,true);}
+  getBoundingClientRect(){return {height:300};}replaceChildren(...x){this.children=[];this.append(...x);}
+  all(){return this.children.flatMap(c=>[c,...c.all()]);}
+  querySelector(tag){return this.all().find(c=>c.tag===tag)||null;}
+ }
+ const c=vm.createContext({URL,document:{createElement:t=>new El(t),createDocumentFragment:()=>new El('fragment')},
+  goToCameraBasicSetup(){c.visited=['basic',c.selectedCameraModel];},goToCameraColorGuideContent(){c.visited=['color',c.selectedCameraModel];}});
+ vm.runInContext(section('function youtubeManualUrl(', 'function symptomVideoUrl(')+section('function createManualVideo(', 'function createDiagnosisVideoChoices(')+read('editable-manuals.js')+
+  section('const REPLACEMENT_MEDIA =','function renderEquipReplaceDetailScreen('),c);
+ for(const model of ['r10','850d','m50']){
+  const host=new El('main');c.appendReplacementGuide(host,'카메라:'+model);
+  const panel=host.children[0],media=panel.children[0],stage=panel.children[1],actions=panel.children[2];
+  const player=media.querySelector('iframe');assert.ok(player,'inline player for '+model);
+  const expected=vm.runInContext('REPLACEMENT_MEDIA["카메라:'+model+'"][0][1]',c);
+  assert.equal(player.src,'https://www.youtube-nocookie.com/embed/'+expected);
+  assert.ok(!media.all().some(el=>el.tag==='button'));assert.equal(actions.className,'camera-after-replacement');
+  const buttons=actions.all().filter(el=>el.tag==='button');assert.equal(buttons.length,2);
+  assert.ok(buttons.every(b=>b.type==='button'));
+  for(let i=0;i<3;i++)stage.children[0].children.at(-1).children[1].onclick();
+  assert.equal(stage.querySelector('h3').textContent,'카메라 장착');
+  assert.equal(stage.children[0].children.at(-1).children[1].textContent,'처음부터 보기');
+  assert.equal(media.querySelector('iframe'),player);assert.equal(panel.children[2],actions);
+  buttons[0].onclick();assert.deepEqual(c.visited,['basic',model]);buttons[1].onclick();assert.deepEqual(c.visited,['color',model]);
+  assert.equal(stage.all().filter(el=>el.className==='camera-after-replacement').length,0);
+ }
+});
