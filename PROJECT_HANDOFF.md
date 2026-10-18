@@ -375,3 +375,10 @@ Changed SNAPISM jam turn over title to 'jam turn over 오류 코드 조치 방�
 - 회사 기존 매뉴얼 영상에서 확인한 정지 화면 23개를 assets/manual-scenes/pf-*.jpg로 추가했습니다. 인증 정보나 DB 전체 내보내기 자료는 포함하지 않습니다.
 - 두 환경 모두 현재 리비전과 내용 해시를 확인한 롤백 검증에 통과했습니다. 실제 데이터 반영은 정적 사진 배포 확인 후 기존 save_diagnosis_tree RPC와 이력 보존 방식으로 수행합니다.
 - 검증: production 자동 검사 125개, staging 80개 통과. 로그인/CMS/권한/3D 모델은 변경하지 않습니다.
+
+
+## 2026-10-18 guide search and ES-1 photos
+- Home and header search published symptom, replacement, care, and camera setup guides; supports brand filtering and Korean aliases/error codes. Retired/held guides and account/editor data are excluded. Search opens diagnostic guides at their first step.
+- Replacement paging retains video/image DOM and reserves text-card height to avoid scroll jumps/player resets.
+- ES-1 database media: n1 only C dial image; n2a/n3a retain the two recent photos and remove E01 video stills. Existing relevant n3a video remains. Each environment uses its own C-image URL and revision-guarded save history.
+- Verification: guide-search.test.mjs plus existing regression suites and 390px browser check.

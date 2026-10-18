@@ -81,8 +81,8 @@ test('non-hot-topic symptoms load their published guide before opening the chat'
 });
 test('printer replacement remembers the chosen model and clears it when choosing again',()=>{
   const elements=new Map();
-  const element=()=>({innerHTML:'',textContent:'',setAttribute(){},classList:{remove(){}},appendChild(child){this.innerHTML+=child.innerHTML;}});
-  const context=vm.createContext({document:{getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);},createElement:element},clearTimeout(){},logEvent(...args){context.events.push(args);},events:[],render(){},updateResetButton(){}});
+  const element=replacementTestElement;
+  const context=vm.createContext({document:{getElementById(id){if(!elements.has(id))elements.set(id,element());return elements.get(id);},createElement:element,createDocumentFragment:()=>element('fragment')},takeGuideSearchVariant:()=>0,clearTimeout(){},logEvent(...args){context.events.push(args);},events:[],render(){},updateResetButton(){}});
   vm.runInContext(section('let selectedEquipReplaceDevice = null;', 'let pendingCameraAction')+"\nlet appState,selectedDevice,screenSwapTimer,screenEnterTimer;const EQUIP_REPLACE_DEVICES=[{name:'프린터',icon:'🖨️'}];\n"+section('function goToPrinterModel(', 'function goToColorModel('),context);
   for(const [id,label] of [['rx1','DNP RX1'],['ask400','후지필름 ASK-400']]){
     vm.runInContext("goToPrinterModel('equipReplace')",context);
@@ -119,12 +119,12 @@ test('camera setup video follows the selected model and opens the shared player'
   }
 });
 test('replacement cards navigate, finish, restart and reset type without mixing videos',()=>{
-  const element=()=>({children:[],_html:'',set innerHTML(v){this._html=v;this.children=[];},get innerHTML(){return this._html;},textContent:'',setAttribute(){},focus(){},appendChild(child){this.children.push(child);}});
-  const ctx=vm.createContext({document:{createElement:element}});
+  const element=replacementTestElement;
+  const ctx=vm.createContext({document:{createElement:element,createDocumentFragment:()=>element('fragment')}});
   vm.runInContext(section('const REPLACEMENT_MEDIA =','function renderEquipReplaceDetailScreen()'),ctx);
   const host=element();ctx.host=host;
   vm.runInContext("appendReplacementGuide(host,'지폐투입기')",ctx);
-  const sectionEl=host.children[0],choices=sectionEl.children[1],stage=sectionEl.children[2],media=sectionEl.children[3];
+  const sectionEl=host.children[0],choices=sectionEl.children[1],stage=sectionEl.children[3],media=sectionEl.children[2];
   const card=()=>stage.children[0],nav=()=>card().children[3];
   assert.equal(nav().children[0].disabled,true);
   nav().children[1].onclick();
@@ -470,3 +470,13 @@ test('a single relevant video stays inline after the photograph',async()=>{
  const {ctx,container}=photoFirstFixture();container.dataset.media=encodeURIComponent(JSON.stringify([{kind:'link',url:'https://www.youtube.com/watch?v=3uehpJLn4tM&start=50&end=68',name:'HDMI 교체'},{kind:'image',url:'https://example.test/p.jpg',name:'사진'}]));
  await vm.runInContext('hydrateDiagnosisMedia()',ctx);assert.equal(container.children[0].children[0].tag,'img');assert.equal(container.children[1].children[0].className,'manual-video');
 });
+
+
+function replacementTestElement(tag='div'){
+ return {tag,children:[],style:{},dataset:{},_html:'',textContent:'',classList:{remove(){}},
+ get innerHTML(){return this._html+this.children.map(c=>c.innerHTML||'').join('');},set innerHTML(v){this._html=v;this.children=[];},
+ setAttribute(){},focus(){},getBoundingClientRect(){return {height:300};},
+ append(...xs){xs.forEach(x=>this.appendChild(x));},appendChild(x){if(x.tag==='fragment')this.children.push(...x.children);else this.children.push(x);return x;},
+ replaceChildren(...xs){this.children=[];this.append(...xs);},querySelector(tag){for(const x of this.children){if(x.tag===tag)return x;const child=x.querySelector?.(tag);if(child)return child;}return null;}
+ };
+}

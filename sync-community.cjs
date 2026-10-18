@@ -21,4 +21,13 @@ if(html.includes(start))html=html.slice(0,html.indexOf(start))+block+html.slice(
 else html=html.replace('/* ============================= FLOW LOGIC ============================= */',block+'\n\n/* ============================= FLOW LOGIC ============================= */');
 const catalogStart='/* SYMPTOM CATALOG START */',catalogEnd='/* SYMPTOM CATALOG END */';
 html=html.slice(0,html.indexOf(catalogStart))+catalogStart+'\n'+fs.readFileSync(path.join(root,'symptom-catalog.js'),'utf8')+'\n'+catalogEnd+html.slice(html.indexOf(catalogEnd)+catalogEnd.length);
+
+const searchStart='/* GUIDE SEARCH START */',searchEnd='/* GUIDE SEARCH END */';
+const searchBlock=searchStart+'\n'+fs.readFileSync(path.join(root,'guide-search.js'),'utf8')+'\n'+searchEnd;
+if(html.includes(searchStart))html=html.slice(0,html.indexOf(searchStart))+searchBlock+html.slice(html.indexOf(searchEnd)+searchEnd.length);
+else html=html.replace('/* ============================= FLOW LOGIC ============================= */',searchBlock+'\n/* ============================= FLOW LOGIC ============================= */');
+const searchCssStart='/* GUIDE SEARCH CSS START */',searchCssEnd='/* GUIDE SEARCH CSS END */';
+const searchCss=searchCssStart+'\n'+fs.readFileSync(path.join(root,'guide-search.css'),'utf8')+'\n'+searchCssEnd;
+if(html.includes(searchCssStart))html=html.slice(0,html.indexOf(searchCssStart))+searchCss+html.slice(html.indexOf(searchCssEnd)+searchCssEnd.length);
+else html=html.replace('</style>',searchCss+'\n</style>');
 fs.writeFileSync(file,html);
