@@ -92,3 +92,39 @@ test('saved camera opening video is displayed above the guide once without chang
  assert.equal(c.displayed.text,'수정한 교체 안내');assert.equal(c.displayed.media.length,0);
  assert.equal(JSON.stringify(tree),snapshot);assert.equal(c.api.diagnosisStore.rows[manual.id].tree.nodes[tree.start].media.length,1);
 });
+
+
+test('three camera replacements start at preparation with one video and retain edited intro content',()=>{
+ class El{
+  constructor(tag){this.tag=tag;this.children=[];this.style={};this.dataset={};this.attributes={};}
+  appendChild(el){el.parent=this;this.children.push(el);return el;}
+  setAttribute(k,v){this.attributes[k]=v;}
+  all(){return this.children.flatMap(c=>[c,...c.all()]);}
+  querySelectorAll(tag){return this.all().filter(c=>c.tag===tag);}
+  querySelector(){return null;}
+  remove(){this.parent.children=this.parent.children.filter(el=>el!==this);}
+ }
+ for(const model of ['r10','850d','m50'])for(const variant of ['placeholder','text','photo','branch','attachment']){
+  const c=harness(),manual=manuals.find(m=>m.source===`replace:카메라:${model}:0`),tree=structuredClone(manual.tree),intro=tree.nodes[tree.start];
+  const next=intro.options[0].next;
+  if(variant==='text')intro.text+=' 사용자 추가 안내';
+  if(variant==='photo')intro.media.push({...manuals.find(m=>m.source===`camera:${model}:basic`).tree.nodes.n1.media[0]});
+  if(variant==='branch')intro.options.push({label:'종료',end:'info'});
+  if(variant==='attachment')intro.attachment='꼭 확인할 안내';
+  const saved=JSON.stringify(tree);c.api.applyPublishedRows([{symptom_id:manual.id,tree,revision:3}],'server');
+  c.document={createElement:tag=>new El(tag)};c.renderDiagnosisMedia=()=>'';c.hydrateDiagnosisMedia=()=>{};
+  c.appendSymptomVideoButtons=()=>assert.fail('camera must keep the inline player');
+  c.youtubeManualUrl=url=>url;c.createManualVideo=()=>new El('iframe');
+  const host=new El('main'),videoHost=new El('header');c.appendEditableManual(host,manual.id,null,{videoHost});
+  const reader=host.children[0],first=reader.children[0];
+  assert.equal(first.children[0].textContent,'STEP 1');
+  assert.equal(first.children[1].textContent,variant==='placeholder'?tree.nodes[next].text:intro.text,model+' '+variant);
+  assert.equal(videoHost.children.length,1);
+  if(variant==='placeholder'){
+   first.querySelectorAll('button')[0].onclick();
+   assert.equal(reader.children[1].children[0].textContent,'STEP 2');
+   assert.equal(reader.children[0],first);assert.equal(videoHost.children.length,1);
+  }
+  assert.equal(JSON.stringify(c.api.diagnosisStore.rows[manual.id].tree),saved);
+ }
+});

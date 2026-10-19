@@ -16,19 +16,27 @@ function appendEditableManual(host,id,onComplete,{videoHost=null}={}){
  const trail=[];
  function append(nid){
   const node=tree.nodes[nid];if(!node)return;
-  const card=document.createElement('article');card.className='bubble bot';card.style.cssText='margin:20px 0;max-width:100%;box-sizing:border-box';
-  const index=trail.length;trail.push(card);
-  const heading=document.createElement('h3');heading.textContent='STEP '+(index+1);heading.tabIndex=-1;card.appendChild(heading);
-  const text=document.createElement('p');text.style.whiteSpace='pre-wrap';text.textContent=node.text;card.appendChild(text);
-  if(node.attachment){const extra=document.createElement('p');extra.textContent=node.attachment;card.appendChild(extra);}
   // Camera replacement keeps its saved opening videos above the step text.
   // Only the display copy is filtered; saved content and editor drafts stay intact.
-  const openingVideos=index===0&&videoHost?(node.media||[]).filter(item=>{
+  const openingVideos=nid===tree.start&&trail.length===0&&videoHost?(node.media||[]).filter(item=>{
    if(item.kind!=='link'||item.path)return false;
    try{return !!youtubeManualUrl(item.url);}catch{return false;}
   }):[];
   for(const item of openingVideos)videoHost.appendChild(createManualVideo(item.url,item.name));
   const displayNode=openingVideos.length?{...node,media:node.media.filter(item=>!openingVideos.includes(item))}:node;
+  // The camera video already has its own player above the instructions.
+  // Skip only the empty, single-next intro; preserve edited text, photos and branches.
+  const introNext=node.options?.length===1?node.options[0]:null;
+  if(/^replace:카메라:(r10|850d|m50):0$/.test(meta.source)&&openingVideos.length&&
+     node.text?.trim()==='교체 영상·사진 매뉴얼'&&!node.attachment&&
+     !displayNode.media?.length&&introNext?.next&&introNext.next!==nid&&
+     tree.nodes[introNext.next]&&!introNext.end&&!introNext.jump&&
+     !introNext.note&&!introNext.attachment){append(introNext.next);return;}
+  const card=document.createElement('article');card.className='bubble bot';card.style.cssText='margin:20px 0;max-width:100%;box-sizing:border-box';
+  const index=trail.length;trail.push(card);
+  const heading=document.createElement('h3');heading.textContent='STEP '+(index+1);heading.tabIndex=-1;card.appendChild(heading);
+  const text=document.createElement('p');text.style.whiteSpace='pre-wrap';text.textContent=node.text;card.appendChild(text);
+  if(node.attachment){const extra=document.createElement('p');extra.textContent=node.attachment;card.appendChild(extra);}
   const media=document.createElement('div');media.innerHTML=renderDiagnosisMedia(displayNode);card.appendChild(media);
   if(index===0&&!videoHost)appendSymptomVideoButtons(card,tree);
   const options=document.createElement('div');options.className='options-wrap';card.appendChild(options);

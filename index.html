@@ -2021,6 +2021,19 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 @media(max-width:600px){.step-review-report{padding:16px;width:96vw}.step-review-report h2{font-size:19px}.step-report-controls{display:grid;grid-template-columns:minmax(0,1fr)}.step-report-controls input{min-width:0;width:100%}.step-review-flags button{min-height:42px}.step-review-report header>button{flex:none}.step-report-item{padding:12px}}
 
 /* STEP REVIEWS CSS END */
+
+/* PRIMARY NAVIGATION START */
+.primary-navigation{display:flex;justify-content:center;gap:12px;flex-basis:100%;width:100%;max-width:640px;margin:2px auto 0;padding-top:12px;border-top:1px solid var(--border)}
+.primary-navigation[hidden]{display:none!important}
+.primary-navigation #homeBtn,.primary-navigation #resetBtn{flex:1;min-width:0;max-width:300px;width:auto;height:auto;min-height:50px;padding:12px 18px;border-radius:12px;font-family:inherit;font-size:16px;font-weight:700;line-height:1.4;justify-content:center;align-items:center;gap:8px;white-space:normal;word-break:keep-all;color:var(--text)}
+.primary-navigation #homeBtn{background:var(--panel2);border-color:var(--accent)}
+.primary-navigation #resetBtn{background:var(--accent);border-color:var(--accent);color:#16190c}
+.primary-navigation button:focus-visible{outline:3px solid var(--text);outline-offset:3px}
+.primary-navigation button:hover{filter:brightness(1.08)}
+.primary-navigation svg{flex-shrink:0}
+@media(max-width:600px){.primary-navigation{gap:8px;padding-top:10px}.primary-navigation #homeBtn,.primary-navigation #resetBtn{min-height:48px;font-size:15px;padding:11px 10px}}
+/* PRIMARY NAVIGATION END */
+
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <style>#endingGuideDialog label{display:flex;flex-direction:column;gap:6px;margin:14px 0}#endingGuideDialog input,#endingGuideDialog select,#endingGuideDialog textarea{box-sizing:border-box;width:100%;padding:10px;color:inherit;background:var(--panel,#24262c);border:1px solid #626773;border-radius:8px;font:inherit}#endingGuideDialog button{padding:10px;margin:6px 0;border-radius:8px;cursor:pointer}#endingGuideDialog::backdrop{background:#0009}#endingGuideDialog p{font-size:13px;line-height:1.6}</style></head>
@@ -2067,14 +2080,19 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
         <button class="home-btn" id="logoutBtn" style="display:none;" title="로그아웃">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
         </button>
-        <button class="home-btn" id="homeBtn" style="display:none;" title="도구 홈으로">🏠</button>
         <button class="theme-toggle" id="themeToggle" aria-label="다크/라이트 모드 전환">
           <span class="theme-toggle-icon sun">☀️</span>
           <span class="theme-toggle-knob"></span>
           <span class="theme-toggle-icon moon">🌙</span>
         </button>
-        <button class="reset-btn" id="resetBtn" style="display:none;">↺ 처음부터 다시</button>
       </div>
+      <nav class="primary-navigation" id="primaryNavigation" aria-label="화면 이동" hidden>
+        <button class="reset-btn" id="resetBtn" type="button" style="display:none;">↺ 처음부터 다시</button>
+        <button class="home-btn" id="homeBtn" type="button" style="display:none;" title="홈으로">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1Z"/><path d="M9 21v-8h6v8"/></svg>
+          <span>홈으로</span>
+        </button>
+      </nav>
     </div>
     <div class="progress-trail" id="progressTrail"></div>
     <div id="publishedContentNotice" role="status" hidden style="padding:10px;color:#e0a256;text-align:center"></div>
@@ -7291,19 +7309,27 @@ function appendEditableManual(host,id,onComplete,{videoHost=null}={}){
  const trail=[];
  function append(nid){
   const node=tree.nodes[nid];if(!node)return;
-  const card=document.createElement('article');card.className='bubble bot';card.style.cssText='margin:20px 0;max-width:100%;box-sizing:border-box';
-  const index=trail.length;trail.push(card);
-  const heading=document.createElement('h3');heading.textContent='STEP '+(index+1);heading.tabIndex=-1;card.appendChild(heading);
-  const text=document.createElement('p');text.style.whiteSpace='pre-wrap';text.textContent=node.text;card.appendChild(text);
-  if(node.attachment){const extra=document.createElement('p');extra.textContent=node.attachment;card.appendChild(extra);}
   // Camera replacement keeps its saved opening videos above the step text.
   // Only the display copy is filtered; saved content and editor drafts stay intact.
-  const openingVideos=index===0&&videoHost?(node.media||[]).filter(item=>{
+  const openingVideos=nid===tree.start&&trail.length===0&&videoHost?(node.media||[]).filter(item=>{
    if(item.kind!=='link'||item.path)return false;
    try{return !!youtubeManualUrl(item.url);}catch{return false;}
   }):[];
   for(const item of openingVideos)videoHost.appendChild(createManualVideo(item.url,item.name));
   const displayNode=openingVideos.length?{...node,media:node.media.filter(item=>!openingVideos.includes(item))}:node;
+  // The camera video already has its own player above the instructions.
+  // Skip only the empty, single-next intro; preserve edited text, photos and branches.
+  const introNext=node.options?.length===1?node.options[0]:null;
+  if(/^replace:카메라:(r10|850d|m50):0$/.test(meta.source)&&openingVideos.length&&
+     node.text?.trim()==='교체 영상·사진 매뉴얼'&&!node.attachment&&
+     !displayNode.media?.length&&introNext?.next&&introNext.next!==nid&&
+     tree.nodes[introNext.next]&&!introNext.end&&!introNext.jump&&
+     !introNext.note&&!introNext.attachment){append(introNext.next);return;}
+  const card=document.createElement('article');card.className='bubble bot';card.style.cssText='margin:20px 0;max-width:100%;box-sizing:border-box';
+  const index=trail.length;trail.push(card);
+  const heading=document.createElement('h3');heading.textContent='STEP '+(index+1);heading.tabIndex=-1;card.appendChild(heading);
+  const text=document.createElement('p');text.style.whiteSpace='pre-wrap';text.textContent=node.text;card.appendChild(text);
+  if(node.attachment){const extra=document.createElement('p');extra.textContent=node.attachment;card.appendChild(extra);}
   const media=document.createElement('div');media.innerHTML=renderDiagnosisMedia(displayNode);card.appendChild(media);
   if(index===0&&!videoHost)appendSymptomVideoButtons(card,tree);
   const options=document.createElement('div');options.className='options-wrap';card.appendChild(options);
@@ -11455,6 +11481,8 @@ function updateResetButton(){
   } else {
     resetBtn.style.display = 'none';
   }
+  const navigation=document.getElementById('primaryNavigation');
+  if(navigation)navigation.hidden=homeBtn.style.display==='none'&&resetBtn.style.display==='none';
 }
 
 let screenSwapTimer=null,screenEnterTimer=null;
