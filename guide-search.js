@@ -42,7 +42,7 @@ function buildGuideSearchIndex(){
  }
  for(const sid of catalogSymptoms('CMS','snapism'))if(TREES[sid])add({id:'snapism:'+sid,brand:'snapism',device:'CMS',code:sid,title:hotTopicLabel(sid),kind:'고장 조치',body:guideSearchBody(TREES[sid]),route:'symptom',sid});
  for(const device of ['CX7600','DS620','모니터','PC','카드리더기','서비스코인','키오스크']){
-  for(const category of ['repair','replace','care','info'])for(const [index,item]of snapEntries(device,category).entries()){
+  for(const category of ['repair','replace'])for(const [index,item]of snapMenuEntries(device,category).entries()){
    if(item.held||(!item.cards.length&&!item.sid))continue;
    add({id:'snapism:'+device+':'+category+':'+index,brand:'snapism',device,code:item.sid||'',title:item.title,kind:{repair:'고장 조치',replace:'교체 방법',care:'소모품·청소',info:'장비 안내'}[category],body:item.sid?guideSearchBody(TREES[item.sid]):(typeof editableManualBody==='function'?editableManualBody(item.editSource,item.cards.map(c=>c.text).join(' ')):item.cards.map(c=>c.text).join(' ')),route:'snap',category,index});
   }
@@ -77,10 +77,10 @@ async function openGuideSearchResult(entry){
  if(entry.route==='symptom'){await startSymptom(entry.sid);return;}
  path=[];if(typeof helperAttempt!=='undefined')helperAttempt=null;
  if(entry.route==='snap'){
-  const item=snapEntries(entry.device,entry.category)[entry.index];
+  const item=snapMenuEntries(entry.device,entry.category)[entry.index];
   if(!item||item.held)return;
   if(item.sid){await startSymptom(item.sid);return;}
-  snapManualFilter=entry.device;snapManualReturn='guideSearch';snapCategory=entry.category;snapEntry=item;snapStep=0;snapStage='guide';appState='snapManuals';
+  snapManualFilter=entry.device;snapManualReturn='guideSearch';snapCategory=entry.category;snapBeginGuide(item);appState='snapManuals';
  }else if(entry.route==='replace'){
   selectedEquipReplaceDevice=entry.device;selectedCameraModel=entry.device==='카메라'?entry.model:null;selectedPrinterModel=entry.device==='프린터'?entry.model:null;guideSearchVariant={key:entry.key,variant:entry.variant};appState='equipReplaceDetail';
  }else if(entry.route==='camera'){

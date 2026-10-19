@@ -34,7 +34,7 @@ test('search respects brand, hides retired and held guides, and indexes approved
  assert.ok(c.entries.every(e=>!('email' in e)&&!('user_id' in e)));
 });
 test('each indexed route resolves to the correct model, variant or approved manual',()=>{
- const c=harness();vm.runInContext(`globalThis.failures=buildGuideSearchIndex().filter(e=>e.route==='replace'?!REPLACEMENT_GUIDES[e.key]?.[e.variant]:e.route==='snap'?!snapEntries(e.device,e.category)[e.index]?.cards.length:e.route==='camera'?!CAMERA_MODELS.some(m=>m.id===e.model):!TREES[e.sid]);`,c);
+ const c=harness();vm.runInContext(`globalThis.failures=buildGuideSearchIndex().filter(e=>e.route==='replace'?!REPLACEMENT_GUIDES[e.key]?.[e.variant]:e.route==='snap'?!snapMenuEntries(e.device,e.category)[e.index]?.cards.length:e.route==='camera'?!CAMERA_MODELS.some(m=>m.id===e.model):!TREES[e.sid]);`,c);
  assert.equal(c.failures.length,0);
 });
 test('replacement next retains media nodes and height, while changing a variant replaces media',()=>{
