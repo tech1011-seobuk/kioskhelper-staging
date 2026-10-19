@@ -467,48 +467,6 @@
   .admin-nav-btn:hover{ transform:translateY(-1px); box-shadow:0 4px 14px rgba(var(--glass-rgb),.35); }
   .admin-nav-btn.active{ background:var(--panel2); color:var(--accent); border-color:var(--accent); }
 
-  .speak-toggle-btn{
-    background:var(--panel2); border:1px solid var(--border); color:var(--muted);
-    padding:8px 14px; border-radius:9px; font-size:12.5px; font-weight:600;
-    cursor:pointer; font-family:inherit; white-space:nowrap;
-    transition:all .15s ease;
-  }
-  .speak-toggle-btn:hover{ border-color:var(--accent); color:var(--text); }
-  .speak-toggle-btn.active{ background:var(--accent); color:var(--accent-ink); border-color:var(--accent); }
-
-  .voice-modal-overlay{
-    position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:900;
-    display:flex; align-items:center; justify-content:center; padding:20px;
-  }
-  .voice-modal{
-    background:var(--panel); border:1px solid var(--border); border-radius:16px;
-    padding:22px; width:100%; max-width:420px; max-height:80vh; overflow-y:auto;
-    box-shadow:0 20px 60px rgba(0,0,0,.4);
-  }
-  .voice-modal-header{ display:flex; justify-content:space-between; align-items:center; }
-  .voice-modal-close{
-    background:none; border:none; color:var(--muted); font-size:16px; cursor:pointer; padding:4px 8px;
-  }
-  .voice-modal-close:hover{ color:var(--text); }
-  .voice-modal-sub{ font-size:12.5px; color:var(--muted); margin:8px 0 18px; line-height:1.5; }
-  .voice-list{ display:flex; flex-direction:column; gap:8px; }
-  .voice-item{
-    display:flex; align-items:center; justify-content:space-between; gap:10px;
-    border:1px solid var(--border); border-radius:11px; padding:11px 14px;
-    cursor:pointer; transition:border-color .12s ease;
-  }
-  .voice-item:hover{ border-color:var(--accent); }
-  .voice-item.selected{ border-color:var(--accent); background:var(--accent-dim); }
-  .voice-item-name{ font-size:13.5px; font-weight:600; }
-  .voice-item-badge{ font-size:10.5px; color:var(--accent); font-weight:700; margin-left:6px; }
-  .voice-item-actions{ display:flex; align-items:center; gap:8px; flex-shrink:0; }
-  .voice-preview-btn{
-    background:var(--panel2); border:1px solid var(--border); color:var(--text);
-    border-radius:8px; padding:6px 11px; font-size:12px; cursor:pointer; font-family:inherit;
-  }
-  .voice-preview-btn:hover{ border-color:var(--accent); }
-  .voice-select-radio{ width:16px; height:16px; accent-color:var(--accent); }
-
   .topbar-right{ display:flex; align-items:center; gap:10px; }
 
   /* ===== Hub screen: pick which tool to use ===== */
@@ -2023,7 +1981,7 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 /* STEP REVIEWS CSS END */
 
 /* PRIMARY NAVIGATION START */
-.primary-navigation{display:flex;justify-content:center;gap:12px;flex-basis:100%;width:100%;max-width:640px;margin:2px auto 0;padding-top:12px;border-top:1px solid var(--border)}
+.primary-navigation{display:flex;justify-content:center;gap:12px;flex-basis:100%;width:100%;max-width:none;margin:2px auto 0;padding-top:12px;border-top:1px solid var(--border)}
 .primary-navigation[hidden]{display:none!important}
 .primary-navigation #homeBtn,.primary-navigation #resetBtn{flex:1;min-width:0;max-width:300px;width:auto;height:auto;min-height:50px;padding:12px 18px;border-radius:12px;font-family:inherit;font-size:16px;font-weight:700;line-height:1.4;justify-content:center;align-items:center;gap:8px;white-space:normal;word-break:keep-all;color:var(--text)}
 .primary-navigation #homeBtn{background:var(--panel2);border-color:var(--accent)}
@@ -2055,25 +2013,11 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 <div id="lightbox" onclick="closeLightbox()"><img id="lightboxImg" src="" alt=""></div>
 <div id="toastWrap"></div>
 
-<div id="voiceSettingsModal" class="voice-modal-overlay" style="display:none;" onclick="if(event.target===this) closeVoiceSettings();">
-  <div class="voice-modal">
-    <div class="voice-modal-header">
-      <div class="hub-title" style="margin:0; font-size:16px;">🎙️ 목소리 설정</div>
-      <button class="voice-modal-close" onclick="closeVoiceSettings()">✕</button>
-    </div>
-    <div class="voice-modal-sub">이 기기에 설치된 한국어 음성 중 마음에 드는 걸 골라주세요. 미리 들어볼 수 있어요.</div>
-    <div id="voiceList" class="voice-list"></div>
-  </div>
-</div>
-
-<div id="stagingBanner">🧪 테스트 서버입니다 — 로그인·이용 기록·진단 안내가 운영 사이트와 분리됩니다</div>
 <div class="app">
   <main class="main">
     <div class="topbar">
       <div class="breadcrumb" id="breadcrumb">PHOTOISM 헬퍼</div>
       <div class="topbar-right">
-        <button class="speak-toggle-btn" id="autoSpeakBtn" style="display:none;" title="음성으로 자동 읽어주기">🔈 자동 읽기 켜기</button>
-        <button class="speak-toggle-btn" id="voiceSettingsBtn" style="display:none;" title="목소리 설정">🎙️</button>
         <button class="admin-nav-btn" id="adminDashBtn" style="display:none;" title="관리자 대시보드">📊 관리자</button>
         <button class="admin-nav-btn" id="diagramEditorBtn" style="display:none;" title="매뉴얼 관리">🗂️ 매뉴얼 관리</button>
         <span id="userInfo" style="display:none; font-size:12px; color:var(--muted); margin-right:4px;"></span>
@@ -6204,16 +6148,6 @@ document.getElementById('diagramEditorBtn').addEventListener('click', (e)=>{
   goToDiagramEditor();
 });
 
-document.getElementById('autoSpeakBtn').addEventListener('click', (e)=>{
-  addRipple(e.currentTarget, e);
-  toggleAutoSpeak();
-});
-
-document.getElementById('voiceSettingsBtn').addEventListener('click', (e)=>{
-  addRipple(e.currentTarget, e);
-  openVoiceSettings();
-});
-
 /* ============================= DATA ============================= */
 
 const SYMPTOM_LABEL = {
@@ -7583,7 +7517,6 @@ async function startSymptom(symptomId){
 }
 
 function resetAll(){
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   if (symptomSource === 'snapism') { goToSnapismPicker(); } else { goToPicker(); }
 }
 
@@ -7644,185 +7577,7 @@ function buildBubbleInner(stepCounter, step, node){
     (!photoList.length ? attachmentMarkup(node.attachment) : '');
 }
 
-/* ---- 음성 읽어주기 (자동 모드) ---- */
-let autoSpeakEnabled = false;
-let autoSpokenKeys = new Set();
 let feedbackSubmittedKeys = new Set();
-let cachedFriendlyVoice = null;
-
-if ('speechSynthesis' in window) {
-  window.speechSynthesis.onvoiceschanged = () => { cachedFriendlyVoice = null; };
-}
-
-function pickFriendlyKoreanVoice(){
-  if (cachedFriendlyVoice) return cachedFriendlyVoice;
-  if (!('speechSynthesis' in window)) return null;
-  const voices = window.speechSynthesis.getVoices();
-  const korean = voices.filter(v => v.lang && v.lang.toLowerCase().startsWith('ko'));
-  if (!korean.length) return null;
-
-  let saved = null;
-  try { saved = localStorage.getItem('kioskHelperVoiceName'); } catch(err){}
-  if (saved) {
-    const savedVoice = korean.find(v => v.name === saved);
-    if (savedVoice) { cachedFriendlyVoice = savedVoice; return savedVoice; }
-  }
-
-  // 저장된 선택이 없으면, 친근하게 들리는 여성 음색을 우선적으로 시도 (기기/브라우저마다 제공 목록이 달라요)
-  const preferredNames = ['yuna','유나','sunhi','선히','희','female','여성','한국의'];
-  const best = korean.find(v => preferredNames.some(n => v.name.toLowerCase().includes(n)));
-  cachedFriendlyVoice = best || korean[0];
-  return cachedFriendlyVoice;
-}
-
-function getKoreanVoices(){
-  if (!('speechSynthesis' in window)) return [];
-  return window.speechSynthesis.getVoices().filter(v => v.lang && v.lang.toLowerCase().startsWith('ko'));
-}
-
-const FEMALE_VOICE_HINTS = ['yuna','유나','sunhi','선히','heami','희','female','여성','지민','서연','나연'];
-const MALE_VOICE_HINTS = ['injoon','인준','minsu','민수','male','남성','현수','준서','신지'];
-
-function classifyVoiceGender(v){
-  const n = v.name.toLowerCase();
-  if (FEMALE_VOICE_HINTS.some(h => n.includes(h))) return 'female';
-  if (MALE_VOICE_HINTS.some(h => n.includes(h))) return 'male';
-  return 'unknown';
-}
-
-function pickVoicesByGender(){
-  const voices = getKoreanVoices();
-  let female = voices.find(v => classifyVoiceGender(v) === 'female');
-  let male = voices.find(v => classifyVoiceGender(v) === 'male');
-  // 이름으로 구분이 안 되는 기기에서도 최소 2개는 골라볼 수 있게 나머지 중에서 채워줌
-  const rest = voices.filter(v => v !== female && v !== male);
-  if (!female && rest.length) female = rest.shift();
-  if (!male && rest.length) male = rest.shift();
-  return { female, male };
-}
-
-function openVoiceSettings(){
-  const modal = document.getElementById('voiceSettingsModal');
-  modal.style.display = 'flex';
-  renderVoiceList();
-  // 크롬 등 일부 브라우저는 음성 목록을 비동기로 불러와요 — 늦게 도착하면 다시 그려줌
-  if ('speechSynthesis' in window) {
-    window.speechSynthesis.onvoiceschanged = () => { cachedFriendlyVoice = null; renderVoiceList(); };
-  }
-}
-
-function closeVoiceSettings(){
-  document.getElementById('voiceSettingsModal').style.display = 'none';
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-}
-
-function renderVoiceList(){
-  const listEl = document.getElementById('voiceList');
-  const { female, male } = pickVoicesByGender();
-  if (!female && !male) {
-    listEl.innerHTML = '<div class="admin-empty">이 기기에서 한국어 음성을 찾지 못했어요.<br>잠시 후 다시 열어봐 주세요.</div>';
-    return;
-  }
-  let saved = null;
-  try { saved = localStorage.getItem('kioskHelperVoiceName'); } catch(err){}
-  const currentVoice = pickFriendlyKoreanVoice();
-  const selectedName = saved || (currentVoice ? currentVoice.name : null);
-
-  const options = [
-    { key:'female', label:'👩 여자 목소리', voice: female },
-    { key:'male', label:'👨 남자 목소리', voice: male }
-  ].filter(o => o.voice);
-
-  listEl.innerHTML = options.map(o => {
-    const isSelected = o.voice.name === selectedName;
-    return '<div class="voice-item'+(isSelected?' selected':'')+'" data-gender="'+o.key+'">' +
-      '<div><input type="radio" name="voiceChoice" class="voice-select-radio" '+(isSelected?'checked':'')+'>' +
-      '<span class="voice-item-name">'+o.label+'</span>' +
-      (isSelected ? '<span class="voice-item-badge">사용중</span>' : '') +
-      '</div>' +
-      '<div class="voice-item-actions"><button class="voice-preview-btn" data-gender-preview="'+o.key+'">▶ 미리듣기</button></div>' +
-    '</div>';
-  }).join('');
-
-  const voiceByGender = { female, male };
-
-  listEl.querySelectorAll('.voice-preview-btn').forEach(btn=>{
-    btn.onclick = (e)=>{
-      e.stopPropagation();
-      const v = voiceByGender[btn.dataset.genderPreview];
-      if (v && 'speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utter = new SpeechSynthesisUtterance('안녕하세요! 이 목소리는 이렇게 들려요.');
-        utter.lang = 'ko-KR';
-        utter.voice = v;
-        utter.rate = 1.02;
-        utter.pitch = 1.15;
-        window.speechSynthesis.speak(utter);
-      }
-    };
-  });
-
-  listEl.querySelectorAll('.voice-item').forEach(item=>{
-    item.onclick = ()=>{
-      const v = voiceByGender[item.dataset.gender];
-      if (!v) return;
-      try { localStorage.setItem('kioskHelperVoiceName', v.name); } catch(err){}
-      cachedFriendlyVoice = v;
-      renderVoiceList();
-      showToast('🎙️', (item.dataset.gender === 'female' ? '여자' : '남자')+' 목소리로 설정했어요.');
-    };
-  });
-}
-
-
-function speakStepText(text, opts){
-  opts = opts || {};
-  if (!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined') {
-    if (opts.notifyIfUnsupported) showToast('🔇', '이 브라우저는 음성 읽기를 지원하지 않아요.');
-    return;
-  }
-  if (opts.interrupt) window.speechSynthesis.cancel();
-  const utter = new SpeechSynthesisUtterance(text);
-  utter.lang = 'ko-KR';
-  utter.rate = 1.02;
-  utter.pitch = 1.15;
-  const voice = pickFriendlyKoreanVoice();
-  if (voice) utter.voice = voice;
-  window.speechSynthesis.speak(utter);
-}
-
-function updateAutoSpeakBtn(){
-  const btn = document.getElementById('autoSpeakBtn');
-  if (!btn) return;
-  btn.classList.toggle('active', autoSpeakEnabled);
-  btn.innerHTML = autoSpeakEnabled ? '🔊 자동 읽기 켜짐' : '🔈 자동 읽기 켜기';
-}
-
-function toggleAutoSpeak(){
-  autoSpeakEnabled = !autoSpeakEnabled;
-  if (!autoSpeakEnabled) {
-    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
-  } else {
-    speakStepText('이제부터 안내를 읽어드릴게요.', { interrupt:true, notifyIfUnsupported:true });
-    const last = path[path.length-1];
-    if (last && !last.end) {
-      const tree = TREES[last.symptomId];
-      const node = tree && tree.nodes[last.nodeId];
-      const key = (path.length-1)+'|'+last.symptomId+'|'+last.nodeId;
-      if (node && !autoSpokenKeys.has(key)) {
-        autoSpokenKeys.add(key);
-        speakStepText(node.text);
-      }
-    }
-  }
-  updateAutoSpeakBtn();
-}
-
-function maybeAutoSpeakStep(key, node){
-  if (!autoSpeakEnabled || autoSpokenKeys.has(key)) return;
-  autoSpokenKeys.add(key);
-  speakStepText(node.text);
-}
 
 function buildOptionsWrap(idx, node, animate){
   const opts = document.createElement('div');
@@ -8455,7 +8210,6 @@ const PICKER_HTML = `<div class="picker-screen hud-frame">
 </div>`;
 
 function goToHub(){
-  if ('speechSynthesis' in window) window.speechSynthesis.cancel();
   appState = 'hub';
   selectedDevice = null;
   path = [];
@@ -11406,15 +11160,9 @@ function renderSymptomsScreen(){
 function updateResetButton(){
   const resetBtn = document.getElementById('resetBtn');
   const homeBtn = document.getElementById('homeBtn');
-  const autoSpeakBtn = document.getElementById('autoSpeakBtn');
-  const voiceSettingsBtn = document.getElementById('voiceSettingsBtn');
   homeBtn.style.display = (appState === 'hub' || appState === 'login') ? 'none' : 'flex';
   homeBtn.onclick = (e)=>{ addRipple(e.currentTarget, e); goToHub(); };
   updateUserInfoBar();
-  const inChat = (appState === 'chat' && path.length > 0);
-  autoSpeakBtn.style.display = inChat ? 'inline-block' : 'none';
-  voiceSettingsBtn.style.display = inChat ? 'inline-block' : 'none';
-  updateAutoSpeakBtn();
 
   if(appState==='symptoms'){
     resetBtn.style.display = 'inline-block';
@@ -11659,7 +11407,6 @@ function renderChat(){
         const bubbleEl = row.querySelector('.bubble.bot');
         bubbleEl.classList.remove('typing-bubble');
         bubbleEl.innerHTML = buildBubbleInner(stepCounter, step, node);
-        maybeAutoSpeakStep(key, node);
         if(!step.chosen){
           const opts = buildOptionsWrap(idx, node, true);
           inner.appendChild(opts);
@@ -11672,7 +11419,6 @@ function renderChat(){
     const bubbleInner = buildBubbleInner(stepCounter, step, node);
     row.innerHTML = '<div class="avatar bot">🤖</div><div class="bubble bot">'+bubbleInner+'</div>';
     inner.appendChild(row);
-    maybeAutoSpeakStep(key, node);
 
     if(step.chosen){
       const urow = document.createElement('div');
