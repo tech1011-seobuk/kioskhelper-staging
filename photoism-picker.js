@@ -2,7 +2,15 @@ let photoismViewMode='3d';
 let snapismViewMode='3d';
 function renderPhotoism3DPicker(area,brand='photoism'){
  const isSnap=brand==='snapism';
- function choose(name){if(!isSnap){selectDeviceFromPicker(name==='서비스코인 / 설정'?'서비스코인':name);return;}const device=name==='서비스코인 / 설정'?'서비스코인':name;if(device==='CMS'){selectedDevice=device;symptomSource='snapism';appState='symptoms';render();}else openSnapManuals(device);logEvent('device_click',{brand:'snapism',device});}
+ function commitChoice(name){if(!isSnap){selectDeviceFromPicker(name==='서비스코인 / 설정'?'서비스코인':name);return;}const device=name==='서비스코인 / 설정'?'서비스코인':name;if(device==='CMS'){selectedDevice=device;symptomSource='snapism';appState='symptoms';render();}else {openSnapManuals(device);if(snapMenuEntries(device,'repair').length){snapCategory='repair';snapStage='list';render();}}logEvent('device_click',{brand:'snapism',device});}
+ let selecting=false;
+ function choose(name){
+  if(selecting)return;selecting=true;
+  const finish=()=>{if(!host.isConnected)return;commitChoice(name);};
+  if(name==='CMS'||!viewer||!viewer.focus(name,finish)){finish();return;}
+  area.querySelector('.photoism3d').classList.add('device-zooming');
+  area.querySelectorAll('button').forEach(b=>b.disabled=true);
+ }
  area.innerHTML='<section class="photoism3d"><div class="model-heading"><div><h2>PHOTOISM</h2><p>내부 보기를 누르면 앞문이 열리며 내부가 확대됩니다. 확인할 부품을 선택해주세요.</p></div></div><div class="model-toolbar" aria-label="키오스크 방향"><button data-view="front" aria-pressed="true"><strong>앞면</strong><small>카메라 · 모니터 · 결제 장치</small></button><button data-view="inside" aria-pressed="false"><strong>내부 보기</strong><small>프린터 · PC · 서비스코인/설정</small></button></div><h3 id="modelPartHeading" class="model-view-status" role="status" aria-live="polite">앞면 부품</h3><div class="model-stage model-callout-stage"><button class="model-door-hint" hidden><strong>앞문 열기 · 내부 보기</strong><span>프린터 · PC · 서비스코인/설정</span></button><svg class="model-door-leader" hidden aria-hidden="true"><defs><marker id="doorArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><path class="door-arrow-line" marker-end="url(#doorArrow)"></path><circle r="9"></circle></svg><div id="photoismModelHost" class="model-host"></div><svg class="model-leaders" aria-hidden="true"></svg><div class="model-parts" aria-label="진단할 부품 선택"></div><div class="model-cms-satellite" aria-hidden="true"><svg viewBox="25 12 250 80" aria-hidden="true"><g>        <rect x="90" y="63" width="24" height="6" fill="#3a3d47"/>        <rect x="186" y="63" width="24" height="6" fill="#3a3d47"/>        <rect x="34" y="52" width="56" height="30" rx="3" fill="#1c2a3a" stroke="#3a5a78" stroke-width="1.2"/>        <rect x="210" y="52" width="56" height="30" rx="3" fill="#1c2a3a" stroke="#3a5a78" stroke-width="1.2"/>        <g stroke="#3a5a78" stroke-width="1">          <line x1="48" y1="52" x2="48" y2="82"/><line x1="62" y1="52" x2="62" y2="82"/><line x1="76" y1="52" x2="76" y2="82"/>          <line x1="224" y1="52" x2="224" y2="82"/><line x1="238" y1="52" x2="238" y2="82"/><line x1="252" y1="52" x2="252" y2="82"/>        </g>        <rect x="120" y="50" width="60" height="36" rx="9" fill="#2c2f38" stroke="#454852" stroke-width="1.5"/>        <circle class="sat-blink" cx="150" cy="68" r="4"/>        <path d="M132,50 Q150,20 168,50 Z" fill="#454852" stroke="#5a5d68" stroke-width="1.2"/>        <line x1="150" y1="34" x2="150" y2="20" stroke="#5a5d68" stroke-width="2"/>        <circle cx="150" cy="18" r="3" fill="#5a5d68"/>        </g></svg></div><svg class="model-cms-leader" aria-hidden="true"><path></path><circle r="3"></circle></svg><button class="model-callout model-cms-label">CMS</button><svg class="model-cms-waves" aria-hidden="true"><path></path><path></path><path></path></svg></div></section>';
  if(isSnap){area.querySelector('h2').textContent='SNAPISM';area.querySelector('[data-view=front] small').textContent='모니터 · 카드단말기';area.querySelector('[data-view=inside] small').textContent='CX7600 · DS620 · PC · 서비스코인/설정';area.querySelector('.model-door-hint span').textContent='프린터 · PC · 서비스코인/설정';}
  document.getElementById('breadcrumb').textContent=(isSnap?'스내피즘':'포토이즘')+' · 부품 선택';
@@ -25,9 +33,36 @@ function renderPhotoism3DPicker(area,brand='photoism'){
  function change(mode){area.querySelector('.model-door-hint').hidden=true;area.querySelector('.model-door-leader').setAttribute('hidden','');const token=++version;active=[];parts.replaceChildren();lines.replaceChildren();parts.setAttribute('aria-busy','true');heading.textContent=mode==='front'?'전체 모습으로 돌아가는 중…':'앞문을 열고 내부를 확대하는 중…';area.querySelectorAll('[data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===mode)));if(failed)reveal(mode,token);else viewer.view(mode,()=>reveal(mode,token));}
  area.querySelector('.model-door-hint').onclick=()=>change('inside');
  area.querySelector('.model-cms-label').onclick=()=>choose('CMS');
- function fallback(){failed=true;viewer?.dispose();stage.classList.add('model-callout-fallback');host.innerHTML='<div class="model-unavailable">3D 표시를 사용할 수 없습니다.<br>아래 부품 메뉴를 이용해주세요.</div>';}
+ function fallback(){selecting=false;area.querySelector('.photoism3d')?.classList.remove('device-zooming');area.querySelectorAll('button').forEach(b=>b.disabled=false);failed=true;viewer?.dispose();stage.classList.add('model-callout-fallback');host.innerHTML='<div class="model-unavailable">3D 표시를 사용할 수 없습니다.<br>아래 부품 메뉴를 이용해주세요.</div>';}
  host.addEventListener('modelrender',layout);
  host.addEventListener('modelerror',()=>{if(!host.isConnected)return;fallback();reveal(area.querySelector('[data-view][aria-pressed="true"]').dataset.view,version);},{once:true});
  try{viewer=PhotoismModel.mount(host,brand);}catch(error){fallback();}
  area.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>change(button.dataset.view));change('front');loadRecentSymptoms(brand);
+}
+
+// Equipment detail is presentation only: existing symptom IDs and handlers are retained.
+function decorateDeviceDetail(area,content,name,brand='photoism'){
+ if(name==='CMS')return;
+ const layout=document.createElement('section');layout.className='device-detail';
+ const visual=document.createElement('aside');visual.className='device-detail-visual';
+ const tag=document.createElement('p');tag.className='device-detail-brand';tag.textContent=brand==='snapism'?'SNAPISM':'PHOTOISM';
+ const title=document.createElement('h2');title.textContent=name;
+ const host=document.createElement('div');host.className='device-detail-model';host.setAttribute('role','img');host.setAttribute('aria-label',name+' 3D 참고 모델');
+ const status=document.createElement('p');status.className='device-model-status';status.textContent='장비를 불러오는 중…';status.setAttribute('role','status');
+ const note=document.createElement('p');note.className='device-detail-note';note.textContent='장비 외형은 설치 기종에 따라 다를 수 있어요.';
+ visual.append(tag,title,host,status,note);layout.append(visual);content.classList.add('device-detail-content');content.classList.remove('hud-frame');layout.append(content);area.append(layout);
+ content.querySelectorAll('.symptom-card,.tool-card').forEach((card,i)=>{card.style.setProperty('--entry-delay',Math.min(i,9)*55+'ms');});
+ host.addEventListener('modelready',()=>{status.textContent='';});
+ host.addEventListener('modelerror',()=>{status.textContent='3D를 표시할 수 없어요. 증상 안내는 계속 이용할 수 있어요.';});
+ try{if(!PhotoismModel.mountDevice(host,name,brand)){status.textContent='아래에서 필요한 안내를 선택해주세요.';}}catch{status.textContent='3D를 표시할 수 없어요. 안내를 선택해주세요.';}
+}
+function appendDeviceTools(wrap){
+ const actions=getDeviceActions(selectedDevice).filter(a=>a.id!=='repair');if(!actions.length)return;
+ const section=document.createElement('section');section.className='device-detail-tools';
+ const heading=document.createElement('h3');heading.textContent='교체 · 설정 안내';section.append(heading);
+ actions.forEach(action=>{const b=document.createElement('button');b.type='button';b.className='device-tool';b.textContent=action.title+' →';b.onclick=()=>{
+  if(action.id==='color'||action.id==='bodyReplace'){pendingCameraAction=action.id;goToColorModel();}
+  else if(selectedDevice==='프린터')goToPrinterModel('symptoms');
+  else{selectedEquipReplaceDevice=selectedDevice;appState='equipReplaceDetail';logEvent('device_click',{brand:'photoism',device:selectedDevice,detail:'교체 방법'});render();}
+ };section.append(b);});wrap.append(section);
 }

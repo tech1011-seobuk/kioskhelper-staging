@@ -1,4 +1,5 @@
 import * as T from './three.module.js';
+import {createSnapismModel} from './snapism-model.js';
 import {GLTFLoader} from './GLTFLoader.js';
 // Editable originals: camera-blender-build.py + camera-blender-base.py.
 export function mountCamera(host,id){
@@ -9,7 +10,14 @@ export function mountPrinter(host,id){
  if(!['rx1','ask400'].includes(id))return;
  return mountProduct(host,id,'printer');
 }
-function mountProduct(host,id,kind){
+export function mountDevice(host,name,brand='photoism'){
+ const ids={'카메라':['r10','camera'],'프린터':['rx1','printer'],'모니터':['monitor','device'],'리모컨':['remote','device'],'카드리더기':['card','device'],'지폐투입기':['banknote','device'],'에스라이트':['light','device'],'지속광':['led','device'],'PC':['pc','device'],'서비스코인':['service','device']};
+ if(brand==='snapism')return mountProduct(host,name,'snap');
+ const item=ids[name];if(!item)return null;
+ return mountProduct(host,item[0],item[1],true);
+}
+function mountProduct(host,id,kind,detail=false){
+ detail=detail||kind==='snap';
  const renderer=new T.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});
  renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.6));renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
  const canvas=renderer.domElement;canvas.setAttribute('aria-hidden','true');canvas.style.cssText='width:100%;height:100%;pointer-events:none;touch-action:pan-y';host.appendChild(canvas);
@@ -24,14 +32,14 @@ function mountProduct(host,id,kind){
  const floor=new T.Mesh(new T.PlaneGeometry(170,100),new T.MeshBasicMaterial({map:shadow,transparent:true,depthWrite:false}));floor.rotation.x=-Math.PI/2;floor.position.y=-55;scene.add(floor);
  let disposed=false,failed=false,loaded=false,visible=true,hover=false,focused=false,frame=0,last=0,elapsed=0,lastRender=0;
  const motion=matchMedia('(prefers-reduced-motion: reduce)');let reduced=motion.matches;
- const phase={m50:0,'850d':.08,r10:-.08,rx1:0,ask400:.08}[id];
+ const phase={m50:0,'850d':.08,r10:-.08,rx1:0,ask400:.08}[id]||0;
  const card=host.closest('.camera-card');
  function release(object){const gs=new Set(),ms=new Set(),ts=new Set();object.traverse(o=>{if(o.geometry)gs.add(o.geometry);for(const m of o.material?(Array.isArray(o.material)?o.material:[o.material]):[]){ms.add(m);for(const value of Object.values(m))if(value?.isTexture)ts.add(value);}});gs.forEach(g=>g.dispose());ms.forEach(m=>m.dispose());ts.forEach(t=>t.dispose());}
  function draw(now){frame=0;if(disposed||failed)return;
   const dt=last?Math.min((now-last)/1000,.1):0;last=now;
   const animate=loaded&&!reduced&&visible&&!document.hidden;
   if(animate&&!hover&&!focused)elapsed+=dt;
-  root.rotation.y=reduced?0:phase+elapsed*Math.PI*2/36;
+  root.rotation.y=reduced?0:detail?phase+Math.sin(elapsed/5)*.16:phase+elapsed*Math.PI*2/36;
   root.rotation.x=reduced?0:Math.sin(elapsed*Math.PI/16)*.018;
   root.position.y=reduced?0:Math.sin(elapsed*Math.PI/4)*1.8;
   if(!animate||now-lastRender>=1000/30){renderer.render(scene,camera);lastRender=now;}
@@ -45,13 +53,20 @@ function mountProduct(host,id,kind){
  const resize=new ResizeObserver(()=>{const w=host.clientWidth,h=host.clientHeight;if(!w||!h)return;renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();request();});resize.observe(host);
  const enter=e=>{if(e.pointerType==='mouse'){hover=true;request();}},leave=()=>{hover=false;request();},focus=()=>{focused=true;request();},blur=()=>{focused=false;request();};
  card?.addEventListener('pointerenter',enter);card?.addEventListener('pointerleave',leave);card?.addEventListener('focusin',focus);card?.addEventListener('focusout',blur);
- function fail(){if(disposed)return;failed=true;pause();host.classList.add('camera-render-failed');host.dataset.cameraSource='unavailable';canvas.style.display='none';}
- new GLTFLoader().load(new URL('assets/'+kind+'-'+id+'.glb',document.baseURI).href,gltf=>{
+ function fail(){if(disposed)return;failed=true;pause();host.classList.add('camera-render-failed');host.dataset.cameraSource='unavailable';host.dispatchEvent(new Event('modelerror'));canvas.style.display='none';}
+ function accept(gltf){
   if(disposed){release(gltf.scene);return;}
   const model=gltf.scene,box=new T.Box3().setFromObject(model),size=box.getSize(new T.Vector3()),center=box.getCenter(new T.Vector3());
-  const scale=120/Math.max(size.x,size.y,kind==='printer'?size.z:0);model.scale.setScalar(scale);model.position.copy(center).multiplyScalar(-scale);root.add(model);floor.position.y=-size.y*scale/2-5;
-  model.traverse(o=>{for(const m of o.material?(Array.isArray(o.material)?o.material:[o.material]):[])m.envMapIntensity=.65;});loaded=true;host.dataset.cameraSource='blender';request();
- },undefined,fail);
+  const scale=(detail?104:120)/Math.max(size.x,size.y,size.z);model.scale.setScalar(scale);model.position.copy(center).multiplyScalar(-scale);root.add(model);floor.position.y=-size.y*scale/2-5;
+  model.traverse(o=>{for(const m of o.material?(Array.isArray(o.material)?o.material:[o.material]):[])m.envMapIntensity=.65;});loaded=true;host.dataset.cameraSource='blender';host.dispatchEvent(new Event('modelready'));request();
+ }
+ if(kind==='snap'){
+  const source=createSnapismModel(),part=new T.Group();source.updateMatrixWorld(true);
+  const prefixes={'모니터':['monitor_'],'카드리더기':['terminal_'],'PC':['PC','USB_'],'CX7600':['CX','purple_card'],'DS620':['DS620','DNP_'],'서비스코인':['coin_','setting_','button_','service_','breaker']};
+  const wanted=prefixes[id]||[];
+  source.traverse(o=>{if(o.isMesh&&wanted.some(n=>o.name.startsWith(n))){const copy=o.clone();copy.applyMatrix4(o.parent.matrixWorld);part.add(copy);}});
+  if(part.children.length)accept({scene:part});else fail();
+ }else new GLTFLoader().load(new URL('assets/'+kind+'-'+id+'.glb',document.baseURI).href,accept,undefined,fail);
  function dispose(){if(disposed)return;disposed=true;pause();resize.disconnect();intersection.disconnect();observer.disconnect();document.removeEventListener('visibilitychange',visibility);motion.removeEventListener('change',motionChange);card?.removeEventListener('pointerenter',enter);card?.removeEventListener('pointerleave',leave);card?.removeEventListener('focusin',focus);card?.removeEventListener('focusout',blur);release(scene);textures.forEach(t=>t.dispose());environment.dispose();renderer.dispose();renderer.forceContextLoss();canvas.remove();}
  const observer=new MutationObserver(()=>{if(!host.isConnected)dispose();});observer.observe(document.body,{childList:true,subtree:true});canvas.addEventListener('webglcontextlost',fail);request();return {dispose};
 }

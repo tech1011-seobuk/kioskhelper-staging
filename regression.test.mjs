@@ -10,6 +10,28 @@ const root = resolve(process.env.KIOSKHELPER_TEST_ROOT || fileURLToPath(new URL(
 const html = readFileSync(resolve(root, 'index.html'), 'utf8');
 const swSource = readFileSync(resolve(root, 'sw.js'), 'utf8');
 
+test('equipment selection enters the existing symptom catalog and records only the selected device',()=>{
+ const events=[];let renders=0;
+ const ctx=vm.createContext({HOTSPOT_DEVICE_MAP:{'서비스코인 / 설정':'서비스코인'},logEvent:(...e)=>events.push(e),render:()=>renders++});
+ vm.runInContext(section('function selectDeviceFromPicker(', 'function getDeviceActions('),ctx);
+ for(const name of ['카메라','프린터','PC','서비스코인 / 설정']){
+  ctx.selectDeviceFromPicker(name);
+  assert.equal(ctx.appState,'symptoms');assert.equal(ctx.symptomSource,'photoism');
+  assert.equal(ctx.selectedDevice,name==='서비스코인 / 설정'?'서비스코인':name);
+ }
+ assert.equal(renders,4);assert.equal(events.length,4);
+});
+
+test('isolated equipment assets contain geometry and are included in the scoped offline cache',()=>{
+ for(const id of ['monitor','remote','card','banknote','light','led','pc','service']){
+  const path='assets/device-'+id+'.glb',bytes=readFileSync(resolve(root,path));
+  assert.equal(bytes.toString('utf8',0,4),'glTF');assert.equal(bytes.readUInt32LE(8),bytes.length);
+  const gltf=JSON.parse(bytes.toString('utf8',20,20+bytes.readUInt32LE(12)));
+  assert.ok(gltf.meshes.length);assert.ok(gltf.scenes[0].nodes.length);
+  assert.ok(swSource.includes(path));
+ }
+});
+
 test('CMS signup checks both passwords without creating an unapproved account',()=>{
   const ctx=vm.createContext({});
   vm.runInContext(section('function signupPasswordState(', 'function showSharedAccountPolicy('),ctx);

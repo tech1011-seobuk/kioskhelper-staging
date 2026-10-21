@@ -1,7 +1,7 @@
 import * as T from './three.module.js';
 import {createSnapismModel,snapismAnchors} from './snapism-model.js';
 import {GLTFLoader} from './GLTFLoader.js';
-export {mountCamera,mountPrinter} from './camera-models.js';
+export {mountCamera,mountPrinter,mountDevice} from './camera-models.js';
 
 // Original Blender model in metres, with an independently hinged front service door.
 export function mount(host,brand='photoism'){
@@ -27,6 +27,7 @@ export function mount(host,brand='photoism'){
  }
  if(!isSnap)lightHalo(0,1.872,.115,.66,.15,Math.atan2(.085,.210));
  if(!isSnap)for(const x of [-.315,.315])lightHalo(x,1.558,.064,.072,.36);
+ let focusTween=null;
  let openness=0,frame=0,disposed=false,tween=null,model=null,door=null,pending=null,framingPoints=[],framingDistance=3.65;
  const target=new T.Vector3(0,1,0),reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
  // The front view retains the full door sweep; the inside view frames the service bay.
@@ -61,8 +62,15 @@ export function mount(host,brand='photoism'){
   // Let the door clear the bay before moving in; reversing uses the same continuous path.
   const p=T.MathUtils.clamp((openness-.18)/.82,0,1),focus=p*p*(3-2*p);
   camera.position.set(0,T.MathUtils.lerp(1.16,insideTarget.y,focus),T.MathUtils.lerp(framingDistance,insideDistance,focus));
-  camera.lookAt(target.clone().lerp(insideTarget,focus));camera.updateMatrixWorld();
-  host.dataset.doorState=tween?'moving':openness>.99?'open':'closed';renderer.render(scene,camera);host.dispatchEvent(new Event('modelrender'));if(tween)frame=requestAnimationFrame(draw);if(done)done();
+  camera.lookAt(target.clone().lerp(insideTarget,focus));
+  if(focusTween){
+   const t=reduced?1:Math.min(1,(now-focusTween.start)/800),e=1-Math.pow(1-t,3);
+   camera.position.copy(focusTween.from).lerp(focusTween.to,e);
+   camera.lookAt(focusTween.lookFrom.clone().lerp(focusTween.anchor,e));
+   if(t===1){done=focusTween.done;focusTween=null;}
+  }
+  camera.updateMatrixWorld();
+  host.dataset.doorState=tween?'moving':openness>.99?'open':'closed';renderer.render(scene,camera);host.dispatchEvent(new Event('modelrender'));if(tween||focusTween)frame=requestAnimationFrame(draw);if(done)done();
  }
  function request(){if(!frame&&!disposed)frame=requestAnimationFrame(draw);}
  function view(mode,done){if(disposed)return;if(!model){pending={mode,done};return;}tween={from:openness,to:mode==='inside'?1:0,start:performance.now(),done};request();}
@@ -73,5 +81,13 @@ export function mount(host,brand='photoism'){
  function loaded(gltf){if(disposed){release(gltf.scene);return;}model=gltf.scene;door=model.getObjectByName('kiosk_front_door');if(!door){release(model);model=null;host.dispatchEvent(new CustomEvent('modelerror'));return;}scene.add(model);measureDoorSweep();loading.remove();host.dataset.modelSource=isSnap?'photo-reference':'blender';host.dataset.modelState='ready';if(pending){const next=pending;pending=null;view(next.mode,next.done);}else request();}
  if(isSnap)loaded({scene:createSnapismModel()});else new GLTFLoader().load(new URL('./assets/photoism-kiosk-pointing.glb',document.baseURI).href,loaded,undefined,()=>{if(!disposed){host.dataset.modelState='error';host.dispatchEvent(new CustomEvent('modelerror'));}});
  const anchors=isSnap?snapismAnchors:{'앞문 잠금장치':[-.277,.626,.29],'에스라이트':[0,1.872,.103],'카메라':[0,1.548,.1],'지속광':[.315,1.558,.066],'모니터':[0,1.226,.160],'리모컨':[.337,1.238,.192],'지폐투입기':[-.25,.86,.286],'카드리더기':[-.065,.848,.3],'프린터':[.119,.575,.18],'PC':[-.099,1.0,.125],'서비스코인 / 설정':[.016,.329,.18]};
- request();return {project(name){const v=new T.Vector3(...anchors[name]).project(camera);return {x:(v.x+1)*host.clientWidth/2,y:(1-v.y)*host.clientHeight/2};},view,dispose};
+ function focusDevice(name,done){
+  if(disposed||!model||!anchors[name])return false;
+  const anchor=new T.Vector3(...anchors[name]);
+  const lookFrom=target.clone().lerp(insideTarget,T.MathUtils.smoothstep(openness,.18,1));
+  tween=null;
+  focusTween={from:camera.position.clone(),to:anchor.clone().add(new T.Vector3(.03,.025,.65)),lookFrom,anchor,start:performance.now(),done};
+  request();return true;
+ }
+ request();return {focus:focusDevice,project(name){const v=new T.Vector3(...anchors[name]).project(camera);return {x:(v.x+1)*host.clientWidth/2,y:(1-v.y)*host.clientHeight/2};},view,dispose};
 }
