@@ -1918,7 +1918,7 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 .photoism3d button.model-door-hint{width:210px;max-width:45%;background:#f3de42;color:#171a20;border:2px solid #fff09a;box-shadow:0 5px 22px #0005;text-align:left;padding:12px}.photoism3d button.model-door-hint strong{font-size:14px;color:#171a20;margin:0 0 5px}.photoism3d button.model-door-hint span{font-size:11px;color:#34352e}.model-door-leader{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3;overflow:visible}.model-door-leader[hidden]{display:none}.model-door-leader .door-arrow-line{fill:none;stroke:#f3de42;stroke-width:2.5}.model-door-leader marker path{fill:#f3de42}.model-door-leader circle{fill:none;stroke:#f3de42;stroke-width:2}.photoism3d button.model-door-hint:focus-visible{outline:3px solid var(--text);outline-offset:4px}@media(max-width:600px){.photoism3d button.model-door-hint{width:156px;padding:9px}.photoism3d button.model-door-hint strong{font-size:12px}.photoism3d button.model-door-hint span{font-size:10px}}
 .device-zooming .model-parts,.device-zooming .model-leaders,.device-zooming .model-door-hint,.device-zooming .model-door-leader,.device-zooming .model-cms-satellite,.device-zooming .model-cms-label,.device-zooming .model-cms-leader,.device-zooming .model-cms-waves{opacity:0;transition:opacity .2s;pointer-events:none}
 .device-detail{display:grid;grid-template-columns:minmax(280px,.9fr) minmax(0,1.1fr);gap:clamp(24px,4vw,64px);width:min(1120px,100%);margin:0 auto;padding:28px 24px 60px;box-sizing:border-box;align-items:start}
-.device-detail-visual{position:sticky;top:150px;text-align:center;border:1px solid var(--border);border-radius:28px;background:radial-gradient(ellipse at 50% 45%,rgba(205,222,236,.13),transparent 68%),var(--panel,#22242a);overflow:hidden;animation:device-model-enter .65s both}
+.device-detail-visual{position:sticky;top:24px;text-align:center;border:1px solid var(--border);border-radius:28px;background:radial-gradient(ellipse at 50% 45%,rgba(205,222,236,.13),transparent 68%),var(--panel,#22242a);overflow:hidden;animation:device-model-enter .65s both}
 .device-detail-brand{font-size:11px;letter-spacing:.22em;color:var(--muted);margin:28px 0 8px}
 .device-detail-visual h2{font-size:clamp(24px,3vw,34px);margin:0}
 .device-detail-model{height:340px;width:100%;position:relative}
@@ -11263,8 +11263,8 @@ function renderPhotoism3DPicker(area,brand='photoism'){
  function commitChoice(name){if(!isSnap){selectDeviceFromPicker(name==='서비스코인 / 설정'?'서비스코인':name);return;}const device=name==='서비스코인 / 설정'?'서비스코인':name;if(device==='CMS'){selectedDevice=device;symptomSource='snapism';appState='symptoms';render();}else {openSnapManuals(device);if(snapMenuEntries(device,'repair').length){snapCategory='repair';snapStage='list';render();}}logEvent('device_click',{brand:'snapism',device});}
  let selecting=false;
  function choose(name){
-  if(selecting)return;selecting=true;
-  const finish=()=>{if(!host.isConnected)return;commitChoice(name);};
+  if(selecting)return;selecting=true;const entryState=appState;
+  const finish=()=>{if(!host.isConnected||appState!==entryState)return;commitChoice(name);};
   if(name==='CMS'||!viewer||!viewer.focus(name,finish)){finish();return;}
   area.querySelector('.photoism3d').classList.add('device-zooming');
   area.querySelectorAll('button').forEach(b=>b.disabled=true);
@@ -11308,7 +11308,7 @@ function decorateDeviceDetail(area,content,name,brand='photoism'){
  const host=document.createElement('div');host.className='device-detail-model';host.setAttribute('role','img');host.setAttribute('aria-label',name+' 3D 참고 모델');
  const status=document.createElement('p');status.className='device-model-status';status.textContent='장비를 불러오는 중…';status.setAttribute('role','status');
  const note=document.createElement('p');note.className='device-detail-note';note.textContent='장비 외형은 설치 기종에 따라 다를 수 있어요.';
- visual.append(tag,title,host,status,note);layout.append(visual);content.classList.add('device-detail-content');content.classList.remove('hud-frame');layout.append(content);area.append(layout);
+ visual.append(tag,title,host,status,note);layout.append(visual);content.classList.add('device-detail-content');content.classList.remove('hud-frame');layout.append(content);area.append(layout);area.scrollTop=0;title.tabIndex=-1;title.focus({preventScroll:true});
  content.querySelectorAll('.symptom-card,.tool-card').forEach((card,i)=>{card.style.setProperty('--entry-delay',Math.min(i,9)*55+'ms');});
  host.addEventListener('modelready',()=>{status.textContent='';});
  host.addEventListener('modelerror',()=>{status.textContent='3D를 표시할 수 없어요. 증상 안내는 계속 이용할 수 있어요.';});

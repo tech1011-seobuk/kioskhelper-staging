@@ -5,8 +5,8 @@ function renderPhotoism3DPicker(area,brand='photoism'){
  function commitChoice(name){if(!isSnap){selectDeviceFromPicker(name==='서비스코인 / 설정'?'서비스코인':name);return;}const device=name==='서비스코인 / 설정'?'서비스코인':name;if(device==='CMS'){selectedDevice=device;symptomSource='snapism';appState='symptoms';render();}else {openSnapManuals(device);if(snapMenuEntries(device,'repair').length){snapCategory='repair';snapStage='list';render();}}logEvent('device_click',{brand:'snapism',device});}
  let selecting=false;
  function choose(name){
-  if(selecting)return;selecting=true;
-  const finish=()=>{if(!host.isConnected)return;commitChoice(name);};
+  if(selecting)return;selecting=true;const entryState=appState;
+  const finish=()=>{if(!host.isConnected||appState!==entryState)return;commitChoice(name);};
   if(name==='CMS'||!viewer||!viewer.focus(name,finish)){finish();return;}
   area.querySelector('.photoism3d').classList.add('device-zooming');
   area.querySelectorAll('button').forEach(b=>b.disabled=true);
@@ -50,7 +50,7 @@ function decorateDeviceDetail(area,content,name,brand='photoism'){
  const host=document.createElement('div');host.className='device-detail-model';host.setAttribute('role','img');host.setAttribute('aria-label',name+' 3D 참고 모델');
  const status=document.createElement('p');status.className='device-model-status';status.textContent='장비를 불러오는 중…';status.setAttribute('role','status');
  const note=document.createElement('p');note.className='device-detail-note';note.textContent='장비 외형은 설치 기종에 따라 다를 수 있어요.';
- visual.append(tag,title,host,status,note);layout.append(visual);content.classList.add('device-detail-content');content.classList.remove('hud-frame');layout.append(content);area.append(layout);
+ visual.append(tag,title,host,status,note);layout.append(visual);content.classList.add('device-detail-content');content.classList.remove('hud-frame');layout.append(content);area.append(layout);area.scrollTop=0;title.tabIndex=-1;title.focus({preventScroll:true});
  content.querySelectorAll('.symptom-card,.tool-card').forEach((card,i)=>{card.style.setProperty('--entry-delay',Math.min(i,9)*55+'ms');});
  host.addEventListener('modelready',()=>{status.textContent='';});
  host.addEventListener('modelerror',()=>{status.textContent='3D를 표시할 수 없어요. 증상 안내는 계속 이용할 수 있어요.';});
