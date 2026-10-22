@@ -23,6 +23,7 @@ function helperInit(){
     .helper-primary{background:var(--accent,#dbef35)!important;color:#111!important;font-weight:700!important}
     .helper-panel button:disabled{opacity:.55;cursor:wait}.helper-error{color:#ffb2a8;white-space:pre-wrap}
     .helper-dialog{max-width:560px;width:calc(100% - 32px);box-sizing:border-box;border:1px solid #555;border-radius:18px;background:#22252a;color:#fff;padding:24px;max-height:85vh;overflow:auto}
+    .helper-notice-row{padding:0;border-radius:10px}.helper-notice-row summary{padding:18px 20px;min-height:48px;box-sizing:border-box}.helper-notice-title{font-size:16px;overflow-wrap:anywhere}.helper-notice-row summary .helper-small{display:block;margin:6px 0 0 20px;font-weight:400}.helper-notice-row[open] summary{border-bottom:1px solid var(--border)}.helper-notice-row>.helper-body{padding:20px}.helper-notice-row>button{margin:0 20px 20px}
     .helper-dialog::backdrop{background:#0009}.helper-rating{margin:18px 0;padding:18px;border:1px solid var(--border);border-radius:14px}.helper-rating button{margin:4px;min-width:44px}
     .helper-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}.helper-kpis .helper-card{margin:0;word-break:keep-all}.helper-filters select{background:#24272d;color:#eee;padding:10px 14px;border:1px solid var(--border);border-radius:9px;font:inherit}.helper-value{font-size:27px;font-weight:800;margin:10px 0}
     .helper-card summary{cursor:pointer;font-weight:700}.helper-filters{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.helper-filters select{width:auto}
@@ -150,9 +151,9 @@ async function renderAnnouncementsScreen(){
     const list=document.createElement('div');content.appendChild(list);
     if(!rows.length)list.innerHTML='<div class="helper-card">등록된 공지가 없어요.</div>';
     rows.forEach(row=>{
-      const item=document.createElement('article');item.className='helper-card';
+      const item=document.createElement('details');item.className='helper-card helper-notice-row';
       const state=!row.published?'초안':new Date(row.starts_at)>new Date()?'예약':row.ends_at&&new Date(row.ends_at)<=new Date()?'종료':'게시 중';
-      item.innerHTML='<p class="helper-small">'+escapeHtml(row.kind)+' · '+helperStamp(row.starts_at)+(admin?' · '+state:'')+(row.important?' · 중요':'')+'</p><h2>'+escapeHtml(row.title)+'</h2><div class="helper-body">'+escapeHtml(row.body)+'</div>';
+      item.innerHTML='<summary><span class="helper-notice-title">'+escapeHtml(row.title)+'</span><span class="helper-small">'+escapeHtml(row.kind)+' · '+escapeHtml(new Date(row.starts_at).toLocaleDateString('ko-KR'))+(admin?' · '+state:'')+(row.important?' · 중요':'')+'</span></summary><div class="helper-body">'+escapeHtml(row.body)+'</div>';
       if(admin){const edit=document.createElement('button');edit.textContent='수정';edit.className='helper-actions';edit.onclick=()=>helperNoticeEditor(content,row);item.appendChild(edit);}
       list.appendChild(item);
     });
