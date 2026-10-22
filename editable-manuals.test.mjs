@@ -41,7 +41,7 @@ test('held manuals cannot be enabled by editing their draft or saved text',()=>{
 });
 test('all supplementals are reachable from the matching brand and device editor only',()=>{
  const c=harness();vm.runInContext(section('function hotTopicLabel(', 'let manualRequestedSid='),c);
- for(const m of manuals){assert.ok(c.diagramDevicesForBrand(m.brand).find(d=>d.name===m.device)?.symptoms.includes(m.id),m.source);assert.ok(!c.diagramDevicesForBrand(m.brand==='photoism'?'snapism':'photoism').some(d=>d.symptoms.includes(m.id)));}
+ for(const m of manuals){assert.ok(c.diagramDevicesForBrand(m.brand).find(d=>d.name===c.editableManualDevice(m))?.symptoms.includes(m.id),m.source);assert.ok(!c.diagramDevicesForBrand(m.brand==='photoism'?'snapism':'photoism').some(d=>d.symptoms.includes(m.id)));}
 });
 test('camera setup photos are exact exports of existing embedded image bytes',()=>{
  const imageBlock=section('const CAMERA_BASIC_SETUP_IMAGES =','const CAMERA_MODEL_HTML');

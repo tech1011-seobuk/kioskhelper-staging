@@ -11,7 +11,7 @@ export function mountPrinter(host,id){
  return mountProduct(host,id,'printer');
 }
 export function mountDevice(host,name,brand='photoism'){
- const ids={'카메라':['r10','camera'],'프린터':['rx1','printer'],'모니터':['monitor','device'],'리모컨':['remote','device'],'카드리더기':['card','device'],'지폐투입기':['banknote','device'],'에스라이트':['light','device'],'지속광':['led','device'],'PC':['pc','device'],'서비스코인':['service','device']};
+ const ids={'카메라':['r10','camera'],'프린터':['rx1','printer'],'모니터':['monitor','device'],'리모컨':['remote','device'],'카드리더기':['card','device'],'지폐투입기':['banknote','device'],'에스라이트':['light','device'],'지속광':['led','device'],'PC':['pc','device'],'서비스코인':['service','device'],'서비스코인 / 설정':['service','device']};
  if(brand==='snapism')return mountProduct(host,name,'snap');
  const item=ids[name];if(!item)return null;
  return mountProduct(host,item[0],item[1],true);

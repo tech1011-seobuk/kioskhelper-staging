@@ -1,8 +1,9 @@
+function editableManualDevice(m){return m.device==='리모컨 / 서비스코인 / 설정'?(m.source.endsWith(':1')?'서비스코인 / 설정':'리모컨'):m.device;}
 /* Production manual snapshots, edited through the existing revisioned diagnosis editor. */
 function editableManual(id){return typeof EDITABLE_MANUALS==='undefined'?null:EDITABLE_MANUALS.find(m=>m.id===id)||null;}
 function editableManualSource(source){return typeof EDITABLE_MANUALS==='undefined'?null:EDITABLE_MANUALS.find(m=>m.source===source)||null;}
 function editableManualLabel(id){const m=editableManual(id);return m?({repair:'고장 조치',replace:'교체',care:'소모품·청소',info:'장비 안내',setup:'설정'}[m.category]+' · '+m.title+(m.held&&!m.title.includes('확인 중')?' · 확인 중':'')):'';}
-function manualEditorSymptoms(device,brand){return [...new Set([...catalogSymptoms(device,brand),...(typeof EDITABLE_MANUALS==='undefined'?[]:EDITABLE_MANUALS.filter(m=>m.device===device&&m.brand===brand).map(m=>m.id))])];}
+function manualEditorSymptoms(device,brand){return [...new Set([...catalogSymptoms(device,brand),...(typeof EDITABLE_MANUALS==='undefined'?[]:EDITABLE_MANUALS.filter(m=>editableManualDevice(m)===device&&m.brand===brand).map(m=>m.id))])];}
 function editableManualChanged(source){
  const m=editableManualSource(source),row=m&&diagnosisStore.rows[m.id];
  return !!(m&&!m.held&&row&&!sameDiagnosis(row.tree,m.tree));

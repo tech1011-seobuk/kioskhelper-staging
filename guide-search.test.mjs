@@ -85,3 +85,15 @@ test('each camera replacement shows its player immediately and keeps setup actio
   assert.equal(stage.all().filter(el=>el.className==='camera-after-replacement').length,0);
  }
 });
+
+test('remote and service buttons stay separate with legacy catalog rows and saved replacement keys',()=>{
+ const c=harness();vm.runInContext(`
+ symptomCatalog={'RC-1':{device:'리모컨 / 서비스코인 / 설정',scope:'photoism',active:true},'RC-2':{device:'리모컨 / 서비스코인 / 설정',scope:'photoism',active:true}};
+ globalThis.split={remote:catalogSymptoms('리모컨','photoism'),service:catalogSymptoms('서비스코인 / 설정','photoism'),entries:buildGuideSearchIndex().filter(e=>e.route==='replace'&&e.key==='리모컨 / 서비스코인 / 설정')};`,c);
+ assert.deepEqual(Array.from(c.split.remote),['RC-1']);assert.deepEqual(Array.from(c.split.service),['RC-2']);
+ assert.deepEqual(Array.from(c.split.entries,e=>[e.device,e.variant]),[['리모컨',0],['서비스코인 / 설정',1]]);
+ vm.runInContext(section('function replacementSelection(', 'function appendReplacementGuide('),c);
+ assert.equal(c.replacementSelection('리모컨').variant,0);assert.equal(c.replacementSelection('서비스코인 / 설정').variant,1);
+ assert.equal(c.replacementSelection('리모컨 / 서비스코인 / 설정',1).title,'서비스코인 / 설정');
+ assert.equal(c.replacementSelection('PC').isolated,false);
+});

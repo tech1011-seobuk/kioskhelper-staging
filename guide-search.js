@@ -48,7 +48,7 @@ function buildGuideSearchIndex(){
   }
  }
  for(const [key,guides]of Object.entries(REPLACEMENT_GUIDES))for(const [variant,guide]of guides.entries()){
-  const [device,model]=key.split(':'),camera=CAMERA_MODELS.find(m=>m.id===model),printer=PRINTER_MODELS.find(m=>m.id===model);
+  const [rawDevice,model]=key.split(':'),device=rawDevice==='리모컨 / 서비스코인 / 설정'?(variant===0?'리모컨':'서비스코인 / 설정'):rawDevice,camera=CAMERA_MODELS.find(m=>m.id===model),printer=PRINTER_MODELS.find(m=>m.id===model);
   const name=camera?.sub||printer?.label||guide.label||device;
   add({id:'replace:'+key+':'+variant,brand:'photoism',device,code:'',title:name+(name.includes('교체')?'':' 교체'),kind:'교체 방법',body:typeof editableManualBody==='function'?editableManualBody('replace:'+key+':'+variant,[guide.preparation,guide.after,...guide.steps.flat()].filter(Boolean).join(' ')):[guide.preparation,guide.after,...guide.steps.flat()].filter(Boolean).join(' '),route:'replace',key,model,variant});
  }
