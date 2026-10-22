@@ -78,3 +78,13 @@
 .device-detail .symptoms-header .t2{font-size:28px;letter-spacing:-.04em;line-height:1.4}
 .device-detail .symptoms-grid{gap:10px}
 @media(max-width:760px){.device-detail{padding-top:16px;gap:22px}.device-detail-model{height:240px}.device-detail-brand{margin-top:22px;font-size:10px}.device-detail-visual h2{font-size:28px}.device-detail-note{margin-bottom:18px}.device-detail .symptoms-header .t2{font-size:23px}.device-detail .symptom-card{min-height:64px}}
+
+/* Keep the WebGL canvas alive while only surrounding content changes. */
+.device-detail-visual.device-persistent{animation:none}
+.device-detail:has(.device-persistent) .device-detail-content{animation:device-content-reveal .55s both}
+.device-detail:has(.device-persistent) .chat-inner{padding:0;max-width:none}
+.device-detail:has(.device-persistent) .msg-row{max-width:100%}
+.device-detail:has(.device-persistent) .bubble{min-width:0;max-width:100%;box-sizing:border-box}
+.device-detail:has(.device-persistent) .colorsetup-screen{width:100%;max-width:none}
+@keyframes device-content-reveal{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.device-detail:has(.device-persistent) .device-detail-content{animation:none}}

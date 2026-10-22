@@ -27,7 +27,7 @@ export function mount(host,brand='photoism'){
  }
  if(!isSnap)lightHalo(0,1.872,.115,.66,.15,Math.atan2(.085,.210));
  if(!isSnap)for(const x of [-.315,.315])lightHalo(x,1.558,.064,.072,.36);
- let focusTween=null;
+ let focusTween=null,focusedPart=null,focusAmount=0;const surfaceStates=[];
  let openness=0,frame=0,disposed=false,tween=null,model=null,door=null,pending=null,framingPoints=[],framingDistance=3.65;
  const target=new T.Vector3(0,1,0),reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
  // The front view retains the full door sweep; the inside view frames the service bay.
@@ -63,11 +63,14 @@ export function mount(host,brand='photoism'){
   const p=T.MathUtils.clamp((openness-.18)/.82,0,1),focus=p*p*(3-2*p);
   camera.position.set(0,T.MathUtils.lerp(1.16,insideTarget.y,focus),T.MathUtils.lerp(framingDistance,insideDistance,focus));
   camera.lookAt(target.clone().lerp(insideTarget,focus));
+  if(focusedPart&&!focusTween){camera.position.copy(focusPosition());camera.lookAt(focusedPart.anchor);}
   if(focusTween){
-   const t=reduced?1:Math.min(1,(now-focusTween.start)/800),e=1-Math.pow(1-t,3);
+   const t=reduced?1:Math.min(1,(now-focusTween.start)/1050),e=t*t*(3-2*t);
+   if(!focusTween.returning)focusTween.to.copy(focusPosition());
+   focusAmount=focusTween.returning?1-e:e;applyIsolation();
    camera.position.copy(focusTween.from).lerp(focusTween.to,e);
    camera.lookAt(focusTween.lookFrom.clone().lerp(focusTween.anchor,e));
-   if(t===1){done=focusTween.done;focusTween=null;}
+   if(t===1){done=focusTween.done;if(focusTween.returning){focusedPart=null;focusAmount=0;}focusTween=null;}
   }
   camera.updateMatrixWorld();
   host.dataset.doorState=tween?'moving':openness>.99?'open':'closed';renderer.render(scene,camera);host.dispatchEvent(new Event('modelrender'));if(tween||focusTween)frame=requestAnimationFrame(draw);if(done)done();
@@ -78,16 +81,35 @@ export function mount(host,brand='photoism'){
  canvas.addEventListener('webglcontextlost',e=>{if(disposed)return;e.preventDefault();host.dispatchEvent(new CustomEvent('modelerror'));});
  const observer=new MutationObserver(()=>{if(!host.isConnected)dispose();});observer.observe(document.body,{subtree:true,childList:true});
  function dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);resize.disconnect();observer.disconnect();release(scene);environment.dispose();renderer.dispose();renderer.forceContextLoss();canvas.remove();loading.remove();pending=null;}
- function loaded(gltf){if(disposed){release(gltf.scene);return;}model=gltf.scene;door=model.getObjectByName('kiosk_front_door');if(!door){release(model);model=null;host.dispatchEvent(new CustomEvent('modelerror'));return;}scene.add(model);measureDoorSweep();loading.remove();host.dataset.modelSource=isSnap?'photo-reference':'blender';host.dataset.modelState='ready';if(pending){const next=pending;pending=null;view(next.mode,next.done);}else request();}
- if(isSnap)loaded({scene:createSnapismModel()});else new GLTFLoader().load(new URL('./assets/photoism-kiosk-pointing.glb',document.baseURI).href,loaded,undefined,()=>{if(!disposed){host.dataset.modelState='error';host.dispatchEvent(new CustomEvent('modelerror'));}});
+ function loaded(gltf){if(disposed){release(gltf.scene);return;}model=gltf.scene;door=model.getObjectByName('kiosk_front_door');if(!door){release(model);model=null;host.dispatchEvent(new CustomEvent('modelerror'));return;}scene.add(model);model.traverse(o=>{if(!o.isMesh)return;const original=Array.isArray(o.material)?o.material:[o.material];o.material=original.map(m=>m.clone());for(const m of o.material)surfaceStates.push({object:o,material:m,opacity:m.opacity,transparent:m.transparent,depthWrite:m.depthWrite});if(o.material.length===1)o.material=o.material[0];});measureDoorSweep();loading.remove();host.dataset.modelSource=isSnap?'photo-reference':'blender';host.dataset.modelState='ready';if(pending){const next=pending;pending=null;view(next.mode,next.done);}else request();}
+ if(isSnap)loaded({scene:createSnapismModel()});else new GLTFLoader().load(new URL('./assets/photoism-kiosk-continuous.glb',document.baseURI).href,loaded,undefined,()=>{if(!disposed){host.dataset.modelState='error';host.dispatchEvent(new CustomEvent('modelerror'));}});
  const anchors=isSnap?snapismAnchors:{'앞문 잠금장치':[-.277,.626,.29],'에스라이트':[0,1.872,.103],'카메라':[0,1.548,.1],'지속광':[.315,1.558,.066],'모니터':[0,1.226,.160],'리모컨':[.337,1.238,.192],'지폐투입기':[-.25,.86,.286],'카드리더기':[-.065,.848,.3],'프린터':[.119,.575,.18],'PC':[-.099,1.0,.125],'서비스코인 / 설정':[.016,.329,.18]};
+ function matchesPart(o,name){
+  if(!isSnap)return o.userData.helperDevice===name;
+  const prefixes={'모니터':['monitor_'],'카드리더기':['terminal_'],'PC':['PC','USB_'],'CX7600':['CX','purple_card'],'DS620':['DS620','DNP_'],'서비스코인 / 설정':['coin_','setting_','button_','service_','breaker']};return (prefixes[name]||[]).some(p=>o.name.startsWith(p));
+ }
+ function applyIsolation(){
+  for(const state of surfaceStates){const keep=focusedPart?.meshes.has(state.object),a=keep?1:1-focusAmount;state.object.visible=a>.002;state.material.transparent=a<1||state.transparent;state.material.opacity=state.opacity*a;state.material.depthWrite=a<1?false:state.depthWrite;}
+  shadow.visible=focusAmount<.99;shadow.material.opacity=1-focusAmount;lightHalos.visible=focusAmount<.01;
+ }
+ function focusPosition(){
+  const size=focusedPart.size,tan=Math.tan(T.MathUtils.degToRad(camera.fov/2));
+  const distance=Math.max(size.y/(2*tan*.75),size.x/(2*tan*Math.max(camera.aspect,.3)*.75))+size.z*.7;
+  return focusedPart.anchor.clone().add(new T.Vector3(distance*.08,distance*.04,Math.max(distance,.14)));
+ }
  function focusDevice(name,done){
   if(disposed||!model||!anchors[name])return false;
-  const anchor=new T.Vector3(...anchors[name]);
+  model.updateMatrixWorld(true);const meshes=new Set(),box=new T.Box3();
+  model.traverse(o=>{if(o.isMesh&&matchesPart(o,name)){meshes.add(o);box.expandByObject(o);}});if(!meshes.size)return false;
+  const anchor=box.getCenter(new T.Vector3()),size=box.getSize(new T.Vector3());
   const lookFrom=target.clone().lerp(insideTarget,T.MathUtils.smoothstep(openness,.18,1));
-  tween=null;
-  focusTween={from:camera.position.clone(),to:anchor.clone().add(new T.Vector3(.03,.025,.65)),lookFrom,anchor,start:performance.now(),done};
-  request();return true;
+  focusedPart={name,meshes,anchor,size};tween=null;
+  focusTween={from:camera.position.clone(),to:focusPosition(),lookFrom,anchor,start:performance.now(),done};request();return true;
  }
- request();return {focus:focusDevice,project(name){const v=new T.Vector3(...anchors[name]).project(camera);return {x:(v.x+1)*host.clientWidth/2,y:(1-v.y)*host.clientHeight/2};},view,dispose};
+ function restore(done){
+  if(!focusedPart){done?.();return;}
+  const p=T.MathUtils.clamp((openness-.18)/.82,0,1),e=p*p*(3-2*p),anchor=target.clone().lerp(insideTarget,e);
+  focusTween={returning:true,from:camera.position.clone(),to:new T.Vector3(0,T.MathUtils.lerp(1.16,insideTarget.y,e),T.MathUtils.lerp(framingDistance,insideDistance,e)),lookFrom:focusedPart.anchor.clone(),anchor,start:performance.now(),done};request();
+ }
+ request();return {focus:focusDevice,restore,project(name){const v=new T.Vector3(...anchors[name]).project(camera);return {x:(v.x+1)*host.clientWidth/2,y:(1-v.y)*host.clientHeight/2};},view,dispose};
 }

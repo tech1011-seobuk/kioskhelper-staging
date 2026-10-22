@@ -1,20 +1,43 @@
 let photoismViewMode='3d';
 let snapismViewMode='3d';
+let equipmentScene=null;
+function parkEquipmentScene(){
+ const state=equipmentScene;if(!state||!state.host.isConnected)return;
+ clearTimeout(state.dockTimer);state.host.getAnimations().forEach(a=>a.cancel());
+ const r=state.host.getBoundingClientRect();state.from={left:r.left,top:r.top,width:r.width,height:r.height};
+ state.host.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;z-index:20;pointer-events:none;overflow:hidden`;
+ document.body.append(state.host);
+}
+function dockEquipmentScene(slot,animate=false){
+ const state=equipmentScene;if(!state)return;clearTimeout(state.dockTimer);
+ const finish=()=>{if(equipmentScene!==state||!slot.isConnected)return;slot.append(state.host);state.host.style.cssText='position:relative;width:100%;height:100%;pointer-events:none';state.host.removeAttribute('id');};
+ if(!animate||matchMedia('(prefers-reduced-motion: reduce)').matches){finish();return;}
+ const to=slot.getBoundingClientRect(),from=state.from;
+ const animation=state.host.animate([{left:from.left+'px',top:from.top+'px',width:from.width+'px',height:from.height+'px'},{left:to.left+'px',top:to.top+'px',width:to.width+'px',height:to.height+'px'}],{duration:1050,easing:'cubic-bezier(.4,0,.2,1)',fill:'forwards'});
+ animation.onfinish=()=>{finish();animation.cancel();};state.dockTimer=setTimeout(finish,1150);
+}
+function releaseEquipmentScene(){const state=equipmentScene;if(!state)return;equipmentScene=null;clearTimeout(state.dockTimer);state.host.getAnimations().forEach(a=>a.cancel());state.viewer.dispose();state.host.remove();}
+function prepareEquipmentScene(){
+ if(!equipmentScene)return;
+ if(!['symptoms','chat','equipReplaceDetail','deviceActions','snapManuals','picker','snapismPicker'].includes(appState)){releaseEquipmentScene();return;}
+ parkEquipmentScene();
+}
 function renderPhotoism3DPicker(area,brand='photoism'){
  const isSnap=brand==='snapism';
  function commitChoice(name){if(!isSnap){selectDeviceFromPicker(name==='서비스코인 / 설정'?'서비스코인':name);return;}const device=name==='서비스코인 / 설정'?'서비스코인':name;if(device==='CMS'){selectedDevice=device;symptomSource='snapism';appState='symptoms';render();}else {openSnapManuals(device);if(snapMenuEntries(device,'repair').length){snapCategory='repair';snapStage='list';render();}}logEvent('device_click',{brand:'snapism',device});}
  let selecting=false;
  function choose(name){
-  if(selecting)return;selecting=true;const entryState=appState;
-  const finish=()=>{if(!host.isConnected||appState!==entryState)return;commitChoice(name);};
-  if(name==='CMS'||!viewer||!viewer.focus(name,finish)){finish();return;}
-  area.querySelector('.photoism3d').classList.add('device-zooming');
-  area.querySelectorAll('button').forEach(b=>b.disabled=true);
+  if(selecting)return;selecting=true;
+  if(name==='CMS'||!viewer){commitChoice(name);return;}
+  if(!viewer.focus(name)){commitChoice(name);return;}
+  host.removeEventListener('modelrender',layout);
+  equipmentScene={host,viewer,name,brand,first:true};parkEquipmentScene();
+  commitChoice(name);
  }
  area.innerHTML='<section class="photoism3d"><div class="model-heading"><div><h2>PHOTOISM</h2><p>내부 보기를 누르면 앞문이 열리며 내부가 확대됩니다. 확인할 부품을 선택해주세요.</p></div></div><div class="model-toolbar" aria-label="키오스크 방향"><button data-view="front" aria-pressed="true"><strong>앞면</strong><small>카메라 · 모니터 · 결제 장치</small></button><button data-view="inside" aria-pressed="false"><strong>내부 보기</strong><small>프린터 · PC · 서비스코인/설정</small></button></div><h3 id="modelPartHeading" class="model-view-status" role="status" aria-live="polite">앞면 부품</h3><div class="model-stage model-callout-stage"><button class="model-door-hint" hidden><strong>앞문 열기 · 내부 보기</strong><span>프린터 · PC · 서비스코인/설정</span></button><svg class="model-door-leader" hidden aria-hidden="true"><defs><marker id="doorArrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z"/></marker></defs><path class="door-arrow-line" marker-end="url(#doorArrow)"></path><circle r="9"></circle></svg><div id="photoismModelHost" class="model-host"></div><svg class="model-leaders" aria-hidden="true"></svg><div class="model-parts" aria-label="진단할 부품 선택"></div><div class="model-cms-satellite" aria-hidden="true"><svg viewBox="25 12 250 80" aria-hidden="true"><g>        <rect x="90" y="63" width="24" height="6" fill="#3a3d47"/>        <rect x="186" y="63" width="24" height="6" fill="#3a3d47"/>        <rect x="34" y="52" width="56" height="30" rx="3" fill="#1c2a3a" stroke="#3a5a78" stroke-width="1.2"/>        <rect x="210" y="52" width="56" height="30" rx="3" fill="#1c2a3a" stroke="#3a5a78" stroke-width="1.2"/>        <g stroke="#3a5a78" stroke-width="1">          <line x1="48" y1="52" x2="48" y2="82"/><line x1="62" y1="52" x2="62" y2="82"/><line x1="76" y1="52" x2="76" y2="82"/>          <line x1="224" y1="52" x2="224" y2="82"/><line x1="238" y1="52" x2="238" y2="82"/><line x1="252" y1="52" x2="252" y2="82"/>        </g>        <rect x="120" y="50" width="60" height="36" rx="9" fill="#2c2f38" stroke="#454852" stroke-width="1.5"/>        <circle class="sat-blink" cx="150" cy="68" r="4"/>        <path d="M132,50 Q150,20 168,50 Z" fill="#454852" stroke="#5a5d68" stroke-width="1.2"/>        <line x1="150" y1="34" x2="150" y2="20" stroke="#5a5d68" stroke-width="2"/>        <circle cx="150" cy="18" r="3" fill="#5a5d68"/>        </g></svg></div><svg class="model-cms-leader" aria-hidden="true"><path></path><circle r="3"></circle></svg><button class="model-callout model-cms-label">CMS</button><svg class="model-cms-waves" aria-hidden="true"><path></path><path></path><path></path></svg></div></section>';
  if(isSnap){area.querySelector('h2').textContent='SNAPISM';area.querySelector('[data-view=front] small').textContent='모니터 · 카드단말기';area.querySelector('[data-view=inside] small').textContent='CX7600 · DS620 · PC · 서비스코인/설정';area.querySelector('.model-door-hint span').textContent='프린터 · PC · 서비스코인/설정';}
  document.getElementById('breadcrumb').textContent=(isSnap?'스내피즘':'포토이즘')+' · 부품 선택';
- const host=area.querySelector('#photoismModelHost'),parts=area.querySelector('.model-parts'),heading=area.querySelector('#modelPartHeading'),stage=area.querySelector('.model-stage'),lines=area.querySelector('.model-leaders');let viewer=null,version=0,failed=false,active=[];
+ let host=area.querySelector('#photoismModelHost');const parts=area.querySelector('.model-parts'),heading=area.querySelector('#modelPartHeading'),stage=area.querySelector('.model-stage'),lines=area.querySelector('.model-leaders');let viewer=null,version=0,failed=false,active=[];
  const groups=isSnap?{front:[['모니터'],['카드리더기']],inside:[['PC','서비스코인 / 설정'],['CX7600','DS620']]}:{front:[['에스라이트','카메라','모니터','지폐투입기'],['지속광','리모컨','카드리더기']],inside:[['PC','서비스코인 / 설정'],['프린터']]};
  function calloutInset(){return Math.min(56,Math.max(4,(host.clientWidth-400)*.14));}
  function layoutSignal(){if(failed||!viewer)return;const svg=area.querySelector(".model-cms-waves"),button=area.querySelector(".model-cms-satellite"),w=host.clientWidth,h=host.clientHeight;svg.setAttribute("viewBox",`0 0 ${w} ${h}`);const inset=calloutInset(),label=area.querySelector(".model-cms-label"),leader=area.querySelector(".model-cms-leader");button.style.right=(12+inset)+"px";label.style.right=(4+inset)+"px";label.style.top=(button.offsetTop+button.offsetHeight+10)+"px";leader.setAttribute("viewBox",`0 0 ${w} ${h}`);const ax=button.offsetLeft+button.offsetWidth*.5,ay=button.offsetTop+button.offsetHeight*.62,bx=label.offsetLeft+label.offsetWidth*.5,by=label.offsetTop;leader.querySelector("path").setAttribute("d",`M ${bx} ${by} L ${bx} ${by-8} L ${ax} ${ay}`);leader.querySelector("circle").setAttribute("cx",ax);leader.querySelector("circle").setAttribute("cy",ay);const x=button.offsetLeft+button.offsetWidth*.42,y=button.offsetTop+button.offsetHeight*.65,p=viewer.project("카메라"),dx=p.x-x,dy=p.y-y,len=Math.hypot(dx,dy);if(!len)return;const ux=dx/len,uy=dy/len;svg.querySelectorAll("path").forEach((path,i)=>{const t=.17+i*.19,cx=x+dx*t,cy=y+dy*t,r=8+i*6;path.setAttribute("d",`M ${cx-uy*r-ux*3} ${cy+ux*r-uy*3} Q ${cx+ux*8} ${cy+uy*8} ${cx+uy*r-ux*3} ${cy-ux*r-uy*3}`);});}
@@ -34,15 +57,19 @@ function renderPhotoism3DPicker(area,brand='photoism'){
  area.querySelector('.model-door-hint').onclick=()=>change('inside');
  area.querySelector('.model-cms-label').onclick=()=>choose('CMS');
  function fallback(){selecting=false;area.querySelector('.photoism3d')?.classList.remove('device-zooming');area.querySelectorAll('button').forEach(b=>b.disabled=false);failed=true;viewer?.dispose();stage.classList.add('model-callout-fallback');host.innerHTML='<div class="model-unavailable">3D 표시를 사용할 수 없습니다.<br>아래 부품 메뉴를 이용해주세요.</div>';}
- host.addEventListener('modelrender',layout);
+ host.addEventListener('modelrender',layout);host._pickerLayout=layout;
  host.addEventListener('modelerror',()=>{if(!host.isConnected)return;fallback();reveal(area.querySelector('[data-view][aria-pressed="true"]').dataset.view,version);},{once:true});
- try{viewer=PhotoismModel.mount(host,brand);}catch(error){fallback();}
- area.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>change(button.dataset.view));change('front');loadRecentSymptoms(brand);
+ let returning=false;
+ if(equipmentScene&&equipmentScene.brand===brand){const state=equipmentScene;returning=true;host.replaceWith(state.host);host=state.host;host.id='photoismModelHost';host.style.cssText='';host.removeEventListener('modelrender',host._pickerLayout);host.addEventListener('modelrender',layout);host._pickerLayout=layout;viewer=state.viewer;clearTimeout(state.dockTimer);host.getAnimations().forEach(a=>a.cancel());equipmentScene=null;viewer.restore(()=>change('front'));}
+ else try{viewer=PhotoismModel.mount(host,brand);}catch(error){fallback();}
+ area.querySelectorAll('[data-view]').forEach(button=>button.onclick=()=>change(button.dataset.view));if(!returning)change('front');loadRecentSymptoms(brand);
 }
 
 // Equipment detail is presentation only: existing symptom IDs and handlers are retained.
 function decorateDeviceDetail(area,content,name,brand='photoism'){
  if(name==='CMS')return;
+ const persistent=equipmentScene&&equipmentScene.brand===brand;
+ if(persistent)name=equipmentScene.name;
  const layout=document.createElement('section');layout.className='device-detail';
  const visual=document.createElement('aside');visual.className='device-detail-visual';
  const tag=document.createElement('p');tag.className='device-detail-brand';tag.textContent=brand==='snapism'?'SNAPISM':'PHOTOISM';
@@ -50,10 +77,11 @@ function decorateDeviceDetail(area,content,name,brand='photoism'){
  const host=document.createElement('div');host.className='device-detail-model';host.setAttribute('role','img');host.setAttribute('aria-label',name+' 3D 참고 모델');
  const status=document.createElement('p');status.className='device-model-status';status.textContent='장비를 불러오는 중…';status.setAttribute('role','status');
  const note=document.createElement('p');note.className='device-detail-note';note.textContent='장비 외형은 설치 기종에 따라 다를 수 있어요.';
- visual.append(tag,title,host,status,note);layout.append(visual);content.classList.add('device-detail-content');content.classList.remove('hud-frame');layout.append(content);area.append(layout);area.scrollTop=0;requestAnimationFrame(()=>{if(layout.isConnected){window.scrollTo({top:0,behavior:'instant'});area.scrollTop=0;}});title.tabIndex=-1;title.focus({preventScroll:true});
+ visual.append(tag,title,host,status,note);layout.append(visual);content.classList.add('device-detail-content');content.classList.remove('hud-frame');layout.append(content);area.append(layout);if(!persistent||equipmentScene.first){area.scrollTop=0;requestAnimationFrame(()=>{if(layout.isConnected){window.scrollTo({top:0,behavior:'instant'});area.scrollTop=0;}});title.tabIndex=-1;title.focus({preventScroll:true});}
  content.querySelectorAll('.symptom-card,.tool-card').forEach((card,i)=>{card.style.setProperty('--entry-delay',Math.min(i,9)*55+'ms');});
  host.addEventListener('modelready',()=>{status.textContent='';});
  host.addEventListener('modelerror',()=>{status.textContent='3D를 표시할 수 없어요. 증상 안내는 계속 이용할 수 있어요.';});
+ if(persistent){status.textContent='';const first=equipmentScene.first;equipmentScene.first=false;visual.classList.add('device-persistent');dockEquipmentScene(host,first);return;}
  try{if(!PhotoismModel.mountDevice(host,name,brand)){status.textContent='아래에서 필요한 안내를 선택해주세요.';}}catch{status.textContent='3D를 표시할 수 없어요. 안내를 선택해주세요.';}
 }
 function appendDeviceTools(wrap){

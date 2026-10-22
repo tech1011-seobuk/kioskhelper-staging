@@ -474,3 +474,11 @@ Changed SNAPISM jam turn over title to 'jam turn over 오류 코드 조치 방�
 ## 2026-10-22 리모컨 / 서비스코인·설정 분리
 - 테스트 서버의 장비/증상/교체/검색을 리모컨과 서비스코인·설정으로 분리. RC-1/RC-2 및 기존 교체 매뉴얼 공유 키와 variant 0/1은 보존하고 반대 장비의 선택 버튼은 표시하지 않는다. 기존 DB 통합 장비명은 읽을 때 분류하며 DB·본문·사진은 수정하지 않는다.
 - 서비스코인·설정 단독 모델 연결 보완. 본 서버는 변경하지 않는다. 회귀 검사와 브라우저 확인 결과는 outputs/remote-service-split-20261022에 보관.
+
+
+## 2026-10-22 Continuous device scene (staging only)
+- Preserve the original kiosk WebGL host/canvas through device selection, symptom list and diagnosis steps. Fade surrounding meshes and tween camera plus canvas into the side panel over 1050 ms.
+- Semantic GLB exported from existing photoism-kiosk-pointing.blend; helperDevice extras preserve device/material grouping and original door hierarchy.
+- Returning to picker restores the same scene. Leaving the equipment flow disposes the renderer. Reduced-motion preference skips travel.
+- No authentication, published diagnosis, media or production changes.
+- Validation: 111 existing tests; browser confirms same canvas through camera selection, CAM-3 next step, return to picker and printer selection.
