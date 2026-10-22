@@ -485,3 +485,6 @@ Changed SNAPISM jam turn over title to 'jam turn over 오류 코드 조치 방�
 
 ## Continuous transition rollback
 User requested restoring the previous device transition because it felt too fast. Restored index, model, picker and CSS from the pre-change backup; bumped staging cache to force refresh. Experimental asset is unused. Production unchanged.
+
+## 2026-10-22 Back navigation to equipment detail
+Camera model/color back and non-camera replacement back now return to symptoms with the 3D equipment panel. Printer default and recent equipment entries use the same destination. Legacy deviceActions state normalizes in render. Camera model action screen has a back control. Staging only; no manual or DB changes.

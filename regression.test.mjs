@@ -502,3 +502,22 @@ function replacementTestElement(tag='div'){
  replaceChildren(...xs){this.children=[];this.append(...xs);},querySelector(tag){for(const x of this.children){if(x.tag===tag)return x;const child=x.querySelector?.(tag);if(child)return child;}return null;}
  };
 }
+
+test('back navigation returns to current equipment detail and preserves model selection routes',()=>{
+ const reset={style:{}},home={style:{}},nav={};
+ const c=vm.createContext({document:{getElementById:id=>id==='resetBtn'?reset:id==='homeBtn'?home:nav},
+ updateUserInfoBar(){},addRipple(){},render(){},goToHub(){},goToColorModel(){c.appState='colorModel';},
+ goToPrinterModel(state){c.appState='printerModel';c.printerModelReturnState=state;}});
+ vm.runInContext(section('function updateResetButton(){','let screenSwapTimer='),c);
+ for(const device of ['모니터','PC','리모컨','서비스코인','카드리더기','에스라이트']){
+  c.appState='equipReplaceDetail';c.selectedDevice='stale';c.selectedEquipReplaceDevice=device;c.updateResetButton();reset.onclick({currentTarget:reset});
+  assert.equal(c.appState,'symptoms');assert.equal(c.selectedDevice,device);
+ }
+ c.appState='colorModel';c.updateResetButton();reset.onclick({currentTarget:reset});assert.equal(c.appState,'symptoms');assert.equal(c.selectedDevice,'카메라');
+ for(const device of ['카메라','프린터']){
+  c.appState='equipReplaceDetail';c.selectedEquipReplaceDevice=device;c.printerModelReturnState='symptoms';c.updateResetButton();reset.onclick({currentTarget:reset});
+  assert.equal(c.appState,device==='카메라'?'colorModel':'printerModel');
+ }
+ c.appState='printerModel';c.updateResetButton();reset.onclick();assert.equal(c.appState,'symptoms');
+ c.appState='cameraModelActions';c.updateResetButton();reset.onclick();assert.equal(c.appState,'colorModel');
+});

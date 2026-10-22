@@ -6589,7 +6589,7 @@ let path = []; // [{symptomId, nodeId, chosen, jumpNote}]
 let symptomSource = 'photoism'; // 'photoism' | 'snapism' — which picker to return to
 let selectedEquipReplaceDevice = null;
 let selectedPrinterModel = null;
-let printerModelReturnState = 'deviceActions';
+let printerModelReturnState = 'symptoms';
 const PRINTER_MODELS = [
   {id:'rx1',name:'RX1',brand:'DNP',label:'DNP RX1'},
   {id:'ask400',name:'ASK-400',brand:'FUJIFILM',label:'후지필름 ASK-400'}
@@ -8485,7 +8485,7 @@ function renderDeviceActionsScreen(){
       if (action === 'repair') { appState = 'symptoms'; render(); }
       else if (action === 'color') { pendingCameraAction = 'color'; goToColorModel(); }
       else if (action === 'bodyReplace') { pendingCameraAction = 'bodyReplace'; goToColorModel(); }
-      else if (action === 'replace') { if(selectedDevice === '프린터'){goToPrinterModel('deviceActions');return;} selectedEquipReplaceDevice = selectedDevice; appState = 'equipReplaceDetail'; logEvent('device_click', { brand:'photoism', device:selectedDevice, detail:'교체 방법' }); render(); }
+      else if (action === 'replace') { if(selectedDevice === '프린터'){goToPrinterModel('symptoms');return;} selectedEquipReplaceDevice = selectedDevice; appState = 'equipReplaceDetail'; logEvent('device_click', { brand:'photoism', device:selectedDevice, detail:'교체 방법' }); render(); }
     };
   });
   add3DTilt(area, '.tool-card', 4);
@@ -8921,7 +8921,7 @@ async function loadRecentSymptoms(brand){
           render();
         } else {
           const actions = getDeviceActions(item.device);
-          appState = actions.length <= 1 ? 'symptoms' : 'deviceActions';
+          appState = 'symptoms';
           render();
         }
       };
@@ -10635,7 +10635,7 @@ function renderEquipReplaceScreen(){
   add3DTilt(area, '.tool-card', 4);
 }
 
-function goToPrinterModel(returnState = 'deviceActions'){
+function goToPrinterModel(returnState = 'symptoms'){
   printerModelReturnState = returnState;
   selectedPrinterModel = null;
   selectedEquipReplaceDevice = '프린터';
@@ -11436,7 +11436,7 @@ function updateResetButton(){
   } else if(appState==='colorModel'){
     resetBtn.style.display = 'inline-block';
     resetBtn.textContent = '← 이전 단계로';
-    resetBtn.onclick = (e)=>{ addRipple(e.currentTarget, e); selectedDevice='카메라'; appState='deviceActions'; render(); };
+    resetBtn.onclick = (e)=>{ addRipple(e.currentTarget, e); selectedDevice='카메라'; appState='symptoms'; render(); };
   } else if(appState==='cameraBasicCheck'){
     resetBtn.style.display = 'inline-block';
     resetBtn.textContent = '← 이전 단계로';
@@ -11452,6 +11452,10 @@ function updateResetButton(){
     resetBtn.style.display = 'inline-block';
     resetBtn.textContent = '← 이전 단계로';
     resetBtn.onclick = (e)=>{ addRipple(e.currentTarget, e); appState='cameraBasicCheck'; render(); };
+  } else if(appState==='cameraModelActions'){
+    resetBtn.style.display='inline-block';
+    resetBtn.textContent='← 다른 기종 고르기';
+    resetBtn.onclick=()=>goToColorModel();
   } else if(appState==='colorSetup'){
     resetBtn.style.display = 'inline-block';
     resetBtn.textContent = '← 다른 기종 고르기';
@@ -11475,7 +11479,7 @@ function updateResetButton(){
       addRipple(e.currentTarget, e);
       if (selectedEquipReplaceDevice === '프린터') { goToPrinterModel(printerModelReturnState); }
       else if (selectedEquipReplaceDevice === '카메라') { pendingCameraAction = 'bodyReplace'; goToColorModel(); }
-      else { appState = 'deviceActions'; render(); }
+      else { selectedDevice=selectedEquipReplaceDevice; appState = 'symptoms'; render(); }
     };
   } else {
     resetBtn.style.display = 'none';
@@ -11486,6 +11490,8 @@ function updateResetButton(){
 
 let screenSwapTimer=null,screenEnterTimer=null;
 function render(){
+  // Older navigation entries share the current equipment detail screen.
+  if(appState==='deviceActions')appState='symptoms';
   const area = document.getElementById('chatArea');
   const hasContent = area.childNodes.length > 0;
   const reduced=window.matchMedia('(prefers-reduced-motion: reduce)').matches;
