@@ -62,3 +62,19 @@
 @keyframes device-model-enter{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
 @media(max-width:760px){.device-detail{grid-template-columns:1fr;gap:18px;padding:16px 12px 40px}.device-detail-visual{position:relative;top:auto;border-radius:20px}.device-detail-model{height:210px}.device-detail-brand{margin-top:18px}.device-detail-visual h2{font-size:24px}.device-detail-note{margin:0 12px 16px;font-size:11px}.device-detail .symptoms-header{padding:6px 4px 18px}.device-detail .symptoms-header .t1{display:none}.device-detail .symptoms-header .t2{font-size:22px}.device-detail .symptom-card{min-height:60px;padding:14px}.device-detail .tool-card-grid{grid-template-columns:1fr}}
 @media(prefers-reduced-motion:reduce){.device-detail *,.device-zooming *{animation:none!important;transition:none!important}}
+
+/* Product studio: local presentation only; retain global brand and navigation. */
+.device-detail{gap:clamp(28px,4.5vw,68px);padding-top:36px}
+.device-detail-visual{background:radial-gradient(ellipse at 48% 38%,#41454b 0%,#292c31 45%,#1b1d21 100%);border:1px solid #ffffff14;box-shadow:inset 0 1px 0 #ffffff0c,0 24px 60px #0002;color:#f3f4f6}
+.device-detail-brand{color:#b6bbc3;letter-spacing:.3em;margin-top:32px;font-weight:600}
+.device-detail-visual h2{font-weight:700;letter-spacing:-.04em;font-size:36px;color:#f3f4f6}
+.device-detail-model{height:370px}
+.device-detail-note{color:#aeb3bc;line-height:1.6;margin-bottom:26px}
+.device-detail .symptom-card{background:var(--panel,#26282d);border:1px solid var(--border);box-shadow:none;transition:border-color .2s,background .2s;min-height:72px;border-radius:16px}
+.device-detail .symptom-card:hover,.device-detail .symptom-card:focus-visible{border-color:var(--accent);box-shadow:0 4px 18px #0001;transform:none}
+.device-detail .symptom-card:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.device-detail .symptom-id{opacity:.5;font-variant-numeric:tabular-nums}
+.device-detail .symptom-card:after{font-size:22px;color:var(--muted)}
+.device-detail .symptoms-header .t2{font-size:28px;letter-spacing:-.04em;line-height:1.4}
+.device-detail .symptoms-grid{gap:10px}
+@media(max-width:760px){.device-detail{padding-top:16px;gap:22px}.device-detail-model{height:240px}.device-detail-brand{margin-top:22px;font-size:10px}.device-detail-visual h2{font-size:28px}.device-detail-note{margin-bottom:18px}.device-detail .symptoms-header .t2{font-size:23px}.device-detail .symptom-card{min-height:64px}}

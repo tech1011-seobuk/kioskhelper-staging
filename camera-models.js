@@ -19,17 +19,29 @@ export function mountDevice(host,name,brand='photoism'){
 function mountProduct(host,id,kind,detail=false){
  detail=detail||kind==='snap';
  const renderer=new T.WebGLRenderer({alpha:true,antialias:true,powerPreference:'low-power'});
- renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.6));renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=1.15;
+ renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.6));renderer.setClearColor(0,0);renderer.outputColorSpace=T.SRGBColorSpace;renderer.toneMapping=T.ACESFilmicToneMapping;renderer.toneMappingExposure=.95;renderer.shadowMap.enabled=detail;renderer.shadowMap.type=T.VSMShadowMap;
  const canvas=renderer.domElement;canvas.setAttribute('aria-hidden','true');canvas.style.cssText='width:100%;height:100%;pointer-events:none;touch-action:pan-y';host.appendChild(canvas);
- const scene=new T.Scene(),root=new T.Group(),camera=new T.PerspectiveCamera(30,1,.1,1500);scene.add(root);camera.position.set(-55,32,260);camera.lookAt(0,0,0);
- scene.add(new T.HemisphereLight(0xf1f4ff,0x33363e,2));
- [[-100,150,180,0xffffff,3],[140,75,10,0xc6d9ee,2],[0,80,-100,0xffffff,3]].forEach(([x,y,z,c,i])=>{const l=new T.DirectionalLight(c,i);l.position.set(x,y,z);scene.add(l);});
+ const scene=new T.Scene(),root=new T.Group(),camera=new T.PerspectiveCamera(30,1,.1,1500);scene.add(root);camera.position.set(-48,26,260);camera.lookAt(0,0,0);
+ scene.add(new T.HemisphereLight(0xf5f6fa,0x343239,1.1));
+ [[-90,140,140,0xfff5e8,2.6],[150,50,90,0xdce8ff,.85],[20,100,-120,0xffffff,3.2]].forEach(([x,y,z,c,i])=>{const l=new T.DirectionalLight(c,i);l.position.set(x,y,z);if(detail&&x===-90){l.castShadow=true;l.shadow.mapSize.set(1024,1024);Object.assign(l.shadow.camera,{left:-110,right:110,top:110,bottom:-110,near:1,far:500});l.shadow.bias=-.0003;l.shadow.normalBias=.12;l.shadow.radius=5;l.shadow.blurSamples=8;}scene.add(l);});
  const textures=[];
  function texture(w,h,paint){const c=document.createElement('canvas');c.width=w;c.height=h;paint(c.getContext('2d'),w,h);const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;textures.push(t);return t;}
  const studio=texture(1024,512,(c,W,H)=>{c.fillStyle='#191b20';c.fillRect(0,0,W,H);for(const [x,y,w,h] of [[170,70,100,280],[630,100,200,220],[870,150,35,240]]){const g=c.createRadialGradient(x+w/2,y+h/2,0,x+w/2,y+h/2,h*.65);g.addColorStop(0,'#ffffff');g.addColorStop(.45,'#b9bec6');g.addColorStop(1,'#191b20');c.fillStyle=g;c.fillRect(x-w/2,y-h/2,w*2,h*2);}});studio.mapping=T.EquirectangularReflectionMapping;
  const pmrem=new T.PMREMGenerator(renderer),environment=pmrem.fromEquirectangular(studio);scene.environment=environment.texture;pmrem.dispose();
  const shadow=texture(256,128,(c,W,H)=>{const g=c.createRadialGradient(W/2,H/2,2,W/2,H/2,W/2);g.addColorStop(0,'rgba(0,0,0,.55)');g.addColorStop(1,'rgba(0,0,0,0)');c.fillStyle=g;c.fillRect(0,0,W,H);});
  const floor=new T.Mesh(new T.PlaneGeometry(170,100),new T.MeshBasicMaterial({map:shadow,transparent:true,depthWrite:false}));floor.rotation.x=-Math.PI/2;floor.position.y=-55;scene.add(floor);
+ const contact=new T.Mesh(new T.PlaneGeometry(650,650),new T.ShadowMaterial({opacity:.3}));contact.rotation.x=-Math.PI/2;contact.receiveShadow=true;contact.visible=detail;scene.add(contact);
+ // Reproducible microtexture; preserve printed labels and existing image maps.
+ const grain=texture(128,128,(c,W,H)=>{const d=c.createImageData(W,H);let seed=41;for(let i=0;i<d.data.length;i+=4){seed=(seed*1664525+1013904223)>>>0;const v=110+(seed>>>26);d.data[i]=d.data[i+1]=d.data[i+2]=v;d.data[i+3]=255;}c.putImageData(d,0,0);});grain.colorSpace=T.NoColorSpace;grain.wrapS=grain.wrapT=T.RepeatWrapping;grain.repeat.set(28,28);
+ function finishMaterial(m){
+  if(!m.isMeshStandardMaterial)return;
+  const name=m.name.toLowerCase();m.envMapIntensity=.85;
+  if(/rubber|grip/.test(name)){m.roughness=.82;m.metalness=0;if(!m.normalMap&&!m.bumpMap){m.bumpMap=grain;m.bumpScale=.003;}}
+  else if(/polycarbonate|enclosure|moulded|plastic|scrap box/.test(name)){m.roughness=/enclosure|moulded/.test(name)?.43:.49;m.metalness=0;if(!m.normalMap&&!m.bumpMap){m.bumpMap=grain;m.bumpScale=.001;}}
+  else if(/aluminium|satin metal|anodised/.test(name)){m.roughness=.3;m.metalness=.8;}
+  else if(/glass|optical/.test(name)){m.roughness=.12;m.envMapIntensity=1.2;}
+  m.needsUpdate=true;
+ }
  let disposed=false,failed=false,loaded=false,visible=true,hover=false,focused=false,frame=0,last=0,elapsed=0,lastRender=0;
  const motion=matchMedia('(prefers-reduced-motion: reduce)');let reduced=motion.matches;
  const phase={m50:0,'850d':.08,r10:-.08,rx1:0,ask400:.08}[id]||0;
@@ -39,9 +51,9 @@ function mountProduct(host,id,kind,detail=false){
   const dt=last?Math.min((now-last)/1000,.1):0;last=now;
   const animate=loaded&&!reduced&&visible&&!document.hidden;
   if(animate&&!hover&&!focused)elapsed+=dt;
-  root.rotation.y=reduced?0:detail?phase+Math.sin(elapsed/5)*.16:phase+elapsed*Math.PI*2/36;
-  root.rotation.x=reduced?0:Math.sin(elapsed*Math.PI/16)*.018;
-  root.position.y=reduced?0:Math.sin(elapsed*Math.PI/4)*1.8;
+  root.rotation.y=reduced?0:detail?phase+Math.sin(elapsed/7)*.065:phase+elapsed*Math.PI*2/36;
+  root.rotation.x=reduced||detail?0:Math.sin(elapsed*Math.PI/16)*.018;
+  root.position.y=reduced||detail?0:Math.sin(elapsed*Math.PI/4)*1.8;
   if(!animate||now-lastRender>=1000/30){renderer.render(scene,camera);lastRender=now;}
   if(animate&&!hover&&!focused)frame=requestAnimationFrame(draw);
  }
@@ -57,8 +69,8 @@ function mountProduct(host,id,kind,detail=false){
  function accept(gltf){
   if(disposed){release(gltf.scene);return;}
   const model=gltf.scene,box=new T.Box3().setFromObject(model),size=box.getSize(new T.Vector3()),center=box.getCenter(new T.Vector3());
-  const scale=(detail?104:120)/Math.max(size.x,size.y,size.z);model.scale.setScalar(scale);model.position.copy(center).multiplyScalar(-scale);root.add(model);floor.position.y=-size.y*scale/2-5;
-  model.traverse(o=>{for(const m of o.material?(Array.isArray(o.material)?o.material:[o.material]):[])m.envMapIntensity=.65;});loaded=true;host.dataset.cameraSource='blender';host.dispatchEvent(new Event('modelready'));request();
+  const scale=(detail?126:120)/Math.max(size.x,size.y,size.z);model.scale.setScalar(scale);model.position.copy(center).multiplyScalar(-scale);root.add(model);floor.position.y=-size.y*scale/2-.4;contact.position.y=floor.position.y-.15;
+  model.traverse(o=>{if(o.isMesh){o.castShadow=detail;o.receiveShadow=detail;}for(const m of o.material?(Array.isArray(o.material)?o.material:[o.material]):[])finishMaterial(m);});loaded=true;host.dataset.cameraSource='blender';host.dispatchEvent(new Event('modelready'));request();
  }
  if(kind==='snap'){
   const source=createSnapismModel(),part=new T.Group();source.updateMatrixWorld(true);
