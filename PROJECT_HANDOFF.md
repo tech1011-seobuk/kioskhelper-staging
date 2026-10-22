@@ -488,3 +488,7 @@ User requested restoring the previous device transition because it felt too fast
 
 ## 2026-10-22 Back navigation to equipment detail
 Camera model/color back and non-camera replacement back now return to symptoms with the 3D equipment panel. Printer default and recent equipment entries use the same destination. Legacy deviceActions state normalizes in render. Camera model action screen has a back control. Staging only; no manual or DB changes.
+
+
+## 2026-10-22 장비 안내 아이콘
+- 교체·색감 조정 버튼에 기존 action.icon을 표시하도록 복원. 화면 이동 및 권한 변경 없음.
