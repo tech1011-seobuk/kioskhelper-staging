@@ -482,3 +482,6 @@ Changed SNAPISM jam turn over title to 'jam turn over 오류 코드 조치 방�
 - Returning to picker restores the same scene. Leaving the equipment flow disposes the renderer. Reduced-motion preference skips travel.
 - No authentication, published diagnosis, media or production changes.
 - Validation: 111 existing tests; browser confirms same canvas through camera selection, CAM-3 next step, return to picker and printer selection.
+
+## Continuous transition rollback
+User requested restoring the previous device transition because it felt too fast. Restored index, model, picker and CSS from the pre-change backup; bumped staging cache to force refresh. Experimental asset is unused. Production unchanged.
