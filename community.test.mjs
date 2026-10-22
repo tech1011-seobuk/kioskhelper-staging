@@ -39,10 +39,10 @@ function popupHarness({seen=false,failWrite=false}={}){
 test('confirmed notices do not open; unread notice opens once per login and saves only after confirmation',async()=>{
  const seen=popupHarness({seen:true});await seen.c.helperCheckNotices();assert.equal(seen.dialogs.length,0);
  const h=popupHarness();await h.c.helperCheckNotices();await h.c.helperCheckNotices();assert.equal(h.dialogs.length,1);assert.equal(h.calls.length,0);
- const button=h.buttons.get('[data-read]');await button.onclick({currentTarget:button});assert.equal(h.calls[0].table,'helper_notice_reads');assert.equal(h.calls[0].payload.notice_id,'notice');assert.equal(h.dialogs[0].closed,true);
+ h.buttons.set('[data-hide-notice]',{checked:true});const button=h.buttons.get('[data-read]');await button.onclick({currentTarget:button});assert.equal(h.calls[0].table,'helper_notice_reads');assert.equal(h.calls[0].payload.notice_id,'notice');assert.equal(h.dialogs[0].closed,true);
 });
 test('failed notice acknowledgement stays open and can be retried',async()=>{
- const h=popupHarness({failWrite:true});await h.c.helperCheckNotices();const button=h.buttons.get('[data-read]');await button.onclick({currentTarget:button});assert.notEqual(h.dialogs[0].closed,true);assert.equal(button.disabled,false);assert.match(h.buttons.get('[role=status]').textContent,/저장하지 못/);
+ const h=popupHarness({failWrite:true});await h.c.helperCheckNotices();h.buttons.set('[data-hide-notice]',{checked:true});const button=h.buttons.get('[data-read]');await button.onclick({currentTarget:button});assert.notEqual(h.dialogs[0].closed,true);assert.equal(button.disabled,false);assert.match(h.buttons.get('[role=status]').textContent,/저장하지 못/);
 });
 test('detail filters use start brand/device, preserve repeated legacy views and pair outcomes',()=>{
  const start={...event('a','symptom_click',null,0),brand:'photoism',device:'프린터'};
@@ -69,3 +69,5 @@ test('coverage keeps missing steps and distinguishes replacement reference photo
  const rows=ctx.helperPhotoCoverage({X:{nodes:{a:{text:'connect'},b:{text:'inspect',media:[{kind:'image',url:'https://example.org/a'}]}}}},{printer:[['reference','v','photo']]},{printer:[{label:'printer',steps:[['remove','unplug'],['install','attach']]}]});
  assert.equal(rows[0].total,2);assert.equal(rows[0].withPhoto,1);assert.equal(rows[1].count,1);assert.equal(rows[1].withPhoto,0);assert.equal(rows[1].total,2);assert.equal(rows[1].reference.length,1);
 });
+
+test('closing without opting out does not save a read record',async()=>{const h=popupHarness();await h.c.helperCheckNotices();const b=h.buttons.get('[data-read]');await b.onclick({currentTarget:b});assert.equal(h.calls.length,0);assert.equal(h.dialogs[0].closed,true);});
