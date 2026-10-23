@@ -1960,6 +1960,7 @@ html[data-theme=light] .kiosk-line-overlay *{stroke:#28628b}
 @media(max-width:760px){.device-detail{padding-top:16px;gap:22px}.device-detail-model{height:240px}.device-detail-brand{margin-top:22px;font-size:10px}.device-detail-visual h2{font-size:28px}.device-detail-note{margin-bottom:18px}.device-detail .symptoms-header .t2{font-size:23px}.device-detail .symptom-card{min-height:64px}}
 /* PHOTOISM_CALLOUTS_END */
 
+.media-photo-row{flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--border)}.media-photo-row>span{flex:1 0 100%;white-space:normal;overflow-wrap:anywhere}.media-photo-moves{display:flex;gap:7px;flex-wrap:wrap}.diagram-media-editor .media-photo-row button{min-height:44px;min-width:68px}.media-photo-row button:disabled{opacity:.4;cursor:default}
 .photo-library{border:1px solid var(--border);border-radius:14px;padding:18px;margin:12px 0 18px;background:var(--panel)}.photo-library[hidden]{display:none}.photo-library>p{font-size:12px;color:var(--muted);margin:6px 0}.photo-library-controls{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:16px 0}.photo-library-controls input,.photo-library-controls select{padding:9px;border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:8px;max-width:100%}.photo-library-summary{font-size:12px;color:var(--muted)}.photo-library-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;max-height:540px;overflow-y:auto;align-items:start;padding:2px}.photo-library-row{border:1px solid var(--border);border-radius:10px;padding:14px;min-width:0;background:var(--panel2)}.photo-library-row h4{margin:0 0 6px}.photo-library-row small{color:var(--muted);font-size:11px}.photo-library-text{white-space:pre-wrap;font-size:13px;line-height:1.6;overflow-wrap:anywhere}.photo-library-row button{padding:9px 12px;min-height:40px;border-radius:8px;cursor:pointer;background:var(--panel);color:var(--text);border:1px solid var(--border)}.photo-library-row .diagnosis-media img{max-height:140px;object-fit:contain}.photo-library-row .media-file-row{flex-wrap:wrap}.photo-library-row .media-file-row span{overflow-wrap:anywhere;min-width:0}.photo-library-row .diagnosis-media{margin:8px 0}.photo-library-row .diagram-media-editor{margin:10px 0}@media(max-width:600px){.photo-library{padding:12px}.photo-library-list{grid-template-columns:minmax(0,1fr);max-height:480px}}
 
 /* Readable list editing alongside the existing flow canvas. */
@@ -9544,7 +9545,7 @@ function refreshDiagramPhotoLibrary(sid){
   for(const [kind,label] of [['option','＋ 선택지 추가'],['step','＋ 다음 안내 추가']]){const btn=document.createElement('button');btn.type='button';btn.textContent=label;btn.disabled=diagramSaving||mediaUploading;btn.onclick=()=>{diagramPhotoFilter='all';diagramPhotoSearch='';addDiagramItem(sid,nid,kind);};actions.appendChild(btn);}
   choices.appendChild(actions);row.appendChild(choices);const mediaTitle=document.createElement('h5');mediaTitle.textContent='사진 · 영상';row.appendChild(mediaTitle);buildDiagramMediaControls(sid,nid,row);
   const preview=row.querySelector('.diagnosis-media');if(preview)preview.style.minHeight='0';
-  const upload=row.querySelector('.media-file-row button[aria-label]');if(upload){upload.textContent='＋ 사진 추가';upload.setAttribute('aria-label','목록 '+nid+' 사진 추가');}
+  const upload=row.querySelector('.media-upload-button');if(upload){upload.textContent='＋ 사진 추가';upload.setAttribute('aria-label','목록 '+nid+' 사진 추가');}
   const input=row.querySelector('input[type=file]');if(input)input.accept='image/jpeg,image/png,image/webp,image/gif';
   const go=document.createElement('button');go.type='button';go.textContent='다이어그램에서 보기';go.disabled=mediaUploading||diagramSaving;
   go.onclick=()=>{diagramEditingList=false;diagramPhotoLibraryOpen=false;document.getElementById('diagramEditorMain').classList.remove('editing-as-list');captureDiagramDraft(sid);diagramWorkspace(sid).collapsed={};redrawDiagramLines(sid);const card=document.getElementById('dn_'+nid);card?.scrollIntoView({block:'center',inline:'center',behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'});const field=card?.querySelector('.dnode-text');field?.focus({preventScroll:true});};row.appendChild(go);list.appendChild(row);
@@ -9569,23 +9570,50 @@ function finishDiagramMediaChange(sid){
   const draft=getDiagramDraft(sid);draft.dirty=!sameDiagnosis(draft.tree,diagnosisStore.rows[sid]?.tree||BUILTIN_TREES[sid]);
   persistDiagramDrafts();if(diagramSelectedSid===sid){redrawDiagramLines(sid);updateDiagramSaveStatus(sid,'첨부 자료를 수정했습니다. 저장하고 적용을 눌러 반영해주세요.');}
 }
+function moveDiagramPhoto(sid,nid,index,direction){
+  if(mediaUploading||diagramSaving||currentUser?.role!=='admin'||![-1,1].includes(direction))return;
+  const current=getDiagramDraft(sid).tree.nodes[nid]?.media||[];
+  const indices=current.map((item,i)=>item.kind==='image'?i:-1).filter(i=>i>=0);
+  const position=indices.indexOf(index),target=indices[position+direction];
+  if(position<0||target===undefined)return;
+  const media=captureDiagramDraft(sid).tree.nodes[nid].media;
+  [media[index],media[target]]=[media[target],media[index]];
+  finishDiagramMediaChange(sid);
+  // Redrawing replaces the controls. Keep keyboard focus on the moved photo.
+  const rows=[...document.querySelectorAll('.media-photo-row')].filter(row=>row.dataset.node===nid&&Number(row.dataset.mediaIndex)===target);
+  const row=rows.find(row=>row.getClientRects().length);
+  row?.querySelector('button:not(:disabled)')?.focus({preventScroll:true});
+}
 function buildDiagramMediaControls(sid,nid,box){
   const panel=document.createElement('div');panel.className='diagram-media-editor';
   const node=getDiagramDraft(sid).tree.nodes[nid];
   panel.innerHTML=renderDiagnosisMedia(node);
   const preview=panel.querySelector('.diagnosis-media');if(preview)preview.style.minHeight=(node.media.length*110)+'px';
+  const photoIndices=(node.media||[]).map((item,i)=>item.kind==='image'?i:-1).filter(i=>i>=0);
   for(const [index,item] of (node.media||[]).entries()){
     if(isSymptomVideo(item))continue;
     const row=document.createElement('div');row.className='media-file-row';
     const name=document.createElement('span');name.textContent=item.name;
+    if(item.kind==='image'){
+      const position=photoIndices.indexOf(index);row.classList.add('media-photo-row');row.dataset.node=nid;row.dataset.mediaIndex=index;
+      name.textContent='사진 '+(position+1)+' · '+(item.name||'조치 사진');name.title=name.textContent;
+      const moves=document.createElement('div');moves.className='media-photo-moves';
+      for(const [direction,label] of [[-1,'← 앞으로'],[1,'뒤로 →']]){
+        const move=document.createElement('button');move.type='button';move.textContent=label;
+        move.setAttribute('aria-label',nid+' 사진 '+(position+1)+(direction<0?' 앞으로 이동':' 뒤로 이동'));
+        move.disabled=mediaUploading||diagramSaving||currentUser?.role!=='admin'||photoIndices[position+direction]===undefined;
+        move.onclick=()=>moveDiagramPhoto(sid,nid,index,direction);moves.appendChild(move);
+      }
+      row.append(name,moves);
+    }else row.append(name);
     const remove=document.createElement('button');remove.textContent='첨부 해제';remove.type='button';remove.disabled=mediaUploading||diagramSaving;
     remove.onclick=()=>{if(mediaUploading||diagramSaving)return;captureDiagramDraft(sid);getDiagramDraft(sid).tree.nodes[nid].media.splice(index,1);finishDiagramMediaChange(sid);};
-    row.append(name,remove);panel.appendChild(row);
+    row.append(remove);panel.appendChild(row);
   }
   const actions=document.createElement('div');actions.className='media-file-row';
   const input=document.createElement('input');input.type='file';input.hidden=true;input.accept='image/jpeg,image/png,image/webp,image/gif,video/mp4,video/webm';
   input.onchange=()=>{if(input.files?.[0])uploadDiagramMedia(sid,nid,input.files[0]);};
-  const upload=document.createElement('button');upload.type='button';upload.textContent='＋ 사진·영상 업로드';upload.setAttribute('aria-label',nid+' 사진·영상 업로드');
+  const upload=document.createElement('button');upload.type='button';upload.className='media-upload-button';upload.textContent='＋ 사진·영상 업로드';upload.setAttribute('aria-label',nid+' 사진·영상 업로드');
   upload.disabled=mediaUploading||diagramSaving;upload.onclick=()=>input.click();
   const link=document.createElement('button');link.type='button';link.textContent='＋ 링크';link.setAttribute('aria-label',nid+' 사진·영상 링크 추가');link.disabled=mediaUploading||diagramSaving;
   const linkForm=document.createElement('div');linkForm.hidden=true;linkForm.style.cssText='width:100%;padding:10px 0';
@@ -9608,7 +9636,7 @@ function buildDiagramMediaControls(sid,nid,box){
   };
   actions.append(upload,link,input);panel.appendChild(actions);
   linkForm.append(linkUrl,linkName,addLink,cancelLink);panel.appendChild(linkForm);
-  const hint=document.createElement('small');hint.textContent='사진 10MB · 영상 50MB 이하 / 카드당 6개';panel.appendChild(hint);
+  const hint=document.createElement('small');hint.textContent='사진은 번호 순서로 표시됩니다. 앞으로·뒤로 이동한 뒤 ‘저장하고 적용’을 눌러주세요. 사진 10MB · 영상 50MB 이하 / 카드당 6개';panel.appendChild(hint);
   box.appendChild(panel);
 }
 async function uploadDiagramMedia(sid,nid,file){

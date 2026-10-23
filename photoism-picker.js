@@ -60,7 +60,7 @@ function appendDeviceTools(wrap){
  const actions=getDeviceActions(selectedDevice).filter(a=>a.id!=='repair');if(!actions.length)return;
  const section=document.createElement('section');section.className='device-detail-tools';
  const heading=document.createElement('h3');heading.textContent='교체 · 설정 안내';section.append(heading);
- actions.forEach(action=>{const b=document.createElement('button');b.type='button';b.className='device-tool';b.textContent=action.title+' →';b.onclick=()=>{
+ actions.forEach(action=>{const b=document.createElement('button');b.type='button';b.className='device-tool';b.textContent=(action.icon? action.icon+' ':'')+action.title+' →';b.onclick=()=>{
   if(action.id==='color'||action.id==='bodyReplace'){pendingCameraAction=action.id;goToColorModel();}
   else if(selectedDevice==='프린터')goToPrinterModel('symptoms');
   else{selectedEquipReplaceDevice=selectedDevice;appState='equipReplaceDetail';logEvent('device_click',{brand:'photoism',device:selectedDevice,detail:'교체 방법'});render();}

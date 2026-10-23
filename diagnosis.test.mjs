@@ -13,6 +13,31 @@ function harness(rpc){
  vm.runInContext(section('const SYMPTOM_LABEL =','/* ============================= STATE')+'\n'+section('/* ============================= PUBLISHED DIAGNOSIS','/* ============================= END PUBLISHED DIAGNOSIS')+'\nglobalThis.api={TREES,validateDiagnosisTree,applyPublishedRows,diagnosisStore,getDiagramDraft,saveDiagram};',ctx);
  return ctx;
 }
+test('photo order persists through drafts and publication without moving video or changing routes',()=>{
+ const c=harness(),sid='CAM-3',draft=c.api.getDiagramDraft(sid),nid=draft.tree.start;
+ const media=[{kind:'image',url:'https://example.com/a.jpg',name:'A'},{kind:'link',url:'https://youtu.be/test',name:'video'},{kind:'image',url:'https://example.com/b.jpg',name:'B'},{kind:'image',url:'https://example.com/c.jpg',name:'C'}];
+ draft.tree.nodes[nid].media=media;const options=JSON.stringify(draft.tree.nodes[nid].options);
+ c.moveDiagramPhoto(sid,nid,2,-1);
+ assert.deepEqual(Array.from(draft.tree.nodes[nid].media,m=>m.name),['B','video','A','C']);
+ assert.equal(JSON.stringify(draft.tree.nodes[nid].options),options);assert.equal(draft.dirty,true);
+ c.api.validateDiagnosisTree(draft.tree);
+ const published=JSON.parse(JSON.stringify(draft.tree));
+ c.api.applyPublishedRows([{symptom_id:sid,tree:published,revision:9}]);
+ assert.deepEqual(Array.from(c.api.TREES[sid].nodes[nid].media,m=>m.name),['B','video','A','C']);
+ c.moveDiagramPhoto(sid,nid,2,1);
+ assert.deepEqual(Array.from(draft.tree.nodes[nid].media,m=>m.name),['B','video','C','A']);
+});
+
+test('photo order rejects boundaries, hidden video indices, non-admins and busy saves',()=>{
+ const c=harness(),sid='CAM-3',draft=c.api.getDiagramDraft(sid),nid=draft.tree.start;
+ draft.tree.nodes[nid].media=[{kind:'link',url:'https://youtu.be/test',name:'video'},{kind:'image',url:'https://example.com/a.jpg',name:'A'},{kind:'image',url:'https://example.com/b.jpg',name:'B'}];
+ const before=JSON.stringify(draft.tree);
+ for(const [index,direction] of [[1,-1],[2,1],[0,1],[99,-1],[1,2]])c.moveDiagramPhoto(sid,nid,index,direction);
+ c.currentUser.role='staff';c.moveDiagramPhoto(sid,nid,1,1);c.currentUser.role='admin';
+ vm.runInContext('mediaUploading=true',c);c.moveDiagramPhoto(sid,nid,1,1);vm.runInContext('mediaUploading=false;diagramSaving=true',c);c.moveDiagramPhoto(sid,nid,1,1);
+ assert.equal(JSON.stringify(draft.tree),before);
+});
+
 test('undo records content and media changes without duplicate snapshots or crossing owners',()=>{
  const c=harness();vm.runInContext('globalThis.undoApi={persistDiagramDrafts,diagramAdditionHistory,diagramUndoBaselines};',c);
  const draft=c.api.getDiagramDraft('CAM-3'),before=JSON.stringify(draft.tree);
