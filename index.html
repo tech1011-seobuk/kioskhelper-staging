@@ -8938,7 +8938,7 @@ function openAdminMenu(){
  helperInit();
  const dialog=document.createElement('dialog');dialog.className='helper-dialog';dialog.setAttribute('aria-labelledby','adminMenuTitle');
  dialog.innerHTML='<h2 id="adminMenuTitle">관리자 전용 메뉴</h2><div data-admin-menu style="display:grid;gap:10px;margin:20px 0"></div><div style="text-align:right"><button data-close>닫기</button></div>';
- for(const [label,target] of [['대시보드','adminDashboard'],['매뉴얼 관리','diagramEditor'],['공지 관리','announcements'],['의견함','suggestions']]){const button=document.createElement('button');button.type='button';button.textContent=label;button.style.cssText='text-align:left;min-height:48px';button.onclick=()=>{dialog.close();if(currentUser?.role!=='admin')return;if(target==='diagramEditor'){goToDiagramEditor();return;}appState=target;render();};dialog.querySelector('[data-admin-menu]').appendChild(button);}
+ for(const [label,target] of [['대시보드','adminDashboard'],['카드매출 점검','cardSales'],['매뉴얼 관리','diagramEditor'],['공지 관리','announcements'],['의견함','suggestions']]){const button=document.createElement('button');button.type='button';button.textContent=label;button.style.cssText='text-align:left;min-height:48px';button.onclick=()=>{dialog.close();if(currentUser?.role!=='admin')return;if(target==='diagramEditor'){goToDiagramEditor();return;}appState=target;render();};dialog.querySelector('[data-admin-menu]').appendChild(button);}
  dialog.querySelector('[data-close]').onclick=()=>dialog.close();dialog.addEventListener('close',()=>dialog.remove());document.body.appendChild(dialog);dialog.showModal();
 }
 
@@ -11551,6 +11551,7 @@ function render(){
     else if(appState === 'photoReview') renderPhotoReviewScreen();
     else if(appState === 'announcements') renderAnnouncementsScreen();
     else if(appState === 'suggestions') renderSuggestionsScreen();
+    else if(appState === 'cardSales') renderCardSalesScreen();
     else if(appState === 'adminDashboard') renderAdminDashboardScreen();
     else if(appState === 'diagramEditor') renderDiagramEditorScreen();
     else if(appState === 'hub') renderHubScreen();
@@ -12067,5 +12068,6 @@ if ('serviceWorker' in navigator) {
 }
 </script>
 
+<script src="card-sales-core.js"></script><script src="card-sales-ui.js"></script>
 </body>
 </html>
