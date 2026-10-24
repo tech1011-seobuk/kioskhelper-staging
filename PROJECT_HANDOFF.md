@@ -509,3 +509,5 @@ Camera model/color back and non-camera replacement back now return to symptoms w
 - 비교 코드: card-sales-core.js. 엑셀 파서: card-sales-xlsx.js (기존 점검 도구의 SheetJS). 관리자 화면: card-sales-ui.js.
 - npm run build 및 기존 테스트 115개 통과. 실제 제공 파일에서 288개 중 259개 확인, 29개 미발생을 별도 검증했습니다.
 - 본 서버에는 배포하지 않았습니다.
+
+- 사용자 요청으로 수원 행궁2호점·대구 동성로3호점·제주 제주시청2호점의 하이앵글 부스만 기준 제외. 일반 부스 유지. 현재 83개 지점 285개 부스. 동일 매출 파일의 확인 필요는 26개.
